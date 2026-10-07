@@ -210,7 +210,7 @@ T5, T6, T7, T8 are **not** attempted this session.
 
 ---
 
-## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2; §4.8–4.9 session 3; §4.10 session 4)
+## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2; §4.8–4.9 session 3; §4.10 session 4; §4.11 session 5)
 
 ### 4.1 Trivial oracle, binary alphabet (the form asked for in the session brief)
 
@@ -937,6 +937,300 @@ Not stated this session (by instruction): T6 `separation : ∃ B, ¬ PEqNP B` (i
 
 ---
 
+### 4.11 Statements for session 5: the collapse oracle, A1–A3, in the form the §5 proof uses
+
+Written before any Lean. Plan items: PLAN §6.4 A1–A3, §4.1 (D6, decided 2026-10-07), schedule
+§6.10. Everything below is in namespace `Relativization`; the oracle internals are in
+`Relativization.Univ`, the counter view in `Relativization.Counter`.
+
+**How the final collapse proof will use this (A5/A6, not this session).** Assume
+`L ∈ NP^A` for `A = univOracle`: a certificate alphabet `Γ₁`, a relation `R`, an exponent `k`,
+a function `f` with a polynomial-time oracle decider `h` for `f` under `A` on `w#y`, and
+`∀ w, L w ↔ ∃ y, |y| ≤ |w|^k ∧ R w y`, `R w y ↔ f (w, y) = true`. N4v'
+(`exists_vcode_of_verifier h k`) gives `i` with `k_i = k` and `ρ : Γ₁ ≃ Fin g_i` such that
+`h.tm` and `M_i` have the same outputs within the same time under every oracle on `w#y` /
+`w#ρ(y)`. With `T(n) ≥ μ_i(n) + (D_i + 1) · p(μ_i(n))` and `pad w := frame i (T |w|) w.reverse`,
+the budget of `pad w` is at least `p(μ_i(|w|))`, so for every `y'` with `|y'| ≤ |w|^k`, `M_i^A`
+outputs `[f(w, ρ⁻¹ y')]` on `w#y'` within the budget (N4v' with `O := A`), and by F4' it
+outputs `[true]` within the budget iff `f(w, ρ⁻¹ y') = true`. Then `pad w ∈ A` iff (†)
+`Phi A (pad w)` iff (`Phi_frame`) `Acc A i (T |w|) w.reverse` iff
+`∃ y', |y'| ≤ |w|^k ∧ f(w, ρ⁻¹ y') = true` iff `L w`. Composition with the `pad` machine (A4)
+and T3 gives `L ∈ P^A`. The one property of `A` this uses is (†) below, at `x = pad w`, with
+the oracle `A` itself on both sides.
+
+#### A1: frames (`Relativization/Frame.lean`)
+
+Plan form (§6.4 A1): "`decode (frame i T v) = (i, T, v)`, length of `frame`". True as written
+(`decode` returns an `Option`, so `= some (i, T, v)`), and not enough on its own: Proposition 5
+and (†) need the converse, `decode x = some (i, T, v) → x = frame i T v`, to read `|x|` off the
+decoded data. Both directions are stated.
+
+```lean
+/-- `frame i T v = 1^i 0 1^T 0 v`. -/
+def frame (i T : ℕ) (v : List Bool) : List Bool :=
+  List.replicate i true ++ false :: (List.replicate T true ++ false :: v)
+theorem frame_length (i T : ℕ) (v : List Bool) : (frame i T v).length = i + T + v.length + 2
+
+/-- The number of leading `true`s, and the list after them. -/
+def ones : List Bool → ℕ
+def dropOnes : List Bool → List Bool
+theorem replicate_ones_append_dropOnes (x : List Bool) :
+    List.replicate (ones x) true ++ dropOnes x = x
+
+/-- `decode x = some (i, T, v)` iff `x = frame i T v`. -/
+def decode (x : List Bool) : Option (ℕ × ℕ × List Bool)
+theorem decode_frame (i T : ℕ) (v : List Bool) : decode (frame i T v) = some (i, T, v)
+theorem eq_frame_of_decode {x : List Bool} {i T : ℕ} {v : List Bool}
+    (h : decode x = some (i, T, v)) : x = frame i T v
+theorem decode_eq_some_iff {x : List Bool} {i T : ℕ} {v : List Bool} :
+    decode x = some (i, T, v) ↔ x = frame i T v
+theorem frame_inj {i T i' T' : ℕ} {v v' : List Bool} (h : frame i T v = frame i' T' v') :
+    i = i' ∧ T = T' ∧ v = v'
+theorem length_of_decode {x : List Bool} {i T : ℕ} {v : List Bool}
+    (h : decode x = some (i, T, v)) : x.length = i + T + v.length + 2
+```
+
+#### A2: the oracle `A` (`Relativization/Univ.lean`)
+
+Plan form (§6.4 A2): "`univOracle` by levels; fixpoint equation
+`x ∈ A ↔ Φ (A ∩ {|z| < |x|}) x`". The levels are those of §5.4; the displayed equation is (★)
+of §5.4. **(★) is true as written and too weak as the interface for A5**: §5.7 uses (†)
+`x ∈ A ↔ Φ(A, x)` (PLAN §4.1 states (†) as well, citing §5.6; the §6.4 row only lists (★)).
+The corrected form is (†). It is proved from (★) and the claim "truncation is invisible" of
+§5.6, which is Proposition 5 (§5.5) plus the sharp locality lemma in its query-set form L4'/L6'
+(`iter_congr_queries`, `outputsInTime_congr_queries`, session 4). Both (★) and (†) are stated
+and proved below. Nothing in the proof of (†) is unproved at the start of this session except
+Proposition 5 (arithmetic) and the elementary level lemmas; in particular no fixpoint theorem
+is used: `A` is a primitive recursion on length and (†) is a consequence.
+
+**The data of code `i`** (D6, §5.4; read off N4v as §4.6 explains): `M_i :=
+(vEnum i).N.toOracleFinTM2`, `g_i := (vEnum i).g`, `k_i := (vEnum i).k`, `D_i := M_i.depth`,
+and the alphabet equivalences `(vEnum i).inE`, `(vEnum i).outE`.
+
+```lean
+namespace Univ
+/-- The machine of verifier code `i`. -/
+noncomputable abbrev M (i : ℕ) : OracleFinTM2 := (vEnum i).N.toOracleFinTM2
+/-- `μ_i(n) = n + 1 + n^{k_i}`: the longest verifier input `w#y` with `|w| = n`, `|y| ≤ n^{k_i}`. -/
+noncomputable def mu (i n : ℕ) : ℕ := n + 1 + n ^ (vEnum i).k
+/-- **D6.** The step budget `⌊(T ∸ μ_i(n)) / (D_i + 1)⌋`. -/
+noncomputable def budget (i T n : ℕ) : ℕ := (T - mu i n) / ((M i).depth + 1)
+/-- `w#y` as the machine of code `i` reads it. -/
+noncomputable def input (i : ℕ) (w : List Bool) (y : List (Fin (vEnum i).g)) :
+    List (Fin ((vEnum i).N.a (vEnum i).N.k₀)) :=
+  ((pair_encoding (fin_encoding_string Bool) (fin_encoding_string (Fin (vEnum i).g))).encode
+    (w, y)).map (vEnum i).inE.symm
+theorem input_length (i : ℕ) (w : List Bool) (y : List (Fin (vEnum i).g)) :
+    (input i w y).length = w.length + 1 + y.length
+
+/-- `Acc O i T v`: some certificate `y ∈ [g_i]*` with `|y| ≤ |v|^{k_i}` makes `M_i^O` output
+`[true]` on `v.reverse # y` within the budget `⌊(T ∸ μ_i(|v|)) / (D_i + 1)⌋`. -/
+def Acc (O : Oracle) (i T : ℕ) (v : List Bool) : Prop :=
+  ∃ y : List (Fin (vEnum i).g), y.length ≤ v.length ^ (vEnum i).k ∧
+    Nonempty (OTM2OutputsInTime O (M i) (input i v.reverse y)
+      (some [(vEnum i).outE.symm true]) (budget i T v.length))
+
+/-- The membership condition `Φ(O, x)` of §5.4: `x` is a frame `frame i T v` and `Acc O i T v`. -/
+def Phi (O : Oracle) (x : List Bool) : Prop :=
+  ∃ i T v, decode x = some (i, T, v) ∧ Acc O i T v
+theorem Phi_frame (O : Oracle) (i T : ℕ) (v : List Bool) : Phi O (frame i T v) ↔ Acc O i T v
+
+/-- The levels `A_0 = ∅`, `A_{m+1} = A_m ∪ {x | |x| = m ∧ Φ(A_m, x)}`. -/
+def level : ℕ → Oracle
+  | 0 => ∅
+  | m + 1 => level m ∪ {x | x.length = m ∧ Phi (level m) x}
+end Univ
+
+/-- **D6.** The oracle `A = ⋃_m A_m`. -/
+def univOracle : Oracle := {x | ∃ m, x ∈ Univ.level m}
+```
+
+**The exact self-referential equation** (†), Theorem 6 of §5.6, in Lean:
+
+```lean
+theorem Univ.mem_univOracle (x : List Bool) : x ∈ univOracle ↔ Univ.Phi univOracle x
+```
+
+Unfolding `Phi` and `Acc`: `x ∈ A ↔ ∃ i T v, decode x = some (i, T, v) ∧ ∃ y : List (Fin g_i),
+|y| ≤ |v|^{k_i} ∧ Nonempty (OTM2OutputsInTime A M_i (input i v.reverse y) (some [outE.symm true])
+((T ∸ (|v| + 1 + |v|^{k_i})) / (D_i + 1)))`. The oracle on the right is `A` itself, untruncated.
+
+**The exact well-definedness claim.** `A` is not defined by (†); it is defined by the
+primitive recursion `level` on the length `m`, which needs no side condition, and (†) is then
+*proved*. What makes (†) provable is Proposition 5 of §5.5, in Lean:
+
+```lean
+/-- **Proposition 5.** Every query asked within the budget, on every admissible certificate,
+under every oracle, is strictly shorter than the frame. -/
+theorem Univ.length_lt_of_mem_queries {O : Oracle} {i T : ℕ} {v : List Bool}
+    {y : List (Fin (vEnum i).g)} (hy : y.length ≤ v.length ^ (vEnum i).k) {z : List Bool}
+    (hz : z ∈ (Univ.M i).queries O (Univ.input i v.reverse y) (Univ.budget i T v.length)) :
+    z.length < (frame i T v).length
+```
+
+The bound used, with `β = budget i T |v|`, `D = D_i`, `μ = μ_i(|v|)`:
+
+* if `β = 0`: `(M i).queries O l 0 = ∅` (`Finset.range 0`), so there is nothing to prove. This
+  is the budget-0 case of PLAN §7.4 item 3: the length-form bound `μ ≤ |x|` would be false
+  here (take `T = 0`), and only the sharp form (queries actually asked) works;
+* if `β ≥ 1`: L3 for the query set (`length_le_of_mem_queries`) gives `|z| ≤ |input| + β · D`
+  with `|input| = |v| + 1 + |y| ≤ μ`; `β · (D + 1) ≤ T ∸ μ` (`Nat.div_mul_le_self`) with
+  `β ≥ 1` gives `T ≥ μ + β · D + β > μ + β · D`; and `T < i + T + |v| + 2 = |frame i T v|`. So
+  `|z| ≤ μ + β · D < T < |x|`, with margin at least `i + |v| + 3`.
+
+This is the bound of §5.5 with `j · D_i` (`j < β`) replaced by the coarser `β · D_i` of L3 for
+the query set; the slack `β ≥ 1` absorbs the difference.
+
+**The fixpoint argument: full statement and proof, checked line by line against the Lean
+definitions.**
+
+Statement. (a) `∀ x, x ∈ univOracle ↔ Phi (univOracle ∩ {z | z.length < x.length}) x` (★);
+(b) `∀ x, x ∈ univOracle ↔ Phi univOracle x` (†); (c) `∀ B : Oracle, (∀ x, x ∈ B ↔ Phi B x) →
+B = univOracle` (uniqueness, the second half of Theorem 6; not needed for T5, cheap).
+
+```lean
+namespace Univ
+theorem mem_level_succ (m : ℕ) (x : List Bool) :
+    x ∈ level (m + 1) ↔ x ∈ level m ∨ (x.length = m ∧ Phi (level m) x)
+theorem length_lt_of_mem_level {m : ℕ} {x : List Bool} (h : x ∈ level m) : x.length < m
+theorem level_mono : Monotone level
+theorem mem_level_iff_of_lt {m m' : ℕ} {x : List Bool} (hx : x.length < m) (h : m ≤ m') :
+    x ∈ level m' ↔ x ∈ level m
+theorem mem_univOracle_iff_level (x : List Bool) : x ∈ univOracle ↔ x ∈ level (x.length + 1)
+theorem univOracle_inter_eq_level (m : ℕ) : univOracle ∩ {z | z.length < m} = level m
+/-- (★), the plan's form. -/
+theorem mem_univOracle_iff_trunc (x : List Bool) :
+    x ∈ univOracle ↔ Phi (univOracle ∩ {z | z.length < x.length}) x
+/-- Truncation is invisible: `Acc O i T v` and `Phi O x` depend on `O` only below the frame. -/
+theorem Acc_congr {O O' : Oracle} (i T : ℕ) (v : List Bool)
+    (h : ∀ z : List Bool, z.length < (frame i T v).length → (z ∈ O ↔ z ∈ O')) :
+    Acc O i T v ↔ Acc O' i T v
+theorem Phi_congr {O O' : Oracle} (x : List Bool)
+    (h : ∀ z : List Bool, z.length < x.length → (z ∈ O ↔ z ∈ O')) : Phi O x ↔ Phi O' x
+/-- (†), Theorem 6 of §5.6: the self-referential equation. -/
+theorem mem_univOracle (x : List Bool) : x ∈ univOracle ↔ Phi univOracle x
+/-- Uniqueness. -/
+theorem eq_univOracle_of_fixpoint {B : Oracle} (hB : ∀ x, x ∈ B ↔ Phi B x) : B = univOracle
+end Univ
+```
+
+Proof, checked against `Oracle.lean` (D1, D2), `Queries.lean` (L3, L4', L6'), `Codes.lean`
+(`VCode`, `vEnum`, N4v') and D6 above:
+
+1. *Levels.* `level (m + 1) = level m ∪ {x | x.length = m ∧ Phi (level m) x}` by `rfl`.
+   `length_lt_of_mem_level` by induction on `m` (`level 0 = ∅`; an element of `level (m + 1)`
+   is in `level m`, so of length `< m`, or has length `= m`). `level_mono` from
+   `level m ⊆ level (m + 1)` (`Set.subset_union_left`). `mem_level_iff_of_lt`: induction on
+   `m' ≥ m`; the strings a level `m'' ≥ m` adds have length `m'' ≥ m > |x|`.
+2. *(★).* `x ∈ univOracle ↔ ∃ m, x ∈ level m ↔ x ∈ level (|x| + 1)`: `→` by
+   `length_lt_of_mem_level` (`|x| < m`, i.e. `|x| + 1 ≤ m`) and `mem_level_iff_of_lt`; `←`
+   trivial. Then `mem_level_succ` at `m = |x|`: the disjunct `x ∈ level |x|` is impossible
+   (`length_lt_of_mem_level`), the other is `|x| = |x| ∧ Phi (level |x|) x`. Finally
+   `level |x| = univOracle ∩ {z | |z| < |x|}` by `Set.ext` from `mem_univOracle_iff_level` and
+   `mem_level_iff_of_lt` (`univOracle_inter_eq_level`). This is (★) with `Φ := Phi`, PLAN
+   §6.4's A2 equation word for word.
+3. *`Acc_congr`, `Phi_congr`.* For each `y` with `|y| ≤ |v|^{k_i}` apply **L6'**
+   `(M i).outputsInTime_congr_queries (input i v.reverse y) (some [outE.symm true])
+   (budget i T |v|)` with `A := O`, `A' := O'`; its hypothesis
+   `∀ z ∈ (M i).queries O (input i v.reverse y) (budget i T |v|), (z ∈ O ↔ z ∈ O')` is
+   Proposition 5 (`|z| < |frame i T v|`) followed by `h`. L6' is an iff, so both directions of
+   `Acc O i T v ↔ Acc O' i T v` follow by `exists_congr`. `Phi_congr`: unfold `Phi`; for fixed
+   `(i, T, v)` with `decode x = some (i, T, v)`, A1 gives `x = frame i T v`, so the hypothesis of
+   `Acc_congr` is `h`. Checked: L6' is stated for `l : List (tm.Γ tm.k₀)`, and `M i` is a
+   `noncomputable abbrev` (as `Stage.M`), so `(M i).Γ (M i).k₀` is reducibly
+   `Fin ((vEnum i).N.a (vEnum i).N.k₀)`, the type of `input i w y` (§10.4 item 6); the `t` of
+   L6' is the budget itself, the `t` of `Acc`; L6' needs `tm.queries A l t` for the *first*
+   oracle `A := O`, which is the set Proposition 5 bounds; the depth in
+   `length_le_of_mem_queries` is `(M i).depth`, the `D_i` of `budget`.
+4. *(†).* (★) and `Phi_congr` with `O := univOracle ∩ {z | |z| < |x|}`, `O' := univOracle`,
+   whose hypothesis is `z ∈ univOracle ∧ |z| < |x| ↔ z ∈ univOracle` for `|z| < |x|`, trivial.
+   This is Theorem 6 (existence) of §5.6.
+5. *Uniqueness.* With `hB`, show `∀ m x, |x| < m → (x ∈ B ↔ x ∈ level m)` by induction on
+   `m`: `m = 0` vacuous; at `m + 1` with `|x| < m` use the induction hypothesis and
+   `mem_level_iff_of_lt`; with `|x| = m`, `x ∈ B ↔ Phi B x` (`hB`) `↔ Phi (level m) x`
+   (`Phi_congr`, hypothesis from the induction hypothesis since `|z| < |x| = m`)
+   `↔ x ∈ level (m + 1)` (`mem_level_succ`, first disjunct impossible). Then `Set.ext` with
+   `mem_univOracle_iff_level`.
+
+Where the §5 proof's form could have failed and did not: (i) §5.6 says "by Proposition 5 every
+query asked in the first `β` steps is shorter than `x`"; the Lean query set `queries O l β` is
+exactly the queries asked at steps `0, …, β − 1` plus the junk value `[]` (§10.4 item 2), which
+is shorter than any frame, so nothing is lost; (ii) §5.5's bound `μ + j · D_i` for `j < β` is
+replaced by `μ + β · D_i` from L3 for the query set, still `< T` by the slack `β` (above);
+(iii) the case `β = 0` is covered by `Finset.range 0 = ∅`, not by a length bound; (iv) the
+oracle-independence of codes (§5.3 item 1) holds because `vEnum` is a closed term and `M`,
+`mu`, `budget`, `input` mention no oracle; (v) no `Decidable` instance is needed: `Phi` is a
+`Prop` in a set-builder, as in `Stage.step` (§10.4 item 3); (vi) (†) is an equation between
+`Prop`s for every `x`, not a statement about a least or greatest fixpoint, and nothing
+monotone in `O` is claimed or needed (`Phi` is not monotone in `O`: a verifier may accept
+because a query is answered *no*).
+
+Nothing in A2 depends on anything unproved: it uses A1, N2 (`vEnum`), L3/L4'/L6' for the query
+set (session 4) and `Finset` facts. F4', N4v' and `oracleComp` enter only in A5.
+
+#### A3: the counter view and the power loop (`Relativization/Counter.lean`)
+
+Plan form (§6.4 A3): "counter view and power loop, extracted from PvsNP, E, 450 ported lines".
+Adequate as written; made precise here. Source: `D:\PvsNP` at `c271016`, `D3OneHot.lean`
+section `[LIB]` (lines 25–225: `SK`, `SΓ`, `st`, `st_c`, `st_out`, `update_st_c`,
+`update_st_nil`, `update_st_out`, `addU_nil`, `emitS`, `emitOut`, `incS`, `drainS`, `xferES`,
+`copyS`, `mulS`, `mulS_run`, `gapS`, `bud_st`, `st_eta`, `stLoop`) and `Pre.lean` section
+`[LIB]` (lines 35–210: `decS_pos`, `decS_zero`, `tg`, `tg_keys`, `tg_nodupKeys`, `dlookup_tg`,
+`dlookup_tg_out`, `xf`, `xferS`, `PW`, `powS`, `powB`, `pow_run`), plus the stage type `MS`
+(`D3Fam.lean` line 302) and `outputsOfRunLe` (`Pkg.lean` lines 307–312). Both sections depend
+only on `Prog` (ported verbatim in session 3) and Mathlib, so they are copied verbatim under one
+namespace `Relativization.Counter`; `D:\PvsNP` is not modified. The logs will carry the diff of
+the bodies, as `logs/session3-port-diff.txt` did.
+
+```lean
+namespace Relativization.Counter
+/-- Stages of the multiplication loop. -/
+inductive MS | head | body | l2 | rest
+/-- Stacks of a counter machine: a Bool output and unit counters indexed by `C`. -/
+inductive SK (C : Type) | out | c (x : C)
+abbrev SΓ (C : Type) : SK C → Type          -- `.out ↦ Bool`, `.c _ ↦ Unit`
+/-- Stacks from counter values `f` and output `o`. -/
+def st (f : C → ℕ) (o : List Bool) : ∀ k, List (SΓ C k)
+-- wrappers: each restates a `Prog` primitive in the `st f o` view with an exact step count
+theorem emitS, emitOut, incS, drainS, xferES, copyS, mulS_run, gapS, decS_pos, decS_zero, xferS
+theorem stLoop                                 -- a runtime `for` loop in the counter view (`RunLe`)
+/-- Power-loop stages and program: `p ← p · b^kc`. -/
+inductive PW | hd | mul (s : MS) | drn | mv
+def powS (b kc p q ad t : C) (mk : PW → Λ) (exit : Λ) : PW → TM2.Stmt (SΓ C) Λ Bool
+def powB (j p b : ℕ) : ℕ := j * (p * (b + 1) ^ j * (3 * b + 5) + 5) + 1
+/-- **The power loop.** From `kc = j`, `q = ad = t = 0`: ends with `p ← p · b^j`, `kc = 0`,
+within `powB j (F p) (F b)` steps. -/
+theorem pow_run {b kc p q ad t : C} {mk : PW → Λ} {exit : Λ}
+    (hp : ∀ s, M (mk s) = powS b kc p q ad t mk exit s) (hnd : [b, kc, p, q, ad, t].Nodup) :
+    ∀ (j : ℕ) (F : C → ℕ), F kc = j → F q = 0 → F ad = 0 → F t = 0 →
+      ∀ (v : Bool) (o : List Bool),
+      RunLe M (powB j (F p) (F b)) ⟨some (mk .hd), v, st F o⟩
+        ⟨some exit, false, st (update (update F p (F p * F b ^ j)) kc 0) o⟩
+/-- A bounded run from `initList` to `haltList` is a `TM2OutputsInTime` certificate (PvsNP
+`Pkg.outputsOfRunLe`). -/
+noncomputable def _root_.Turing.TM2OutputsInTime.ofRunLe {tm : FinTM2} {l : List (tm.Γ tm.k₀)}
+    {l' : List (tm.Γ tm.k₁)} {B : ℕ} (h : RunLe tm.m B (initList tm l) (haltList tm l')) :
+    TM2OutputsInTime tm l (some l') B
+end Relativization.Counter
+```
+
+How A4 will use it (not this session): `pad w = frame i ((|w| + c')^d) w.reverse` is a plain
+machine with an input stack, the output stack and counters. The copy loop (input to output,
+counting `|w|`) is hand-written as `Sep.revTM` was; `(|w| + c')^d` is `emitS` (`c'` units) then
+`pow_run` with `p = 1`, `b = |w| + c'`, `kc = d`; the frame's `1^T` is `xferES` from the counter
+`p`, the constants are `emitOut`. The counter sub-machine has stacks `SK C` and is embedded into
+the host with the input stack through `Emb.run_embed` (plain host; PvsNP `Pre.lean` `[FULL]` is
+the template), or the view is given an input stack: A4's decision. `pow_run` is a `RunLe`, so
+the packaging is `TM2OutputsInTime.ofRunLe`, not `ofRun`.
+
+Two notes for the reviewer: `deriving DecidableEq, Fintype` on `SK`, `MS`, `PW` is copied from
+PvsNP; sessions 1–4 had no `deriving`. The handlers generate ordinary instances (listed in
+§11.4), checked by the kernel like any definition, on new types only. `nlinarith` (inside
+`pow_run`) is used for the first time in this repository.
+
+Not stated this session (by instruction): A4 (`pad`), A5, A6, T5–T8.
+
+---
 ## 5. Paper proof: the self-referential oracle is well defined and gives `P^A = NP^A`
 
 No Lean in this section. Everything here is to be formalised in later sessions (A1–A6) except
@@ -2068,5 +2362,285 @@ Sep.olean SAME b004c415b234932d33d7025328c104416eb924f01af127fc757bbe872dc72280
 ```
 
 (These twelve values are also the twelve of `logs/session3-olean-after.txt`.)
+
+`lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).
+
+## 11. Lemma table and checks (session 5, 2026-10-08)
+
+### 11.1 Files
+
+| File | Lines (non-blank) | Content |
+|---|---|---|
+| `Relativization/Frame.lean` | 102 (85) | A1: `frame`, `frame_length`, `ones`, `dropOnes`, `decode`, `decode_frame`, `eq_frame_of_decode`, `decode_eq_some_iff`, `frame_inj`, `length_of_decode` |
+| `Relativization/Univ.lean` | 204 (167) | D6: `Univ.M/mu/budget/input/Acc/Phi/level`, `univOracle` (1–80); A2: the level lemmas and (★) (81–139), Proposition 5 (140–160), `Acc_congr`, `Phi_congr`, (†) `mem_univOracle`, `eq_univOracle_of_fixpoint` (161–204) |
+| `Relativization/Counter.lean` | 416 (365) | A3: the counter view (`SK`, `SΓ`, `st`, wrappers, `mulS_run`, `gapS`, `stLoop`; 27–227) and the power loop (`decS_*`, `xferS`, `PW`, `powS`, `powB`, `pow_run`; 229–404), verbatim from PvsNP (337 non-blank); `MS` (24); `TM2OutputsInTime.ofRunLe` (409) |
+| `Relativization.lean` | 67 (55) | imports (+11 lines) |
+| **Session 5 total** | **722 (617) in the three new files; 626 non-blank with the root module: 337 verbatim, 289 new** | |
+| **Repository total** | **5,049 (4,268)** | 1,269 constants: 584 named, 685 auxiliary (same classification as sessions 2–4: 470 + 114 = 584) |
+
+Session 1–4 files are unchanged (byte for byte; the `.olean` of each of the fifteen earlier
+modules has the same SHA-256 before any change of this session and after the from-scratch
+rebuild, §11.5 (e)). `D:\PvsNP` was opened read-only (`sed`, `diff`); nothing there was
+written.
+
+### 11.2 Results asked for in the session brief
+
+All **proved**. Axioms are from the literal `#print axioms` output in §11.5.
+
+| Id | Lean name | File:line | Statement | Differences from §4.11 as first written | Axioms |
+|---|---|---|---|---|---|
+| A1 | `frame`, `frame_length` | Frame:14, 17 | `frame i T v = 1^i 0 1^T 0 v`; `|frame i T v| = i + T + |v| + 2` | none | none; `[propext, Quot.sound]` |
+| A1 | `decode`, `decode_frame` | Frame:59, 68 | `decode (frame i T v) = some (i, T, v)` | none | `[propext]` |
+| A1 | `eq_frame_of_decode`, `decode_eq_some_iff`, `frame_inj`, `length_of_decode` | Frame:72, 88, 92, 98 | the converse; `decode x = some (i, T, v) ↔ x = frame i T v`; `frame` injective; `|x|` from `decode x` | none | `[propext]` (×3); `[propext, Quot.sound]` |
+| D6 | `Univ.M`, `Univ.mu`, `Univ.budget`, `Univ.input` | Univ:32, 36, 39, 42 | `M_i`, `μ_i(n) = n + 1 + n^{k_i}`, `⌊(T ∸ μ_i(n)) / (D_i + 1)⌋`, `w#y` as `M_i` reads it | none | the three |
+| D6 | `Univ.Acc`, `Univ.Phi`, `Univ.Phi_frame` | Univ:53, 59, 62 | the membership condition `Φ(O, x)` of §5.4; `Phi O (frame i T v) ↔ Acc O i T v` | none | the three |
+| D6 | `Univ.level`, `univOracle` | Univ:72, 79 | `A_0 = ∅`, `A_{m+1} = A_m ∪ {x : |x| = m ∧ Φ(A_m, x)}`; `A = ⋃ A_m` | none | the three |
+| A2 (★) | `Univ.mem_univOracle_iff_trunc` | Univ:128 | `x ∈ A ↔ Φ(A ∩ {z : |z| < |x|}, x)`, PLAN §6.4's equation | none | the three |
+| A2, Prop. 5 | `Univ.length_lt_of_mem_queries` | Univ:141 | every query asked within the budget is shorter than the frame | none | the three |
+| A2 | `Univ.Acc_congr`, `Univ.Phi_congr` | Univ:164, 171 | truncation is invisible: `Phi O x` depends on `O` only below `|x|` | none | the three |
+| **A2 (†)** | **`Univ.mem_univOracle`** | **Univ:177** | **`x ∈ A ↔ Φ(A, x)`, Theorem 6 of §5.6** | none | the three |
+| A2 | `Univ.eq_univOracle_of_fixpoint` | Univ:181 | `A` is the only oracle satisfying (†) | none | the three |
+| A3 | `Counter.SK`, `SΓ`, `st`, `update_st_c/nil/out` | Counter:30, 35, 44, 53–65 | the counter view | none (verbatim) | none (×3); `[propext, Quot.sound]` (×3) |
+| A3 | `Counter.emitS`, `emitOut`, `incS`, `drainS`, `xferES`, `copyS`, `mulS_run`, `gapS`, `stLoop` | Counter:76–177 | `Prog` primitives in the counter view, exact step counts; the runtime loop | none (verbatim) | the three, except `incS`: `[propext, Quot.sound]` |
+| A3 | `Counter.decS_pos`, `decS_zero`, `xferS` | Counter:235, 242, 278 | decrement and multi-target transfer in the view | none (verbatim) | the three; `decS_pos`: `[propext, Quot.sound]` |
+| **A3** | **`Counter.pow_run`** (with `PW`, `powS`, `powB`) | **Counter:315** (297, 305, 312) | **`p ← p · b^j` within `powB j p b` steps** | none (verbatim) | the three (`PW`, `powS`: none; `powB`: `[propext]`) |
+| A3 | `Turing.TM2OutputsInTime.ofRunLe` | Counter:409 | a `RunLe` from `initList` to `haltList` is a time-bounded output | PvsNP `outputsOfRunLe`, renamed | the three |
+
+"The three" = `[propext, Classical.choice, Quot.sound]`.
+
+**Plan forms, assessed** (brief item 3). A1: true as written; the converse was added because
+A2 needs it (§4.11). A2: the plan's equation (★) is true as written and is proved
+(`mem_univOracle_iff_trunc`), but it is too weak as the interface for A5, which needs (†);
+(†) is proved (`mem_univOracle`), and the proof of (†) from (★) uses only session-4 results
+(L3/L6' for the query set) and Proposition 5. The fixpoint form in PLAN §4.1 ("then satisfies
+the untruncated equation") is therefore correct and is now a theorem; it was not false, not
+too weak, and did not depend on anything unproved beyond the arithmetic of Proposition 5. A3:
+adequate as written; the exact content ported is listed in §4.11. No session 1–4 definition was
+changed, and no hypothesis beyond the statements of §4.11 was needed.
+
+### 11.3 Supporting declarations (all proved; names as in the files)
+
+| File | Declarations |
+|---|---|
+| Frame | `ones_replicate`, `dropOnes_replicate`, `replicate_ones_append_dropOnes` |
+| Univ | `Univ.input_length`, `mem_level_succ`, `length_lt_of_mem_level`, `level_mono`, `mem_level_iff_of_lt`, `mem_univOracle_iff_level`, `univOracle_inter_eq_level` |
+| Counter (verbatim) | `MS`, `st_c`, `st_out`, `addU_nil`, `mulS`, `bud_st`, `st_eta`, `tg`, `tg_keys`, `tg_nodupKeys`, `dlookup_tg`, `dlookup_tg_out`, `xf`, the derived instances `instDecidableEqMS`, `instFintypeMS`, `instDecidableEqSK`, `instFintypeSK`, `instDecidableEqPW`, `instFintypePW` (and the auto-generated `xf.congr_simp`, `SK.proxyType`, `PW.proxyType`, `MS.enumList`, …) |
+
+### 11.4 Things a reviewer should know
+
+1. **(★) and (†).** The levels give (★) with the oracle truncated below `|x|`; (†) with the
+   untruncated oracle is what A5 will use (§4.11, "How the final collapse proof will use
+   this"). The step between them, `Phi_congr`, is one application of L6'
+   (`outputsInTime_congr_queries`) per certificate, whose hypothesis is discharged by
+   Proposition 5. The machine is named explicitly in these applications
+   (`(M i).outputsInTime_congr_queries _ _ _ …`, `(M i).length_le_of_mem_queries hz`), as the
+   session-4 elaboration note (§10.4 item 5) advises.
+2. **Budget 0.** `Univ.length_lt_of_mem_queries` first shows `0 < budget`: if the budget is 0
+   the query set `(M i).queries O l 0 = (Finset.range 0).image _` is empty, so the membership
+   hypothesis is absurd. For `budget ≥ 1` the bound is `|z| ≤ μ + β·D < μ + β·D + β ≤ T < |x|`,
+   with `Nat.div_mul_le_self` for `β·(D+1) ≤ T ∸ μ` and `Nat.mul_succ` to expose the atom
+   `β·D` that L3 produces, then `omega`. This is the "locality argument with budget 0" of
+   §7.4 item 3: the length form L5/L6 would need `μ ≤ |x|`, which fails for small `T`.
+3. **Global instances added: six, all derived, on the three new inductive types** of the port:
+   `Counter.instDecidableEqMS`, `instFintypeMS`, `instDecidableEqSK`, `instFintypeSK`,
+   `instDecidableEqPW`, `instFintypePW`, from the `deriving DecidableEq, Fintype` clauses copied
+   from PvsNP (`Counter.lean` 25, 33, 302). Sessions 1–4 had no `deriving`; the handlers
+   generate ordinary definitions, kernel-checked and axiom-free (`#[]` in the audit log). Two
+   global `@[simp]` lemmas, `Counter.st_c` and `st_out` (49, 51), are also verbatim. No earlier
+   module can see any of these (new types; no earlier module imports a new one), confirmed by
+   the olean hashes, §11.5 (e). No `attribute`, `@[reducible]`, `set_option`, macros, syntax,
+   elaborators or `#eval`. The new `abbrev`s are `Univ.M` and `Counter.SΓ` (verbatim).
+4. **The port is verbatim**, `logs/session5-port-diff.txt`: `diff` of `Counter.lean` against the
+   concatenation of `D3OneHot.lean` 25–225 and `Pre.lean` 35–210 shows only the header hunk
+   (`0a1,26`: imports, module docstring, namespace, `MS`) and the tail hunk (`378a405,416`: the
+   packaging section and `end`). `MS` is identical to `D3Fam.lean` 301–303; `ofRunLe` differs
+   from `Pkg.lean` 307–313 by its name (`_root_.Turing.TM2OutputsInTime.ofRunLe`) and one
+   re-wrapped binder line. The one addition to the imports is `Mathlib.Tactic.Linarith`:
+   `pow_run` ends with `nlinarith`, which `Prog`'s import closure does not provide (PLAN §6.11
+   item 17). `nlinarith` is the first use of a `linarith`-family tactic in the repository.
+5. **`eq_`-named declarations and the audit.** The audit's auxiliary rule (a name component
+   starting with `eq_`, for the compiler's `eq_1` equation lemmas) also catches
+   `eq_frame_of_decode` and `eq_univOracle_of_fixpoint`, so they are absent from the generated
+   `#print axioms` file; they are printed in a supplement appended to the same log (§11.5 (b))
+   and are in the all-constants log (`[propext]` and the three). The named count 114 excludes
+   them, as `Sep.mk` was excluded in session 3.
+6. **`Phi` and `level` are plain `def`s** (a `Prop`, and a set by primitive recursion), as
+   `Stage.acc` and `sepOracle` were; `M`, `mu`, `budget`, `input` are `noncomputable` because
+   they mention `vEnum`. `decode` is total: `none` on strings that are not frames, so
+   `Phi O x` is simply false there.
+7. **Hidden implicit types, again.** `input_length` cannot be proved by `rw [List.length_map,
+   pair_encoding.length_eq]` (the rewritten goal is not type-correct at instance transparency:
+   `(pair_encoding …).Γ` versus `pairΓ`); the term
+   `(List.length_map _).trans (pair_encoding.length_eq _ _ _)` type-checks at default
+   transparency. Two more tooling notes: `induction h` on `h : m ≤ m'` leaves `Nat.le`
+   hypotheses that `omega` does not read (`mem_level_iff_of_lt` inducts on the difference
+   instead); a `match` in a hypothesis is split with `split at h`, since `generalize … at h`
+   leaves the matcher untouched (`eq_frame_of_decode`).
+8. **Uniqueness** (`eq_univOracle_of_fixpoint`) is not needed for T5; it is the second half of
+   Theorem 6 and cost 20 lines, so it is proved to close §5.6 completely.
+9. **Not done, by instruction:** A4 (`pad`), A5, A6, T5–T8. The open design point for A4 is
+   recorded in §4.11 (embed the counter sub-machine with `Emb.run_embed`, or give the counter
+   view an input stack); `pow_run` is a `RunLe`, so `TM2OutputsInTime.ofRunLe` is the packaging.
+   `Pkg.eval_le_pow` (PvsNP, 30 lines) is not yet ported; A5 needs it.
+
+### 11.5 Check outputs
+
+Full logs are in `logs/`: `session5-axioms-all.txt`, `session5-print-axioms.txt`,
+`session5-build.txt`, `session5-scan.txt`, `session5-olean-before.txt`,
+`session5-olean-after.txt`, `session5-port-diff.txt`. The audit scripts are outside the
+repository (scratchpad).
+
+**(a) Every constant, read-only audit** (`Lean.collectAxioms` over every constant whose module
+is `Relativization*`, as in sessions 1–4). Last lines of `logs/session5-axioms-all.txt`:
+
+```
+TOTAL constants in Relativization modules: 1269 (584 named, 685 auxiliary)
+named in new modules (Frame, Univ, Counter): 114
+UNION of axioms used: #[propext, Classical.choice, Quot.sound]
+CONSTANTS using anything outside [propext, Classical.choice, Quot.sound]: #[]
+```
+
+Per module: 33 constants in `Frame`, 36 in `Univ`, 167 in `Counter`
+(`grep -c "^Relativization.Frame "` etc. on the log).
+
+**(b) Literal `#print axioms` on each of the 114 named declarations of the three new
+modules, plus the two `eq_`-named ones** (`logs/session5-print-axioms.txt`, 114 + 2 output
+lines, 0 errors). Distribution of the 114 (`sed -E "s/^'[^']*' //" | sort | uniq -c`):
+
+```
+     38 depends on axioms: [propext, Classical.choice, Quot.sound]
+     11 depends on axioms: [propext, Quot.sound]
+      8 depends on axioms: [propext]
+     57 does not depend on any axioms
+```
+
+`grep -c sorryAx` on both logs prints `0` and `0`. The results of §11.2:
+
+```
+'Relativization.frame' does not depend on any axioms
+'Relativization.frame_length' depends on axioms: [propext, Quot.sound]
+'Relativization.decode' depends on axioms: [propext]
+'Relativization.decode_frame' depends on axioms: [propext]
+'Relativization.decode_eq_some_iff' depends on axioms: [propext]
+'Relativization.frame_inj' depends on axioms: [propext]
+'Relativization.length_of_decode' depends on axioms: [propext, Quot.sound]
+'Relativization.Univ.M' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mu' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.budget' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.input' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Acc' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Phi' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Phi_frame' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.level' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.univOracle' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mem_univOracle_iff_trunc' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.length_lt_of_mem_queries' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Acc_congr' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Phi_congr' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mem_univOracle' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.SK' does not depend on any axioms
+'Relativization.Counter.st' does not depend on any axioms
+'Relativization.Counter.emitS' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.xferES' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.mulS_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.stLoop' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.pow_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+and the supplement (the two names the audit rule classes as auxiliary):
+
+```
+== supplement: the two new declarations whose name starts with eq_ (classed auxiliary by the audit rule) ==
+'Relativization.eq_frame_of_decode' depends on axioms: [propext]
+'Relativization.Univ.eq_univOracle_of_fixpoint' depends on axioms: [propext, Classical.choice, Quot.sound]
+exit: 0
+```
+
+(`Turing.TM2OutputsInTime.ofRunLe` is among the 38 with the three.)
+
+**(c) Banned-token scan** over `Relativization.lean` and `Relativization/*.lean`, the same three
+scans as §7.5 (c) (`logs/session5-scan.txt`):
+
+```
+== banned tokens (whole word) in project Lean sources ==
+grep exit: 1 (1 = no match)
+== metaprogramming / environment-modifying markers ==
+Relativization/Comp.lean:27:attribute [local instance] FinTM2.kFin FinTM2.ΛFin FinTM2.σFin FinTM2.Γk₀Fin
+Relativization/Comp.lean:39:@[reducible] def CΓ : CK M₁ M₂ → Type
+Relativization/Counter.lean:25:  deriving DecidableEq, Fintype
+Relativization/Counter.lean:33:  deriving DecidableEq, Fintype
+Relativization/Counter.lean:49:@[simp] theorem st_c (f : C → ℕ) (o : List Bool) (x : C) : st f o (.c x) = cnt () (f x) := rfl
+Relativization/Counter.lean:51:@[simp] theorem st_out (f : C → ℕ) (o : List Bool) : st f o .out = o := rfl
+Relativization/Counter.lean:302:  deriving DecidableEq, Fintype
+Relativization/Normal.lean:96:attribute [local instance] OracleFinTM2.kFin OracleFinTM2.ΛFin OracleFinTM2.σFin
+Relativization/Oracle.lean:261:attribute [local instance] OracleFinTM2.ΛFin
+Relativization/Plain.lean:23:attribute [local instance] FinTM2.kFin
+Relativization/Plain.lean:28:@[reducible] def PΓ : Option M.K → Type
+Relativization/Prog.lean:49:attribute [simp] Flag.untag_tag
+Relativization/Prog.lean:93:@[simp] theorem cnt_length {α : Type} (u : α) (n : ℕ) : (cnt u n).length = n :=
+Relativization/Prog.lean:98:@[simp] theorem cnt_zero {α : Type} (u : α) : cnt u 0 = [] := rfl
+Relativization/Prog.lean:656:@[simp] theorem rep_zero {α : Type} (ys : List α) : rep ys 0 = [] := rfl
+grep exit: 0
+== opaque / unsafeCast / debug markers ==
+grep exit: 1
+```
+
+The ten hits of §10.5 (c) plus the five verbatim lines of `Counter.lean` (§11.4 item 3);
+`Frame.lean` and `Univ.lean` contribute none.
+
+**(d) `lake build`**, after deleting this project's own build artifacts
+(`.lake/build/lib/lean/Relativization*`, `.lake/build/ir/Relativization*`) so that every module
+was recompiled (`logs/session5-build.txt`; `grep -c -i -E "warning|error"` on it prints `0`):
+
+```
+✔ [1323/1339] Built Relativization.Count (11s)
+✔ [1324/1339] Built Relativization.Classes (12s)
+✔ [1325/1339] Built Relativization.Halt (12s)
+✔ [1326/1339] Built Relativization.Normal (12s)
+✔ [1327/1339] Built Relativization.Queries (12s)
+✔ [1328/1339] Built Relativization.Prog (13s)
+✔ [1329/1339] Built Relativization.Plain (11s)
+✔ [1330/1339] Built Relativization.Comp (12s)
+✔ [1331/1339] Built Relativization.Codes (12s)
+✔ [1332/1339] Built Relativization.Self (12s)
+✔ [1333/1339] Built Relativization.Emb (16s)
+✔ [1334/1339] Built Relativization.Counter (16s)
+✔ [1335/1339] Built Relativization.Sep (10s)
+✔ [1336/1339] Built Relativization.Univ (10s)
+✔ [1337/1339] Built Relativization.Stage (8.8s)
+✔ [1338/1339] Built Relativization (8.4s)
+Build completed successfully (1339 jobs).
+
+real	1m7.352s
+user	0m0.015s
+sys	0m0.015s
+exit: 0
+```
+
+**(e) Earlier modules elaborate unchanged.** SHA-256 of each session 1–4 `.olean` before any
+change of this session (`logs/session5-olean-before.txt`) and after the from-scratch rebuild
+with the new modules present (`logs/session5-olean-after.txt`):
+
+```
+== olean hashes: earlier modules, before vs after the from-scratch rebuild ==
+*Classes.olean SAME 43f4554b909236c7463f66a59da5add30adb3f4084b8e48de414a2381efe3896
+*Codes.olean SAME c5e2c117e4ebe67f687ef83b1d8d2573830c2ad11aeb4b589ea22c352fd1bb8e
+*Comp.olean SAME c560c3c025efabecdee7f093bf9946eaf00f2e9cfa03fd52ce3836bea892daf8
+*Count.olean SAME 3221435b3f6dad351b0e01a73d991c923b6e25a3ee05ca4c4077825178625568
+*Countable.olean SAME d4012351737c0774a51826920bd5e637f07d5c135cc3b929966dc5d08aa6e351
+*Emb.olean SAME 7203cedb57039239eb3735ee203b3d00d4b141f5e6974c8f1bbda90077a0b42f
+*Halt.olean SAME bbec64145c811dcfdf6c5f1be0683a461b4c9478cf354a31201ecda23db125b5
+*Normal.olean SAME 292ec4f641ebb808ff8e37075405b7dea60e9f5ae22bf307e2a8b327de47c0a3
+*Oracle.olean SAME aba34f40f7e4fc0812b4a80bc0a42d472770e255cd15ff572793f04a5f8751da
+*Plain.olean SAME 538a20892c70be803e666d35140c75b811aca5ba27aa95032ef8ac94dc690561
+*Prog.olean SAME 9f91d8f0624f08e0a079ce2712a2bd5ec7f5d67053fa115d27386cc3a7b3ff7b
+*Queries.olean SAME 55dd84a847e3354d80daf7abe0563cc75fe312bd57ce7cc790c6a5dfdc58b7da
+*Self.olean SAME 2a154bef41f5362745a35ac188e0624a5afe435ffd3a9df2bad3f959aa019753
+*Sep.olean SAME b004c415b234932d33d7025328c104416eb924f01af127fc757bbe872dc72280
+*Stage.olean SAME ddb07f381ae1823929f6b436b631bea29cd76e27762072058fbe49242581761b
+```
+
+(The first twelve values are those of `logs/session4-olean-after.txt`; the three of `Count`,
+`Queries`, `Stage` are those of `logs/session5-olean-before.txt`, taken before any change.)
 
 `lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).

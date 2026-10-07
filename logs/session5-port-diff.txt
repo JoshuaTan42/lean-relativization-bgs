@@ -1,0 +1,54 @@
+== Relativization/Counter.lean against the PvsNP sources (D:\PvsNP, c271016) ==
+(1) whole file vs the concatenation of D3OneHot.lean 25-225, a blank line, Pre.lean 35-210:
+    expected hunks: 0a (new header, namespace, MS) and 378a (packaging section, end namespace)
+0a1,26
+> import Mathlib.Tactic.Linarith
+> import Relativization.Prog
+> 
+> /-!
+> # The counter view and the power loop (A3)
+> 
+> Ported from `D:\PvsNP` (commit `c271016`): the section `[LIB]` of `D3OneHot.lean` (the generic
+> counter-machine view: stacks `SK C` with a Bool output and unit counters, the stack builder
+> `st f o`, and each `Prog` primitive restated in that view with an exact step count, plus the
+> runtime `for` loop `stLoop`) and the section `[LIB]` of `Pre.lean` (decrement, multi-target
+> transfer and the power loop `pow_run`: `p ← p · b^j` within `powB j p b` steps), both verbatim
+> except for the module header and the namespace; the stage type `MS` of `D3Fam.lean`; and
+> `outputsOfRunLe` of `Pkg.lean` as `TM2OutputsInTime.ofRunLe`. `NOTES.md` §4.11.
+> 
+> The padding machine of the collapse half (A4) will compute `(|w| + c')^d` in unary with
+> `pow_run` and emit the frame with `xferES` and `emitOut`.
+> -/
+> 
+> namespace Relativization.Counter
+> 
+> open Relativization.Prog Turing Function
+> 
+> /-- Stages of a `mul_run` site. -/
+> inductive MS | head | body | l2 | rest
+>   deriving DecidableEq, Fintype
+> 
+378a405,416
+> 
+> /-! ## Packaging a bounded run (PvsNP `Pkg.outputsOfRunLe`) -/
+> 
+> /-- A bounded run from `initList` to `haltList` is a `TM2OutputsInTime` certificate. -/
+> noncomputable def _root_.Turing.TM2OutputsInTime.ofRunLe {tm : FinTM2} {l : List (tm.Γ tm.k₀)}
+>     {l' : List (tm.Γ tm.k₁)} {B : ℕ} (h : RunLe tm.m B (initList tm l) (haltList tm l')) :
+>     TM2OutputsInTime tm l (some l') B where
+>   steps := Classical.choose h
+>   evals_in_steps := (Classical.choose_spec h).2
+>   steps_le_m := (Classical.choose_spec h).1
+> 
+> end Relativization.Counter
+diff exit: 1
+(2) MS: Counter.lean 23-25 vs D3Fam.lean 301-303:
+diff exit: 0
+(3) ofRunLe: Counter.lean 408-414 vs Pkg.lean 307-313 (renamed and declared with _root_; the binder line re-wrapped):
+2,3c2,3
+< noncomputable def outputsOfRunLe {tm : FinTM2} {l : List (tm.Γ tm.k₀)} {l' : List (tm.Γ tm.k₁)}
+<     {B : ℕ} (h : RunLe tm.m B (initList tm l) (haltList tm l')) :
+---
+> noncomputable def _root_.Turing.TM2OutputsInTime.ofRunLe {tm : FinTM2} {l : List (tm.Γ tm.k₀)}
+>     {l' : List (tm.Γ tm.k₁)} {B : ℕ} (h : RunLe tm.m B (initList tm l) (haltList tm l')) :
+diff exit: 1

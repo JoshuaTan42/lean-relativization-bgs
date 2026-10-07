@@ -920,6 +920,84 @@ concentrated in A4 (`pad` on the counter view, §7 "`pad` on the counter view") 
 15. §6.6/§6.9 schedule: B3–B6 took one session, not two; T6 is deferred to the assembly by the
     session-4 brief, which keeps all of T5–T8 together.
 
+### 6.11 Revision after session 5 (2026-10-08)
+
+**Done in session 5:** A1 (`Frame`: frames and their decoding, both directions), A2 (`Univ`:
+`univOracle` by levels, the plan's equation (★), Proposition 5, "truncation is invisible", the
+untruncated self-referential equation (†) `x ∈ A ↔ Φ(A, x)`, and uniqueness), A3 (`Counter`:
+the counter view and the power loop, verbatim from PvsNP). The fixpoint argument, the risk
+named in §6.10 for A2/A5, is proved: `Univ.mem_univOracle`, with the budget-0 case handled by
+the empty query set (NOTES §4.11). Nothing of A4–A6 or T5–T8 was started, by the session
+brief. Details and check outputs: `NOTES.md` §4.11 and §11.
+
+**Actual against estimate** (non-blank lines; file headers and docstrings included):
+
+| Plan item | Estimated | Actual | Where | Note |
+|---|---|---|---|---|
+| A1 | 80 | 85 | `Frame.lean` | 1.06×; `decode` in both directions (`decode_eq_some_iff`), as A2 needs |
+| A2 | 150 | 167 | `Univ.lean` | 1.11×; includes (★), Proposition 5, (†) and the uniqueness half of Theorem 6 (not in the plan's row) |
+| A3 | 450 (ported) | 365 | `Counter.lean` | 0.81×; 337 non-blank verbatim (the two PvsNP `[LIB]` sections, 377 lines) plus 28 for the header, `MS`, `ofRunLe` |
+| Root module | 0 | 9 | `Relativization.lean` | |
+| **Session total** | **680** | **626** | 722 lines (617 non-blank) in the three new files | 0.92 of estimate; 1.09 on A1–A2, the new proofs |
+
+Revised blocks (non-blank lines written so far: 2,710 + 289 = 2,999 new; 933 + 337 = 1,270
+ported verbatim):
+
+| Block | Original | Revised | Reason |
+|---|---|---|---|
+| Definitions | 200 | 136 + 38 + 12 + 30 done | D6 is 30 lines of `Univ.lean` (`M`, `mu`, `budget`, `input`, `Acc`, `Phi`, `level`, `univOracle`) |
+| Foundation F1–F9 | 1,100 | 1,077 done | complete |
+| Normal form N1–N4 | 650–850 | 647 done | complete |
+| Program library (oracle layer) | 0 | 142 done | NOTES §4.8 |
+| Query set, L4' | 0 | 66 done | NOTES §4.10 |
+| Separation B1–B6 | 970 | 472 done | complete (T6 is one line in the assembly) |
+| Collapse A1–A3 | 680 | 617 done | **complete**; the fixpoint risk is retired |
+| Collapse A4–A6 | 930 | 930 | A4 550 (`pad`), A5 300, A6 80; unchanged |
+| Main | 20 | 20 | |
+| **Total new or ported** | **4,500–4,800** | **about 4,350–4,450** | 3,336 non-blank written (2,999 new, 337 ported this session); unchanged range |
+| Verbatim copies (`Prog`, `Emb`, counter view) | 980 | 1,270 | done |
+
+Finished repository: 5,049 lines (4,268 non-blank) after session 5. Remaining: A4–A6
+(estimate 930) and the assembly (20), then the stretch. Revised range unchanged: **5,500 to
+6,500 lines**.
+
+**Sessions.**
+
+| Session | Content |
+|---|---|
+| 1 (done) | Q1; D1–D3; F1–F3, F5–F9; `P ⊆ P^A` |
+| 2 (done) | F4; D4; N1–N4; D6 decided |
+| 3 (done) | copy `Prog`/`Emb` (+ oracle layer); B1, B2 |
+| 4 (done) | B3–B6 (`sepOracle_not_pEqNP`; T6 pending assembly) |
+| 5 (done) | A1–A3; (†) `Univ.mem_univOracle` proved |
+| 6–7 | A4: `pad` as a `TM2ComputableInPolyTime` (decision first: embed the counter sub-machine with `Emb.run_embed`, PvsNP `Pre.lean` `[FULL]` as template, or give the counter view an input stack) |
+| 8 | A5 (the reduction `L w ↔ pad w ∈ univOracle`, from (†), `Phi_frame`, N4v', F4', `eval_le_pow`), A6, T5, T6, T7: **T5, T6 and T7 done** |
+| 9 | Red-team pass, axiom audit, `leanchecker --fresh`, README |
+| 10–11 | Stretch: T8 |
+
+Still about 8 sessions for T7, plausibly 8 to 10; 2 more for T8. The remaining uncertainty is
+A4 alone (§7 "`pad` on the counter view"); A5 is now a chain of proved lemmas plus one
+polynomial bound (`eval_le_pow`, 30 lines in PvsNP `Pkg.lean`, to be ported).
+
+**Corrections to earlier sections of this plan, found in session 5.**
+
+16. §6.4 A2 lists only the truncated equation (★) `x ∈ A ↔ Φ(A ∩ {|z| < |x|}) x`. That is
+    true and is what the levels give, but A5 (§5.7 of NOTES) needs the untruncated (†)
+    `x ∈ A ↔ Φ(A, x)`, which §4.1 of this plan states in prose. Both are proved
+    (`Univ.mem_univOracle_iff_trunc`, `Univ.mem_univOracle`); the step between them is
+    Proposition 5 plus L6'. NOTES §4.11.
+17. §6.4 A3 "450 ported": the two PvsNP `[LIB]` sections are 377 lines. `pow_run` uses
+    `nlinarith`, which needs `Mathlib.Tactic.Linarith`; `Prog`'s imports do not provide it, so
+    `Counter.lean` adds that import (header only; the bodies are verbatim,
+    `logs/session5-port-diff.txt`). The port also brings the first `deriving` clauses of the
+    repository (`SK`, `MS`, `PW`), copied from PvsNP; NOTES §11.4 item 3.
+18. §7 "`pad` on the counter view" is the one open design point of the collapse half; the two
+    routes are recorded in NOTES §4.11 (A3, "How A4 will use it"). Not decided this session.
+19. §7.4 item 3 of NOTES and §6.10 above ("the one place a locality argument with budget 0 is
+    needed"): confirmed. At budget 0 the query set of the run is empty (`Finset.range 0`), so
+    Proposition 5 is vacuous there, while the length-form bound `μ_i(n) ≤ |x|` is false for
+    small `T`. The sharp form L4'/L6' is what is used, as the plan said.
+
 ## 7. Risks and open points
 
 - **Faithfulness of option H.** The "one oracle bit per step" convention is equivalent to the

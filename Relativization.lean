@@ -13,6 +13,9 @@ import Relativization.Sep
 import Relativization.Count
 import Relativization.Queries
 import Relativization.Stage
+import Relativization.Frame
+import Relativization.Univ
+import Relativization.Counter
 
 /-!
 # Baker-Gill-Solovay
@@ -51,6 +54,14 @@ Session 4 (the stage construction):
   sharp locality lemma L4 the stages use;
 * `Relativization.Stage`: the stages and the oracle `sepOracle` (B4), run stability (B5), and
   `sepLang sepOracle ∉ P^sepOracle`, `¬ PEqNP sepOracle` (B6).
+
+Session 5 (the collapse oracle):
+
+* `Relativization.Frame`: the frames `1^i 0 1^T 0 v` and their decoding (A1);
+* `Relativization.Univ`: the oracle `univOracle` by levels, with the self-referential equation
+  `x ∈ A ↔ Phi A x` and its uniqueness (A2);
+* `Relativization.Counter`: the counter view of `TM2` machines and the unary power loop, ported
+  from PvsNP (A3).
 
 See `NOTES.md` for statements, the lemma table and check outputs; `PLAN.md` for the plan.
 -/

@@ -1,0 +1,118 @@
+'Relativization.Counter.MS' does not depend on any axioms
+'Relativization.Counter.MS.body' does not depend on any axioms
+'Relativization.Counter.MS.body.elim' does not depend on any axioms
+'Relativization.Counter.MS.ctorElim' does not depend on any axioms
+'Relativization.Counter.MS.ctorElimType' does not depend on any axioms
+'Relativization.Counter.MS.enumList' does not depend on any axioms
+'Relativization.Counter.MS.enumList_getElem?_ctorIdx_eq' depends on axioms: [propext]
+'Relativization.Counter.MS.enumList_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.MS.head' does not depend on any axioms
+'Relativization.Counter.MS.head.elim' does not depend on any axioms
+'Relativization.Counter.MS.l2' does not depend on any axioms
+'Relativization.Counter.MS.l2.elim' does not depend on any axioms
+'Relativization.Counter.MS.ofNat' does not depend on any axioms
+'Relativization.Counter.MS.ofNat_ctorIdx' does not depend on any axioms
+'Relativization.Counter.MS.rest' does not depend on any axioms
+'Relativization.Counter.MS.rest.elim' does not depend on any axioms
+'Relativization.Counter.MS.toCtorIdx' does not depend on any axioms
+'Relativization.Counter.PW' does not depend on any axioms
+'Relativization.Counter.PW.ctorElim' does not depend on any axioms
+'Relativization.Counter.PW.ctorElimType' does not depend on any axioms
+'Relativization.Counter.PW.drn' does not depend on any axioms
+'Relativization.Counter.PW.drn.elim' does not depend on any axioms
+'Relativization.Counter.PW.hd' does not depend on any axioms
+'Relativization.Counter.PW.hd.elim' does not depend on any axioms
+'Relativization.Counter.PW.mul' does not depend on any axioms
+'Relativization.Counter.PW.mul.elim' does not depend on any axioms
+'Relativization.Counter.PW.mv' does not depend on any axioms
+'Relativization.Counter.PW.mv.elim' does not depend on any axioms
+'Relativization.Counter.PW.proxyType' does not depend on any axioms
+'Relativization.Counter.PW.proxyTypeEquiv' does not depend on any axioms
+'Relativization.Counter.SK' does not depend on any axioms
+'Relativization.Counter.SK.c' does not depend on any axioms
+'Relativization.Counter.SK.c.elim' does not depend on any axioms
+'Relativization.Counter.SK.ctorElim' does not depend on any axioms
+'Relativization.Counter.SK.ctorElimType' does not depend on any axioms
+'Relativization.Counter.SK.out' does not depend on any axioms
+'Relativization.Counter.SK.out.elim' does not depend on any axioms
+'Relativization.Counter.SK.proxyType' does not depend on any axioms
+'Relativization.Counter.SK.proxyTypeEquiv' does not depend on any axioms
+'Relativization.Counter.SΓ' does not depend on any axioms
+'Relativization.Counter.addU_nil' does not depend on any axioms
+'Relativization.Counter.bud_st' does not depend on any axioms
+'Relativization.Counter.copyS' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.decS_pos' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.decS_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.dlookup_tg' depends on axioms: [propext]
+'Relativization.Counter.dlookup_tg_out' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.drainS' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.emitOut' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.emitS' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.gapS' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.incS' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.instDecidableEqMS' does not depend on any axioms
+'Relativization.Counter.instDecidableEqPW' does not depend on any axioms
+'Relativization.Counter.instDecidableEqPW.decEq' does not depend on any axioms
+'Relativization.Counter.instDecidableEqSK' does not depend on any axioms
+'Relativization.Counter.instDecidableEqSK.decEq' does not depend on any axioms
+'Relativization.Counter.instFintypeMS' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.instFintypePW' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.instFintypeSK' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.mulS' does not depend on any axioms
+'Relativization.Counter.mulS_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.powB' depends on axioms: [propext]
+'Relativization.Counter.powS' does not depend on any axioms
+'Relativization.Counter.pow_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.st' does not depend on any axioms
+'Relativization.Counter.stLoop' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.st_c' does not depend on any axioms
+'Relativization.Counter.st_eta' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.st_out' does not depend on any axioms
+'Relativization.Counter.tg' does not depend on any axioms
+'Relativization.Counter.tg_keys' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.tg_nodupKeys' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.update_st_c' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.update_st_nil' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.update_st_out' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.xf' depends on axioms: [propext]
+'Relativization.Counter.xf.congr_simp' depends on axioms: [propext, Quot.sound]
+'Relativization.Counter.xferES' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Counter.xferS' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Turing.TM2OutputsInTime.ofRunLe' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.decode' depends on axioms: [propext]
+'Relativization.decode_eq_some_iff' depends on axioms: [propext]
+'Relativization.decode_frame' depends on axioms: [propext]
+'Relativization.dropOnes' does not depend on any axioms
+'Relativization.dropOnes_replicate' does not depend on any axioms
+'Relativization.frame' does not depend on any axioms
+'Relativization.frame_inj' depends on axioms: [propext]
+'Relativization.frame_length' depends on axioms: [propext, Quot.sound]
+'Relativization.length_of_decode' depends on axioms: [propext, Quot.sound]
+'Relativization.ones' does not depend on any axioms
+'Relativization.ones_replicate' does not depend on any axioms
+'Relativization.replicate_ones_append_dropOnes' does not depend on any axioms
+'Relativization.Univ.Acc' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Acc_congr' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.M' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Phi' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Phi_congr' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Phi_frame' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.budget' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.input' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.input_length' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.length_lt_of_mem_level' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.length_lt_of_mem_queries' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.level' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.level_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mem_level_iff_of_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mem_level_succ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mem_univOracle' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mem_univOracle_iff_level' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mem_univOracle_iff_trunc' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mu' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.univOracle_inter_eq_level' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.univOracle' depends on axioms: [propext, Classical.choice, Quot.sound]
+== supplement: the two new declarations whose name starts with eq_ (classed auxiliary by the audit rule) ==
+'Relativization.eq_frame_of_decode' depends on axioms: [propext]
+'Relativization.Univ.eq_univOracle_of_fixpoint' depends on axioms: [propext, Classical.choice, Quot.sound]
+exit: 0
