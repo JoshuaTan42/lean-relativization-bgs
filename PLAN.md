@@ -840,6 +840,86 @@ About 10 sessions for T7, plausibly 9 to 13; 2 more for T8.
     `ORun.of_run` (all labels oblivious) and `ORun.of_run_visited` (visited labels oblivious), and
     `Emb.run_embed` gets an oracle-host twin. 142 lines, NOTES §4.8. No machine of the plan needs
     more: every `Prog`-built machine is plain, and the oracle machines are hand-written or composed.
+
+### 6.10 Revision after session 4 (2026-10-07)
+
+**Done in session 4:** B3 (`Count`), the query set of a run with the instance L4' of the sharp
+locality lemma (`Queries`), B4, B5, B6 (`Stage`): `sepOracle`, `sepLang_not_inP`,
+`sepOracle_not_pEqNP`. This is the §6.9 table's sessions 4–5 ("B3–B6: T6 done") in one
+session, except that T6 itself (`∃ B, ¬ PEqNP B`) is not stated, by the session brief: it is
+`⟨sepOracle, sepOracle_not_pEqNP⟩` and belongs to the final assembly. Nothing of A1–A6 or
+T5–T8 was started. Details and check outputs: `NOTES.md` §4.10 and §10.
+
+**Actual against estimate** (non-blank lines; file headers and docstrings included):
+
+| Plan item | Estimated | Actual | Where | Note |
+|---|---|---|---|---|
+| B3 | 100 | 72 | `Count.lean` | both halves as the plan stated them; the polynomial bound is elementary (`m < 2^m` at `m = n / (d+1)`), no analysis import |
+| query set, L4' (not in the plan) | 0 | 66 | `Queries.lean` | the finite set of queries asked, so that the counting argument (B3a) and the sharp locality lemma L4 speak about the same object; see the correction below |
+| B4 | 350 | 154 | `Stage.lean` 1–210 | **0.44×**: no fixpoint, no finiteness, no `if`; the recursion carries `(bound, F)` and every invariant is `omega` over `boundAt`/`lenAt` |
+| B5 | 150 | 28 | `Stage.lean` 211–240 | 0.19×: one application of L6' once `agree_on_queries` is proved |
+| B6 | 120 | 62 | `Stage.lean` 241–308 | 0.52×: `exists_dcode_decides` + `dEnum_surjective` + B5 + F4' + `sepLang_replicate_iff` |
+| Root module | 0 | 10 | `Relativization.lean` | |
+| **Session total** | **720** | **392** | 476 lines (382 non-blank) in the three new files | 0.54 of estimate; 0.44 on the planned items alone |
+
+Revised blocks (non-blank lines written so far: 2,318 + 392 = 2,710 new; 933 ported verbatim):
+
+| Block | Original | Revised | Reason |
+|---|---|---|---|
+| Definitions | 200 | 136 + 38 + 12 done + 30 (D6) | D5 (`sepOracle`, stage data) is done, 12 lines of definitions proper |
+| Foundation F1–F9 | 1,100 | 1,077 done | complete |
+| Normal form N1–N4 | 650–850 | 647 done | complete |
+| Program library (oracle layer) | 0 | 142 done | unplanned; NOTES §4.8 |
+| Query set, L4' | 0 | 66 done | unplanned; NOTES §4.10 |
+| Separation B1–B6 | 970 | 168 + 304 = 472 done | **complete** (T6 is one line in the assembly); 0.49× of the estimate |
+| Collapse A1–A6 | 1,600 | 1,650 | unchanged |
+| Main | 20 | 20 | |
+| **Total new or ported** | **4,500–4,800** | **about 4,350–4,450** | 2,710 written; the separation block came in at half |
+| Verbatim copies (`Prog`, `Emb`) | 980 | 933 | done |
+
+Finished repository: the repository is at 4,316 lines (3,642 non-blank) after session 4. The
+remaining blocks are the collapse (A1–A6, estimate 1,650, of which A3/A4 are the two
+machine-heavy items) and the assembly. The earlier range 5,500–8,000 is now too wide at the
+top: every block with design risk that is finished (F7, N3, B4/B5) came in under its estimate,
+and the collapse's design (NOTES §5) is settled. Revised: **5,500 to 6,500 lines**.
+
+**Sessions.** Session 4 covered the §6.9 table's sessions 4 and 5.
+
+| Session | Content |
+|---|---|
+| 1 (done) | Q1; D1–D3; F1–F3, F5–F9; `P ⊆ P^A` |
+| 2 (done) | F4; D4; N1–N4; D6 decided |
+| 3 (done) | copy `Prog`/`Emb` (+ oracle layer); B1, B2 |
+| 4 (done) | B3–B6 (`sepOracle_not_pEqNP`; T6 pending assembly) |
+| 5 | A1–A3: `frame`/`decode`, `univOracle` by levels with the fixpoint equation (†) of NOTES §5.6, counter view and power loop from PvsNP |
+| 6–7 | A4: `pad` |
+| 8 | A5, A6; T5, T6, T7: **T5, T6 and T7 done** |
+| 9 | Red-team pass, axiom audit, `leanchecker --fresh`, README |
+| 10–11 | Stretch: T8 |
+
+About 8 sessions for T7 (was 10), plausibly 8 to 11; 2 more for T8. The uncertainty is now
+concentrated in A4 (`pad` on the counter view, §7 "`pad` on the counter view") and in A2/A5
+(the fixpoint argument of NOTES §5.6, the one place a locality argument with budget 0 is needed,
+§7.4 item 3).
+
+**Corrections to earlier sections of this plan, found in session 4.**
+
+12. §4.2 "by locality its run on `0^n` under `B` is the stage-`i` run" and §6.4 B4 "needs F3":
+    correct, but the locality needed is the **sharp** form F3/L4 (`iter_congr`, queries actually
+    asked), not the length form L5/L6. The string a stage adds has length `2n`, which is in
+    general within the length bound `n + p(n)·D` of the stage's own run, so the length form
+    cannot show the stage's run is unaffected by it; the sharp form can, because the string was
+    chosen unqueried. NOTES §4.10 and §10.4 item 1. No definition was changed; the plan's choice
+    of F3 was right and F5 (length) is used only for the strings of later stages.
+13. §6.4 B4 "finite oracle": the stage oracle `F_i` is a `Set`, not a `Finset`; finiteness is
+    never used (only `mem_sepOracle`). `B` is a primitive recursion carrying `(bound, F)`, with
+    two `Classical.choose`s per stage and a `Prop`-valued decision in a set-builder, so no
+    `Decidable` instance and no `if`.
+14. §6.4 B3 "every polynomial is eventually below `2^n`": proved in that form
+    (`eventually_eval_lt_two_pow`) with elementary arithmetic; no analysis import was needed.
+15. §6.6/§6.9 schedule: B3–B6 took one session, not two; T6 is deferred to the assembly by the
+    session-4 brief, which keeps all of T5–T8 together.
+
 ## 7. Risks and open points
 
 - **Faithfulness of option H.** The "one oracle bit per step" convention is equivalent to the

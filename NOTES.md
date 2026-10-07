@@ -4,11 +4,11 @@ Working notes. `PLAN.md` holds the approved plan; this file holds the statements
 paper proofs, the lemma table and the check outputs.
 
 Status legend: **stated** = written here, no Lean proof; **proved** = Lean proof compiled and
-axiom-checked (output quoted in §7 or §8). Nothing is committed.
+axiom-checked (output quoted in §7, §8, §9 or §10). Nothing is committed.
 
-Contents: §1 setup record · §2 definitions · §3 target statements · §4 statements for sessions 1 and 2 ·
+Contents: §1 setup record · §2 definitions · §3 target statements · §4 statements for sessions 1 to 4 ·
 §5 paper proof of the collapse oracle · §6 literature · §7 lemma table and checks (session 1) ·
-§8 lemma table and checks (session 2).
+§8 lemma table and checks (session 2) · §9 (session 3) · §10 (session 4).
 
 ---
 
@@ -210,7 +210,7 @@ T5, T6, T7, T8 are **not** attempted this session.
 
 ---
 
-## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2)
+## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2; §4.8–4.9 session 3; §4.10 session 4)
 
 ### 4.1 Trivial oracle, binary alphabet (the form asked for in the session brief)
 
@@ -658,6 +658,285 @@ theorem sepLang_replicate_iff (B : Oracle) (n : ℕ) :
 ```
 
 ---
+
+### 4.10 Statements for session 4: the stage construction, B3–B6, in the form the separation proof uses
+
+Written before any Lean. Plan items: PLAN §6.4 B3–B6 and §4.2 "Stages". Everything below is in
+namespace `Relativization`; the stage internals are in `Relativization.Stage`.
+
+**How the final separation proof will use this (B6).** Assume `InP B (fes Bool) (sepLang B)`
+for the constructed `B = sepOracle`: a function `f`, a polynomial-time oracle decider `h` for `f`
+under `B`, and `∀ w, sepLang B w ↔ f w = true`. N4d' (`exists_dcode_decides`) gives a code
+`c : DCode` with `c.time = h.time` and, for every `w`, the code's machine outputs `[f w]` on `w`
+under `B` within `c.time.eval |w|` steps. N2 gives `i` with `dEnum i = c`. Stage `i` chose a
+length `n = lenAt i`, ran that machine on `0^n` under the finite oracle `F_i = oracleAt i` for
+`t = c.time.eval n` steps, and either (i) saw it output `[true]` and added nothing, or (ii) did
+not and added one string `u ++ 0^n` with `|u| = n`. By B5 the run under `B` is the run under
+`F_i` for `t` steps, so the output `[f 0^n]` is the stage's observation; by F4' (`bool_iff`)
+`f 0^n = true` iff the stage saw `[true]`. In case (i) `f 0^n = true`, so `0^n ∈ sepLang B`,
+so (`sepLang_replicate_iff`) some `u ++ 0^n ∈ B` with `|u| ≤ n`, of length in `[n, 2n]`; but
+every string of `B` has length `< n` (earlier stages) or `> 2n` (later stages). In case (ii)
+`u ++ 0^n ∈ B`, so `0^n ∈ sepLang B`, so `f 0^n = true`, so the machine outputs `[true]` under
+`B`, hence under `F_i`: the stage did see `[true]`. Both cases are contradictions.
+`¬ PEqNP sepOracle` then follows from B2 (`sepLang_inNP`). T6 (`∃ B, ¬ PEqNP B`) is the
+final assembly and is **not** stated this session.
+
+#### B3: counting (`Relativization/Count.lean`)
+
+Plan form (§6.4 B3): "a set of fewer than `2^n` strings misses some `u ++ 0^n` with `|u| = n`;
+every polynomial is eventually below `2^n`." Both parts are true as written and strong enough.
+The construction uses the second in the weaker form "for every `ℓ` and `p` there is `n > ℓ`
+with `p.eval n < 2^n`", derived from the eventual form.
+
+```lean
+/-- The `2^n` strings `u ++ 0^n` with `|u| = n`, as `List.ofFn f ++ 0^n` for `f : Fin n → Bool`. -/
+def padded (n : ℕ) : Finset (List Bool)
+theorem card_padded (n : ℕ) : (padded n).card = 2 ^ n
+
+/-- B3a: the counting inequality. If `S.card < 2^n` then some `u ++ 0^n`, `|u| = n`, is not in `S`. -/
+theorem exists_free (n : ℕ) (S : Finset (List Bool)) (h : S.card < 2 ^ n) :
+    ∃ u : List Bool, u.length = n ∧ u ++ List.replicate n false ∉ S
+
+/-- `p(n) ≤ p(1) · n^deg p` for `n ≥ 1` (`p(1)` is the sum of the coefficients). -/
+theorem eval_le_eval_one_mul_pow (p : Polynomial ℕ) {n : ℕ} (hn : 1 ≤ n) :
+    p.eval n ≤ p.eval 1 * n ^ p.natDegree
+
+/-- `C · n^d < 2^n` once `n ≥ C · (d+1)^(d+1)` (elementary: with `m = n / (d+1)`,
+`C n^d ≤ C (d+1)^d (m+1)^d ≤ m (m+1)^d < (m+1)^(d+1) ≤ (2^m)^(d+1) ≤ 2^n`, using `m < 2^m`). -/
+theorem mul_pow_lt_two_pow (C d : ℕ) {n : ℕ} (hn : C * (d + 1) ^ (d + 1) ≤ n) :
+    C * n ^ d < 2 ^ n
+
+/-- B3b, the plan's form: every polynomial is eventually below `2^n`. -/
+theorem eventually_eval_lt_two_pow (p : Polynomial ℕ) : ∃ N, ∀ n, N ≤ n → p.eval n < 2 ^ n
+
+/-- B3b, the form the stage uses: a length above any bound with `p(n) < 2^n`. -/
+theorem exists_len (ℓ : ℕ) (p : Polynomial ℕ) : ∃ n, ℓ < n ∧ p.eval n < 2 ^ n
+```
+
+#### The queries of a run, and the instance of locality each stage uses (`Relativization/Queries.lean`)
+
+**Which locality lemma.** The stage-`i` run must be the same under the finite oracle `F_i` and
+under the final `B`. `B ∖ F_i` consists of the strings added at stages `j ≥ i`. Those of stages
+`j > i` have length `2 n_j > bound_j ≥ bound_{i+1} ≥ n_i + t_i · D_i`, above the query-length
+bound of L3, so for them the length form **L5/L6** (`OracleFinTM2.locality`,
+`outputsInTime_congr`, session 1) would do. The string `x_i = u_i ++ 0^{n_i}` added at stage `i`
+itself has length `2 n_i`, which is in general **below** `n_i + t_i · D_i` (whenever
+`t_i · D_i ≥ n_i`). So the length form is **not strong enough** for a stage's own string; what
+makes the run stable is that `x_i` was chosen *unqueried*. The lemma that gives this is the
+sharp form **L4** (`OracleFinTM2.iter_congr`, session 1, NOTES §4.3): two oracles that agree on
+every query actually asked during the first `n` steps give the same `n`-step run. L4 is strong
+enough as it stands; no session 1 definition changes (§7.4 item 3 anticipated this use). What is
+added is a finite set of the queries asked, so that the counting argument and L4 speak about the
+same object:
+
+```lean
+namespace OracleFinTM2
+variable (tm : OracleFinTM2)
+
+/-- The query asked at step `j` of the run on `l` under `A` (`[]` once the run has stopped). -/
+noncomputable def queryAt (A : Oracle) (l : List (tm.Γ tm.k₀)) (j : ℕ) : List Bool :=
+  (((flip bind (tm.step A))^[j] (some (tm.initList l))).map tm.query).getD []
+
+/-- The queries asked during the first `t` steps (plus the junk value `[]`): at most `t` strings. -/
+noncomputable def queries (A : Oracle) (l : List (tm.Γ tm.k₀)) (t : ℕ) : Finset (List Bool) :=
+  (Finset.range t).image (tm.queryAt A l)
+
+theorem card_queries_le (A : Oracle) (l : List (tm.Γ tm.k₀)) (t : ℕ) : (tm.queries A l t).card ≤ t
+
+theorem query_mem_queries {A : Oracle} {l : List (tm.Γ tm.k₀)} {t j : ℕ} (hj : j < t) {d : tm.Cfg}
+    (hd : (flip bind (tm.step A))^[j] (some (tm.initList l)) = some d) :
+    tm.query d ∈ tm.queries A l t
+
+/-- L3 for the query set. -/
+theorem length_le_of_mem_queries {A : Oracle} {l : List (tm.Γ tm.k₀)} {t : ℕ} {z : List Bool}
+    (hz : z ∈ tm.queries A l t) : z.length ≤ l.length + t * tm.depth
+
+/-- L4', the instance of L4 each stage uses: oracles agreeing on `tm.queries A l t` give the
+same run for every `n ≤ t` steps. -/
+theorem iter_congr_queries {A A' : Oracle} (l : List (tm.Γ tm.k₀)) (t : ℕ)
+    (h : ∀ z ∈ tm.queries A l t, (z ∈ A ↔ z ∈ A')) {n : ℕ} (hn : n ≤ t) :
+    (flip bind (tm.step A))^[n] (some (tm.initList l)) =
+      (flip bind (tm.step A'))^[n] (some (tm.initList l))
+
+/-- L6', the same for outputs within `t` steps (both directions from the one hypothesis, since
+L4' is an equality of runs). -/
+theorem outputsInTime_congr_queries {A A' : Oracle} (l : List (tm.Γ tm.k₀))
+    (l' : Option (List (tm.Γ tm.k₁))) (t : ℕ) (h : ∀ z ∈ tm.queries A l t, (z ∈ A ↔ z ∈ A')) :
+    Nonempty (OTM2OutputsInTime A tm l l' t) ↔ Nonempty (OTM2OutputsInTime A' tm l l' t)
+end OracleFinTM2
+```
+
+The instance used at stage `i`: `tm := (dEnum i).N.toOracleFinTM2`, `A := F_i`, `A' := B`,
+`l := 0^{n_i}` as the code reads it, `t := t_i`. Its hypothesis is discharged by
+`Stage.agree_on_queries` below.
+
+#### B4: the stages (`Relativization/Stage.lean`)
+
+Plan form (§6.4 B4): "stage sequence: definition by recursion with choice; invariants (length
+bounds strictly increase, finite oracle below the bound is final, added string was unqueried)".
+True as written and strong enough; the three invariants are `boundAt_lt_lenAt` with
+`lenAt_lt_boundAt_succ`, `mem_oracleAt_of_length_le`, and `strAt_not_mem_Q` below.
+
+**The stage-`i` machine** is the code `dEnum i : DCode` (N2, session 2): machine
+`M_i := (dEnum i).N.toOracleFinTM2` with binary input and output alphabets `inE`, `outE`, and
+time polynomial `p_i := (dEnum i).time`. `D_i := M_i.depth`. Every polynomial-time oracle
+decider is some `dEnum i` with the same polynomial, by N4d' and `dEnum_surjective`.
+
+**State.** A stage state is `(bound, F)`: a length bound and the set of strings added so far.
+`st 0 = (0, ∅)`, `st (i+1) = step i (st i)`. Write `bound_i`, `F_i` for the fields of `st i`.
+
+**The stage-`i` input length** is `n_i := lenAt i`, chosen by `Classical.choose` on B3b with
+`ℓ := bound_i`, `p := p_i`: so `n_i > bound_i` and `t_i := p_i(n_i) < 2^{n_i}`. The next bound is
+
+> `bound_{i+1} := 2 n_i + t_i · D_i`.
+
+By L3 every query asked during the `t_i` steps of stage `i` has length `≤ n_i + t_i · D_i ≤
+bound_{i+1}`, and the string stage `i` may add has length `2 n_i ≤ bound_{i+1}`. Since
+`n_i > bound_i ≥ 0`, `bound_{i+1} ≥ 2 n_i > n_i > bound_i`: the bounds strictly increase, and
+for `j > i`, `n_j > bound_j ≥ bound_{i+1}`, so `n_j` exceeds every query length of every earlier
+stage and `|x_j| = 2 n_j > 2 n_i`.
+
+**The counting argument.** Let `Q_i := M_i.queries F_i (0^{n_i}) t_i`, the queries asked during
+the stage-`i` run under `F_i`. Then
+
+> `|Q_i| ≤ t_i = p_i(n_i) < 2^{n_i} = |{u ++ 0^{n_i} : |u| = n_i}|`,
+
+so by B3a some `u_i` with `|u_i| = n_i` has `x_i := u_i ++ 0^{n_i} ∉ Q_i`; `u_i` is
+`Classical.choose` of that statement.
+
+**The decision.** `acc_i :⇔ M_i^{F_i}` outputs `[true]` on `0^{n_i}` within `t_i` steps
+(`Nonempty (OTM2OutputsInTime F_i M_i (0^{n_i}) (some [outE.symm true]) t_i)`). Then
+`F_{i+1} := F_i ∪ {z | ¬ acc_i ∧ z = x_i}` (a set-builder, so no decidability is needed).
+
+**The oracle.** `B := sepOracle := {z | ∃ i, z ∈ F_i}`. By induction on `i`,
+`z ∈ F_i ↔ ∃ j < i, ¬ acc_j ∧ z = x_j`, hence `z ∈ B ↔ ∃ j, ¬ acc_j ∧ z = x_j`.
+
+**Why `B` is well defined.** `st` is a primitive recursion on `ℕ`: `st (i+1)` is a function of
+`i` and `st i` only, through two uses of `Classical.choose` on proved existence statements (B3b
+for `n_i`, B3a for `u_i`, whose hypothesis `|Q_i| < 2^{n_i}` is proved inside the definition)
+and one `Prop`-valued decision `acc_i`. There is no fixpoint equation to solve, unlike the
+collapse oracle of §5.6: `B` is simply the union of the `F_i`, and the only property of `B`
+the proof uses is the membership characterisation above.
+
+```lean
+/-- The input `0^n` as decider code `c` reads it. -/
+def DCode.input (c : DCode) (n : ℕ) : List (Fin (c.N.a c.N.k₀)) :=
+  (List.replicate n false).map c.inE.symm
+theorem DCode.input_length (c : DCode) (n : ℕ) : (c.input n).length = n
+
+namespace Stage
+
+/-- The state carried from stage to stage. -/
+structure State where
+  bound : ℕ
+  F : Oracle
+
+/-- The machine of stage `i`. -/
+abbrev M (i : ℕ) : OracleFinTM2 := (dEnum i).N.toOracleFinTM2
+
+noncomputable def len (i : ℕ) (s : State) : ℕ         -- Classical.choose (exists_len s.bound (dEnum i).time)
+theorem bound_lt_len (i : ℕ) (s : State) : s.bound < len i s
+theorem eval_len_lt (i : ℕ) (s : State) : (dEnum i).time.eval (len i s) < 2 ^ len i s
+noncomputable def tim (i : ℕ) (s : State) : ℕ := (dEnum i).time.eval (len i s)
+noncomputable def Q (i : ℕ) (s : State) : Finset (List Bool) :=
+  (M i).queries s.F ((dEnum i).input (len i s)) (tim i s)
+theorem card_Q_lt (i : ℕ) (s : State) : (Q i s).card < 2 ^ len i s
+noncomputable def free (i : ℕ) (s : State) : List Bool   -- Classical.choose (exists_free (len i s) (Q i s) (card_Q_lt i s))
+theorem free_length (i : ℕ) (s : State) : (free i s).length = len i s
+noncomputable def str (i : ℕ) (s : State) : List Bool := free i s ++ List.replicate (len i s) false
+theorem str_not_mem_Q (i : ℕ) (s : State) : str i s ∉ Q i s
+theorem str_length (i : ℕ) (s : State) : (str i s).length = 2 * len i s
+def acc (i : ℕ) (s : State) : Prop :=
+  Nonempty (OTM2OutputsInTime s.F (M i) ((dEnum i).input (len i s))
+    (some [(dEnum i).outE.symm true]) (tim i s))
+
+noncomputable def step (i : ℕ) (s : State) : State where
+  bound := 2 * len i s + tim i s * (M i).depth
+  F := s.F ∪ {z | ¬ acc i s ∧ z = str i s}
+
+noncomputable def st : ℕ → State
+  | 0 => ⟨0, ∅⟩
+  | i + 1 => step i (st i)
+
+/-- Shorthands for the data of stage `i`. -/
+noncomputable def boundAt (i : ℕ) : ℕ := (st i).bound
+noncomputable def oracleAt (i : ℕ) : Oracle := (st i).F
+noncomputable def lenAt (i : ℕ) : ℕ := len i (st i)
+noncomputable def timeAt (i : ℕ) : ℕ := tim i (st i)
+noncomputable def strAt (i : ℕ) : List Bool := str i (st i)
+def accAt (i : ℕ) : Prop := acc i (st i)
+noncomputable def inputAt (i : ℕ) : List (Fin ((dEnum i).N.a (dEnum i).N.k₀)) :=
+  (dEnum i).input (lenAt i)
+end Stage
+
+/-- The oracle `B` of the separation: everything some stage added. -/
+def sepOracle : Oracle := {z | ∃ i, z ∈ Stage.oracleAt i}
+
+namespace Stage
+theorem st_succ (i : ℕ) : st (i + 1) = step i (st i)
+theorem boundAt_succ (i : ℕ) : boundAt (i + 1) = 2 * lenAt i + timeAt i * (M i).depth
+theorem mem_oracleAt_succ (i : ℕ) (z : List Bool) :
+    z ∈ oracleAt (i + 1) ↔ z ∈ oracleAt i ∨ (¬ accAt i ∧ z = strAt i)
+theorem boundAt_lt_lenAt (i : ℕ) : boundAt i < lenAt i
+theorem timeAt_lt (i : ℕ) : timeAt i < 2 ^ lenAt i
+theorem lenAt_lt_boundAt_succ (i : ℕ) : lenAt i < boundAt (i + 1)
+theorem boundAt_mono : Monotone boundAt
+theorem strAt_length (i : ℕ) : (strAt i).length = 2 * lenAt i
+theorem strAt_not_mem_Q (i : ℕ) : strAt i ∉ Q i (st i)
+theorem mem_oracleAt (i : ℕ) (z : List Bool) : z ∈ oracleAt i ↔ ∃ j < i, ¬ accAt j ∧ z = strAt j
+theorem oracleAt_subset_sepOracle (i : ℕ) : oracleAt i ⊆ sepOracle
+theorem mem_sepOracle (z : List Bool) : z ∈ sepOracle ↔ ∃ j, ¬ accAt j ∧ z = strAt j
+/-- The finite oracle of stage `i` is final below its bound. -/
+theorem mem_oracleAt_of_length_le {i : ℕ} {z : List Bool} (hz : z ∈ sepOracle)
+    (hl : z.length ≤ boundAt i) : z ∈ oracleAt i
+end Stage
+```
+
+#### B5: run stability
+
+Plan form (§6.4 B5): "the stage-`i` run on `0^n` is the run under the final oracle for `p(n)`
+steps." True as written; proved through L4' (not L5/L6, see above).
+
+```lean
+namespace Stage
+/-- `F_i` and `B` agree on every query asked during the stage-`i` run under `F_i`: a string of
+`B` is some `x_j`; `j < i` puts it in `F_i`; `j = i` contradicts the choice of `u_i`; `j > i`
+contradicts L3 (`|x_j| = 2 n_j > bound_{i+1} ≥ n_i + t_i D_i`). -/
+theorem agree_on_queries (i : ℕ) : ∀ z ∈ Q i (st i), (z ∈ oracleAt i ↔ z ∈ sepOracle)
+
+/-- B5. -/
+theorem outputs_iff (i : ℕ) (o : Option (List (Fin ((dEnum i).N.a (dEnum i).N.k₁)))) :
+    Nonempty (OTM2OutputsInTime (oracleAt i) (M i) (inputAt i) o (timeAt i)) ↔
+      Nonempty (OTM2OutputsInTime sepOracle (M i) (inputAt i) o (timeAt i))
+end Stage
+```
+
+#### B6: `sepLang B ∉ P^B`
+
+Plan form (§6.4 B6): "`sepLang sepOracle ∉ P^sepOracle`, hence T6". True as written. Proved as
+the two statements below; the `∃ B` form (T6) is left to the final assembly, as instructed.
+
+```lean
+namespace Stage
+/-- If stage `i` saw `[true]`, no string of `B` has length in `[n_i, 2 n_i]`. -/
+theorem length_lt_or_lt_of_accAt {i : ℕ} (h : accAt i) {z : List Bool} (hz : z ∈ sepOracle) :
+    z.length < lenAt i ∨ 2 * lenAt i < z.length
+/-- If stage `i` did not see `[true]`, it added `u_i ++ 0^{n_i}`. -/
+theorem strAt_mem_sepOracle {i : ℕ} (h : ¬ accAt i) : strAt i ∈ sepOracle
+end Stage
+
+/-- B6. -/
+theorem sepLang_not_inP : ¬ InP sepOracle (fin_encoding_string Bool) (sepLang sepOracle)
+
+/-- B6, the form T6 will use. -/
+theorem sepOracle_not_pEqNP : ¬ PEqNP sepOracle
+```
+
+Not stated this session (by instruction): T6 `separation : ∃ B, ¬ PEqNP B` (it is
+`⟨sepOracle, sepOracle_not_pEqNP⟩`), T5, T7, T8, A1–A6.
+
+---
+
 ## 5. Paper proof: the self-referential oracle is well defined and gives `P^A = NP^A`
 
 No Lean in this section. Everything here is to be formalised in later sessions (A1–A6) except
@@ -1568,5 +1847,226 @@ Oracle.olean: identical (aba34f40f7e4fc08)
 Plain.olean: identical (538a20892c70be80)
 Self.olean: identical (2a154bef41f53627)
 ```
+
+`lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).
+
+---
+
+## 10. Lemma table and checks (session 4, 2026-10-07)
+
+### 10.1 Files
+
+| File | Lines (non-blank) | Content |
+|---|---|---|
+| `Relativization/Count.lean` | 86 (72) | B3: `padded`, `card_padded`, `exists_free` (B3a); `eval_le_eval_one_mul_pow`, `mul_pow_lt_two_pow`, `eventually_eval_lt_two_pow`, `exists_len` (B3b) |
+| `Relativization/Queries.lean` | 82 (66) | the query set of a run: `queryAt`, `queries`, `card_queries_le`, `query_mem_queries`, `length_le_of_mem_queries` (L3), `iter_congr_queries` (L4'), `outputsInTime_congr_queries` (L6') |
+| `Relativization/Stage.lean` | 308 (244) | `DCode.input` (1–35); B4: the stage `Stage.len/tim/Q/free/str/acc/step/st`, the per-stage data, `sepOracle`, invariants (36–210); B5: `agree_on_queries`, `outputs_iff` (211–240); B6: `length_lt_or_lt_of_accAt`, `strAt_mem_sepOracle`, `sepLang_not_inP`, `sepOracle_not_pEqNP` (241–308) |
+| `Relativization.lean` | 56 (46) | imports (+12 lines) |
+| **Session 4 total** | **476 (382) in the three new files; 392 non-blank with the root module** | |
+| **Repository total** | **4,316 (3,642)** | 1,033 constants: 470 named, 563 auxiliary (same classification as sessions 2 and 3: 407 + 63 = 470) |
+
+Session 1–3 files are unchanged (byte for byte; the `.olean` of each of the twelve earlier
+modules has the same SHA-256 before any change of this session and after the from-scratch
+rebuild, §10.5 (e)). `D:\PvsNP` was not opened.
+
+### 10.2 Results asked for in the session brief
+
+All **proved**. Axioms are from the literal `#print axioms` output in §10.5.
+
+| Id | Lean name | File:line | Statement | Differences from §4.10 as first written | Axioms |
+|---|---|---|---|---|---|
+| B3a | `exists_free` | Count:30 | `S.card < 2^n → ∃ u, |u| = n ∧ u ++ 0^n ∉ S` | none | the three |
+| B3b | `eventually_eval_lt_two_pow`, `exists_len` | Count:76, 82 | every `p : Polynomial ℕ` is eventually below `2^n`; `∃ n > ℓ, p.eval n < 2^n` | none | the three |
+| L4' | `OracleFinTM2.iter_congr_queries` | Queries:60 | oracles agreeing on `tm.queries A l t` give the same run for every `n ≤ t` | none | the three |
+| L6' | `OracleFinTM2.outputsInTime_congr_queries` | Queries:68 | the same for `Nonempty (OTM2OutputsInTime …)` within `t` | none | the three |
+| B4 | `Stage.st`, `Stage.step`, `sepOracle` | Stage:102, 97, 133 | the stage states by primitive recursion from `(0, ∅)`; `B = {z | ∃ i, z ∈ F_i}` | none | the three |
+| B4 | `Stage.boundAt_lt_lenAt`, `Stage.lenAt_lt_boundAt_succ`, `Stage.boundAt_mono` | Stage:152, 158, 164 | `bound_i < n_i < bound_{i+1}`; the bounds are monotone | none | the three |
+| B4 | `Stage.strAt_not_mem_Q` | Stage:171 | the added string was unqueried | none | the three |
+| B4 | `Stage.mem_sepOracle` | Stage:196 | `z ∈ B ↔ ∃ j, ¬ acc_j ∧ z = x_j` | none | the three |
+| B4 | `Stage.mem_oracleAt_of_length_le` | Stage:201 | `z ∈ B`, `|z| ≤ bound_i` ⇒ `z ∈ F_i` (the finite oracle is final below its bound) | none | the three |
+| B5 | `Stage.agree_on_queries`, `Stage.outputs_iff` | Stage:216, 234 | `F_i` and `B` agree on `Q_i`; the stage-`i` run under `F_i` has the same outputs within `t_i` steps as under `B` | none | the three |
+| B6 | `sepLang_not_inP` | Stage:269 | `¬ InP sepOracle (fes Bool) (sepLang sepOracle)` | none | the three |
+| B6 | `sepOracle_not_pEqNP` | Stage:305 | `¬ PEqNP sepOracle` | none | the three |
+
+"The three" = `[propext, Classical.choice, Quot.sound]`.
+
+No plan statement turned out false or too weak (§4.10 records the assessment of each: B3 and
+B5 are used in a form implied by the plan's; B4's three invariants are the three named rows;
+B6 is proved without its `∃ B` wrapper). No session 1–3 definition was changed, and no
+hypothesis beyond the statements of §4.10 was needed.
+
+### 10.3 Supporting declarations (all proved; names as in the files)
+
+| File | Declarations |
+|---|---|
+| Count | `padded`, `card_padded`, `eval_le_eval_one_mul_pow`, `mul_pow_lt_two_pow` |
+| Queries | `OracleFinTM2.queryAt`, `queries`, `card_queries_le`, `query_mem_queries`, `length_le_of_mem_queries` |
+| Stage | `DCode.input`, `DCode.input_length`; `Stage.State` (fields `bound`, `F`), `M`, `len`, `bound_lt_len`, `eval_len_lt`, `tim`, `Q`, `card_Q_lt`, `free`, `free_length`, `str`, `str_not_mem_Q`, `str_length`, `acc`; `boundAt`, `oracleAt`, `lenAt`, `timeAt`, `strAt`, `accAt`, `inputAt`; `st_succ`, `boundAt_succ`, `oracleAt_zero`, `mem_oracleAt_succ`, `inputAt_length`, `timeAt_lt`, `strAt_length`, `mem_oracleAt`, `oracleAt_subset_sepOracle`, `length_lt_or_lt_of_accAt`, `strAt_mem_sepOracle` |
+
+### 10.4 Things a reviewer should know
+
+1. **Which locality lemma the stages use, and why not L5/L6.** Each stage uses L4
+   (`OracleFinTM2.iter_congr`, session 1, the sharp form) through `iter_congr_queries`, with
+   `tm := (dEnum i).N.toOracleFinTM2`, `A := F_i`, `A' := sepOracle`, `l := 0^{n_i}` as the code
+   reads it, `t := t_i`. The length form L5/L6 is not strong enough on its own: `B ∖ F_i` may
+   contain the stage's own string `x_i = u_i ++ 0^{n_i}`, of length `2 n_i`, which is within
+   the L5 bound `n_i + t_i · D_i` whenever `t_i · D_i ≥ n_i`. The run is stable because `x_i`
+   was chosen outside the query set `Q_i`, which only L4 can use. Strings of later stages are
+   handled by length (L3, `length_le_of_mem_queries`), as the plan had it. No definition was
+   changed for this; §7.4 item 3 had already noted that the collapse half needs L4 too.
+2. **`queries` is a superset.** `queryAt` returns `[]` once the run has stopped, so
+   `tm.queries A l t` may contain `[]` even if it was never asked. Only an upper bound on its
+   size and the membership of every query actually asked are used, so this is harmless and
+   avoids `Option`-valued bookkeeping.
+3. **`B` is a primitive recursion, not a fixpoint.** `Stage.st (i+1) = Stage.step i (Stage.st i)`
+   holds by `rfl`; the two `Classical.choose`s inside `step` are on `exists_len` and
+   `exists_free`, whose hypothesis `(Q i s).card < 2 ^ len i s` is proved inside the definition
+   (`card_Q_lt`). The decision `acc i s` is a `Prop` used in a set-builder
+   (`s.F ∪ {z | ¬ acc i s ∧ z = str i s}`), so no `Decidable` instance and no `if` is needed.
+   `sepOracle` is a plain `def` (its body is a `Prop`-valued predicate).
+4. **Shorthands.** `boundAt`, `oracleAt`, `lenAt`, `timeAt`, `strAt`, `accAt`, `inputAt` are
+   `def`s unfolding to the fields of `st i`; the equations `boundAt_succ`, `mem_oracleAt_succ`,
+   `st_succ`, `oracleAt_zero` are `rfl`/`Iff.rfl`. All arithmetic in the invariants is `omega`
+   over these atoms (the product `timeAt i * (M i).depth` is treated as an atom).
+5. **Elaboration note.** `hB.bool_iff (dEnum i).outE b` fails to elaborate: the alphabet
+   equivalence is elaborated before the machine is known, its expected type
+   `?tm.Γ ?tm.k₁ ≃ ?βΓ` is stuck, and the postponed argument's synthetic metavariable can no
+   longer be assigned by unification. Naming the machine,
+   `OTM2OutputsInTime.bool_iff (tm := Stage.M i) (dEnum i).outE hB b`, fixes it.
+6. **`Stage.M` is a `noncomputable abbrev`** (it mentions `dEnum`); as an abbrev, its `Γ`/`k₁`
+   projections reduce under `whnfR`, so the hidden-implicit-type problem of §7.4 item 7 does
+   not arise anywhere in this session.
+7. **Global instances: none added.** No `instance`, no `attribute`, no `@[simp]`, no
+   `@[reducible]`, no `set_option`, no macros, syntax, elaborators, `deriving`, or `#eval`.
+   The new `abbrev` is `Stage.M`; `Stage.State` is a plain structure.
+8. **T6 not stated**, by instruction (final assembly). It is
+   `⟨sepOracle, sepOracle_not_pEqNP⟩`, one line, to be written with T5–T8.
+9. **Not done, by instruction:** A1–A6, T5–T8.
+
+### 10.5 Check outputs
+
+Full logs are in `logs/`: `session4-axioms-all.txt`, `session4-print-axioms.txt`,
+`session4-build.txt`, `session4-scan.txt`, `session4-olean-before.txt`,
+`session4-olean-after.txt`. The audit scripts are outside the repository (scratchpad).
+
+**(a) Every constant, read-only audit** (`Lean.collectAxioms` over every constant whose module
+is `Relativization*`, as in sessions 1–3). Last lines of `logs/session4-axioms-all.txt`:
+
+```
+TOTAL constants in Relativization modules: 1033 (470 named, 563 auxiliary)
+named in new modules (Count, Queries, Stage): 63
+UNION of axioms used: #[propext, Classical.choice, Quot.sound]
+CONSTANTS using anything outside [propext, Classical.choice, Quot.sound]: #[]
+```
+
+Per module: 14 constants in `Count`, 10 in `Queries`, 81 in `Stage`
+(`grep -c "^Relativization.Count "` etc. on the log).
+
+**(b) Literal `#print axioms` on each of the 63 named declarations of the three new
+modules** (`logs/session4-print-axioms.txt`, 63 output lines, 0 errors). Distribution
+(`sed -E "s/^'[^']*' //" | sort | uniq -c`):
+
+```
+     58 depends on axioms: [propext, Classical.choice, Quot.sound]
+      2 depends on axioms: [propext, Quot.sound]
+      3 does not depend on any axioms
+```
+
+`grep -c sorryAx` on both logs prints `0` and `0`. The results of §10.2:
+
+```
+'Relativization.exists_free' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.eventually_eval_lt_two_pow' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_len' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.iter_congr_queries' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.outputsInTime_congr_queries' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.st' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.sepOracle' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.boundAt_lt_lenAt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.lenAt_lt_boundAt_succ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.boundAt_mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.strAt_not_mem_Q' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.mem_sepOracle' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.mem_oracleAt_of_length_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.agree_on_queries' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Stage.outputs_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.sepLang_not_inP' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.sepOracle_not_pEqNP' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+(The three axiom-free lines are `Stage.State` and its two projections; the two
+`[propext, Quot.sound]` lines are `DCode.input` and `DCode.input_length`.)
+
+**(c) Banned-token scan** over `Relativization.lean` and `Relativization/*.lean`, the same three
+scans as §7.5 (c) (`logs/session4-scan.txt`):
+
+```
+== banned tokens (whole word) in project Lean sources ==
+grep exit: 1 (1 = no match)
+== metaprogramming / environment-modifying markers ==
+Relativization/Comp.lean:27:attribute [local instance] FinTM2.kFin FinTM2.ΛFin FinTM2.σFin FinTM2.Γk₀Fin
+Relativization/Comp.lean:39:@[reducible] def CΓ : CK M₁ M₂ → Type
+Relativization/Normal.lean:96:attribute [local instance] OracleFinTM2.kFin OracleFinTM2.ΛFin OracleFinTM2.σFin
+Relativization/Oracle.lean:261:attribute [local instance] OracleFinTM2.ΛFin
+Relativization/Plain.lean:23:attribute [local instance] FinTM2.kFin
+Relativization/Plain.lean:28:@[reducible] def PΓ : Option M.K → Type
+Relativization/Prog.lean:49:attribute [simp] Flag.untag_tag
+Relativization/Prog.lean:93:@[simp] theorem cnt_length {α : Type} (u : α) (n : ℕ) : (cnt u n).length = n :=
+Relativization/Prog.lean:98:@[simp] theorem cnt_zero {α : Type} (u : α) : cnt u 0 = [] := rfl
+Relativization/Prog.lean:656:@[simp] theorem rep_zero {α : Type} (ys : List α) : rep ys 0 = [] := rfl
+grep exit: 0
+== opaque / unsafeCast / debug markers ==
+grep exit: 1
+```
+
+The ten hits are exactly those of §9.5 (c); the three new files contribute none.
+
+**(d) `lake build`**, after deleting this project's own build artifacts
+(`.lake/build/lib/lean/Relativization*`, `.lake/build/ir/Relativization*`) so that every module
+was recompiled (`logs/session4-build.txt`; `grep -c -i -E "warning|error"` on it prints `0`):
+
+```
+✔ [1320/1336] Built Relativization.Countable (9.5s)
+✔ [1321/1336] Built Relativization.Count (10s)
+✔ [1322/1336] Built Relativization.Oracle (10s)
+✔ [1323/1336] Built Relativization.Classes (12s)
+✔ [1324/1336] Built Relativization.Halt (12s)
+✔ [1325/1336] Built Relativization.Queries (12s)
+✔ [1326/1336] Built Relativization.Normal (12s)
+✔ [1327/1336] Built Relativization.Prog (12s)
+✔ [1328/1336] Built Relativization.Self (11s)
+✔ [1329/1336] Built Relativization.Codes (12s)
+✔ [1330/1336] Built Relativization.Emb (11s)
+✔ [1331/1336] Built Relativization.Plain (12s)
+✔ [1332/1336] Built Relativization.Comp (12s)
+✔ [1333/1336] Built Relativization.Sep (8.2s)
+✔ [1334/1336] Built Relativization.Stage (8.4s)
+✔ [1335/1336] Built Relativization (8.1s)
+Build completed successfully (1336 jobs).
+exit: 0
+```
+
+**(e) Earlier modules elaborate unchanged.** SHA-256 of each session 1–3 `.olean` before any
+change of this session (`logs/session4-olean-before.txt`) and after the from-scratch rebuild
+with the new modules present (`logs/session4-olean-after.txt`):
+
+```
+== olean hashes: earlier modules, before vs after the from-scratch rebuild ==
+Classes.olean SAME 43f4554b909236c7463f66a59da5add30adb3f4084b8e48de414a2381efe3896
+Codes.olean SAME c5e2c117e4ebe67f687ef83b1d8d2573830c2ad11aeb4b589ea22c352fd1bb8e
+Comp.olean SAME c560c3c025efabecdee7f093bf9946eaf00f2e9cfa03fd52ce3836bea892daf8
+Countable.olean SAME d4012351737c0774a51826920bd5e637f07d5c135cc3b929966dc5d08aa6e351
+Emb.olean SAME 7203cedb57039239eb3735ee203b3d00d4b141f5e6974c8f1bbda90077a0b42f
+Halt.olean SAME bbec64145c811dcfdf6c5f1be0683a461b4c9478cf354a31201ecda23db125b5
+Normal.olean SAME 292ec4f641ebb808ff8e37075405b7dea60e9f5ae22bf307e2a8b327de47c0a3
+Oracle.olean SAME aba34f40f7e4fc0812b4a80bc0a42d472770e255cd15ff572793f04a5f8751da
+Plain.olean SAME 538a20892c70be803e666d35140c75b811aca5ba27aa95032ef8ac94dc690561
+Prog.olean SAME 9f91d8f0624f08e0a079ce2712a2bd5ec7f5d67053fa115d27386cc3a7b3ff7b
+Self.olean SAME 2a154bef41f5362745a35ac188e0624a5afe435ffd3a9df2bad3f959aa019753
+Sep.olean SAME b004c415b234932d33d7025328c104416eb924f01af127fc757bbe872dc72280
+```
+
+(These twelve values are also the twelve of `logs/session3-olean-after.txt`.)
 
 `lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).

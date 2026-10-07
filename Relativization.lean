@@ -10,6 +10,9 @@ import Relativization.Codes
 import Relativization.Prog
 import Relativization.Emb
 import Relativization.Sep
+import Relativization.Count
+import Relativization.Queries
+import Relativization.Stage
 
 /-!
 # Baker-Gill-Solovay
@@ -39,6 +42,15 @@ Session 3 (program library and the separating language):
   oracle-host version;
 * `Relativization.Sep`: the machine `(w, y) ↦ (w ++ y).reverse` (B1), the separating language
   `sepLang` and `sepLang B ∈ NP^B` (B2).
+
+Session 4 (the stage construction):
+
+* `Relativization.Count`: the counting lemmas (B3): fewer than `2^n` strings miss some
+  `u ++ 0^n`, and every polynomial is eventually below `2^n`;
+* `Relativization.Queries`: the finite set of queries asked by a run, and the instance of the
+  sharp locality lemma L4 the stages use;
+* `Relativization.Stage`: the stages and the oracle `sepOracle` (B4), run stability (B5), and
+  `sepLang sepOracle ∉ P^sepOracle`, `¬ PEqNP sepOracle` (B6).
 
 See `NOTES.md` for statements, the lemma table and check outputs; `PLAN.md` for the plan.
 -/
