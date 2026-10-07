@@ -4,10 +4,11 @@ Working notes. `PLAN.md` holds the approved plan; this file holds the statements
 paper proofs, the lemma table and the check outputs.
 
 Status legend: **stated** = written here, no Lean proof; **proved** = Lean proof compiled and
-axiom-checked (output quoted in §7). Nothing is committed.
+axiom-checked (output quoted in §7 or §8). Nothing is committed.
 
-Contents: §1 setup record · §2 definitions · §3 target statements · §4 statements for session 1 ·
-§5 paper proof of the collapse oracle · §6 literature · §7 lemma table and checks.
+Contents: §1 setup record · §2 definitions · §3 target statements · §4 statements for sessions 1 and 2 ·
+§5 paper proof of the collapse oracle · §6 literature · §7 lemma table and checks (session 1) ·
+§8 lemma table and checks (session 2).
 
 ---
 
@@ -209,7 +210,7 @@ T5, T6, T7, T8 are **not** attempted this session.
 
 ---
 
-## 4. Statements for session 1 (written before the Lean proofs)
+## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2)
 
 ### 4.1 Trivial oracle, binary alphabet (the form asked for in the session brief)
 
@@ -310,6 +311,215 @@ the number of steps: `length_stepAux` (a statement lengthens stack `k` by at mos
 as the original does), `iter_map` (a step-commuting embedding commutes with iteration), the four
 copy-loop steps and the two copy loops of the composite machine.
 
+### 4.5 Session 2 (2026-10-07): what the collapse proof needs, and what the plan had
+
+The §5 proof uses (N) of §5.3 and Lemma 4 of §5.2. Compared with PLAN §6.4:
+
+1. **N1 as the plan states it is false.** "`Countable (TM2.Stmt Γ Λ σ)` for finite `σ`,
+   countable `K`, `Λ`, `Γ k`" fails when some `Γ k` is infinite: `pop k f q` carries
+   `f : σ → Option (Γ k) → σ`, and `Option ℕ → Bool` is uncountable. N1 is stated below with
+   `Finite (Γ k)` for every `k`; the normal form only ever needs it over `Fin` alphabets.
+2. **N3 needs a finite output alphabet to give an output-alphabet equivalence.** `OracleFinTM2`
+   has `Fintype (Γ k₀)` and `Γ kq ≃ Bool` but says nothing about `Γ k₁`. The normal form is built
+   for *every* machine (N3a, with the output translated by a decoding map); the form with
+   equivalences on both ends (N3b, the plan's statement) is stated for `[Finite (tm.Γ tm.k₁)]`,
+   which every machine inside an `OTM2ComputableInPolyTime` with finite `βΓ` satisfies.
+3. **Time overhead is zero**, not polynomial: the normal form runs the same number of steps and
+   outputs the same list, for every oracle and every input. This is the form (N) uses ("within
+   `t` steps iff within `t` steps") and the plan's form; it is stronger than the session brief's
+   "within a stated polynomial overhead" (the overhead is the identity).
+4. **Codes carry their parameters.** A verifier code carries `g` (certificate alphabet size) and
+   `k` (exponent), as §5.3 requires; a decider code carries its time polynomial, so that the
+   separation's requirements `(code, polynomial)` are one countable type.
+5. Nothing stronger than (N) is needed by §5; (N) is N4v below, word for word.
+
+### 4.6 Statements for session 2: normal form (N1–N4) and unique output (F4)
+
+Namespace `Relativization`. `κ` below is `Fintype.equivFin tm.K`.
+
+```lean
+/-- Normal-form machines: every type is `Fin n`, every alphabet `Fin (a k)`. -/
+structure NFMachine where
+  nK nΛ nσ : ℕ
+  a : Fin nK → ℕ
+  k₀ k₁ kq : Fin nK
+  main : Fin nΛ
+  init : Fin nσ
+  qAlpha : Fin (a kq) ≃ Bool
+  m : Fin nΛ → Bool → Turing.TM2.Stmt (fun j => Fin (a j)) (Fin nΛ) (Fin nσ)
+
+def NFMachine.toOracleFinTM2 (N : NFMachine) : OracleFinTM2    -- field for field
+
+/-- N1 -/ instance TM2.Stmt.countable {K : Type} {Γ : K → Type} {Λ σ : Type}
+    [Countable K] [∀ k, Finite (Γ k)] [Countable Λ] [Finite σ] : Countable (TM2.Stmt Γ Λ σ)
+
+/-- N2 -/ instance : Countable NFMachine
+/-- N2 -/ instance : Countable DCode
+/-- N2 -/ instance : Countable VCode
+/-- N2, the enumerations (noncomputable, from `exists_surjective_nat`) -/
+noncomputable def dEnum : ℕ → DCode
+theorem dEnum_surjective : Function.Surjective dEnum
+noncomputable def vEnum : ℕ → VCode
+theorem vEnum_surjective : Function.Surjective vEnum
+
+/-- Reachable symbols of stack `k`: everything some statement can push there, all of the input
+and query alphabets, and a finite seed `X k` (used with `X k = {x | k = k₁}` when `Γ k₁` is
+finite, so that the output alphabet is carried over whole). -/
+def NF.symSet (tm : OracleFinTM2) (X : ∀ k, Set (tm.Γ k)) (k : tm.K) : Set (tm.Γ k)
+noncomputable def NF.nf (tm : OracleFinTM2) (X : ∀ k, Set (tm.Γ k)) (hX : ∀ k, (X k).Finite) :
+    NFMachine
+noncomputable def NF.enc … (k : tm.K) : tm.Γ k → Fin ((NF.nf tm X hX).a (κ k))
+noncomputable def NF.dec … (k : tm.K) : Fin ((NF.nf tm X hX).a (κ k)) → tm.Γ k
+theorem NF.enc_dec … (k) (i) : NF.enc tm X hX k (NF.dec tm X hX k i) = i
+theorem NF.dec_enc … (k) {x} (hx : x ∈ NF.symSet tm X k) : NF.dec tm X hX k (NF.enc tm X hX k x) = x
+
+/-- N3a, every machine: the normal form outputs `o` on `enc l` within `t` steps iff the machine
+outputs `dec o` on `l` within `t` steps, for every oracle, input, output and `t`. -/
+theorem NF.nf_outputs_iff (tm : OracleFinTM2) (X) (hX) (A : Oracle) (l : List (tm.Γ tm.k₀))
+    (o : Option (List (Fin ((NF.nf tm X hX).a (κ tm.k₁))))) (t : ℕ) :
+    Nonempty (OTM2OutputsInTime A tm l (o.map (List.map (NF.dec tm X hX tm.k₁))) t) ↔
+      Nonempty (OTM2OutputsInTime A (NF.nf tm X hX).toOracleFinTM2
+        (l.map (NF.enc tm X hX tm.k₀)) o t)
+
+/-- N3b, the plan's form: finite output alphabet, equivalences on both ends. -/
+theorem exists_nf (tm : OracleFinTM2) [Finite (tm.Γ tm.k₁)] :
+    ∃ (N : NFMachine) (e₀ : Fin (N.a N.k₀) ≃ tm.Γ tm.k₀) (e₁ : Fin (N.a N.k₁) ≃ tm.Γ tm.k₁),
+      ∀ (A : Oracle) (l : List (tm.Γ tm.k₀)) (l' : Option (List (tm.Γ tm.k₁))) (t : ℕ),
+        Nonempty (OTM2OutputsInTime A tm l l' t) ↔
+          Nonempty (OTM2OutputsInTime A N.toOracleFinTM2 (l.map e₀.symm)
+            (l'.map (List.map e₁.symm)) t)
+
+/-- N3c, alphabet form (what N4 uses): the same through given alphabet equivalences. -/
+theorem exists_nf_equiv {αΓ βΓ : Type} [Finite βΓ] (tm : OracleFinTM2)
+    (ι₀ : tm.Γ tm.k₀ ≃ αΓ) (ι₁ : tm.Γ tm.k₁ ≃ βΓ) :
+    ∃ (N : NFMachine) (e₀ : Fin (N.a N.k₀) ≃ αΓ) (e₁ : Fin (N.a N.k₁) ≃ βΓ),
+      ∀ (A : Oracle) (u : List αΓ) (o : Option (List βΓ)) (t : ℕ),
+        Nonempty (OTM2OutputsInTime A tm (u.map ι₀.symm) (o.map (List.map ι₁.symm)) t) ↔
+          Nonempty (OTM2OutputsInTime A N.toOracleFinTM2 (u.map e₀.symm)
+            (o.map (List.map e₁.symm)) t)
+
+/-- Decider codes: binary input and output alphabets, and a time polynomial. -/
+structure DCode where
+  N : NFMachine
+  inE : Fin (N.a N.k₀) ≃ Bool
+  outE : Fin (N.a N.k₁) ≃ Bool
+  time : Polynomial ℕ
+
+/-- Verifier codes: input alphabet `{0,1} ⊔ {#} ⊔ [g]` (the `pair_encoding` alphabet, which is
+`Bool ⊕ Option (Fin g)`), output alphabet `Bool`, exponent `k`. -/
+structure VCode where
+  N : NFMachine
+  g : ℕ
+  k : ℕ
+  inE : Fin (N.a N.k₀) ≃ Bool ⊕ Option (Fin g)
+  outE : Fin (N.a N.k₁) ≃ Bool
+
+/-- N4d: every polynomial-time oracle decider has a code with the same polynomial that runs
+exactly like it under every oracle. -/
+theorem exists_dcode {A : Oracle} {f : List Bool → Bool}
+    (h : OTM2ComputableInPolyTime A (fin_encoding_string Bool).encode
+      finEncodingBoolBool.encode f) :
+    ∃ c : DCode, c.time = h.time ∧ ∀ (O : Oracle) (w : List Bool) (b : Bool) (t : ℕ),
+      Nonempty (OTM2OutputsInTime O h.tm (w.map h.inputAlphabet.symm)
+        (some [h.outputAlphabet.symm b]) t) ↔
+      Nonempty (OTM2OutputsInTime O c.N.toOracleFinTM2 (w.map c.inE.symm)
+        (some [c.outE.symm b]) t)
+
+/-- N4d', the form the separation stage uses: the code decides `f` under `A` within its own
+polynomial. -/
+theorem exists_dcode_decides … (h : OTM2ComputableInPolyTime A … f) :
+    ∃ c : DCode, c.time = h.time ∧ ∀ w : List Bool,
+      Nonempty (OTM2OutputsInTime A c.N.toOracleFinTM2 (w.map c.inE.symm)
+        (some [c.outE.symm (f w)]) (c.time.eval w.length))
+
+/-- N4v, statement (N) of §5.3: for every oracle verifier with certificate alphabet `Γ₁` and
+every exponent `k` there are a code `i` with `k_i = k` and a bijection `ρ : Γ₁ ≃ Fin g_i` such
+that, for every oracle `O` and all `w`, `y`, `b`, `t`, `V^O` outputs `[b]` on `w#y` within `t`
+steps iff `M_i^O` outputs `[b]` on `w#ρ(y)` within `t` steps. -/
+theorem exists_vcode {Γ₁ : Type} [Fintype Γ₁] (V : OracleFinTM2)
+    (ι₀ : V.Γ V.k₀ ≃ Bool ⊕ Option Γ₁) (ι₁ : V.Γ V.k₁ ≃ Bool) (k : ℕ) :
+    ∃ (i : ℕ) (ρ : Γ₁ ≃ Fin (vEnum i).g), (vEnum i).k = k ∧
+      ∀ (O : Oracle) (w : List Bool) (y : List Γ₁) (b : Bool) (t : ℕ),
+        Nonempty (OTM2OutputsInTime O V
+          (((pair_encoding (fin_encoding_string Bool) (fin_encoding_string Γ₁)).encode (w, y)).map
+            ι₀.symm) (some [ι₁.symm b]) t) ↔
+        Nonempty (OTM2OutputsInTime O (vEnum i).N.toOracleFinTM2
+          (((pair_encoding (fin_encoding_string Bool)
+            (fin_encoding_string (Fin (vEnum i).g))).encode (w, y.map ρ)).map (vEnum i).inE.symm)
+          (some [(vEnum i).outE.symm b]) t)
+
+/-- N4v', the same for the verifier structure inside `InNP`, with the output written as
+`outputsFun` writes it (`finEncodingBoolBool.encode b = [b]`). -/
+theorem exists_vcode_of_verifier {Γ₁ : Type} [Fintype Γ₁] {A : Oracle}
+    {f : List Bool × List Γ₁ → Bool}
+    (h : OTM2ComputableInPolyTime A
+      (pair_encoding (fin_encoding_string Bool) (fin_encoding_string Γ₁)).encode
+      finEncodingBoolBool.encode f) (k : ℕ) :
+    ∃ (i : ℕ) (ρ : Γ₁ ≃ Fin (vEnum i).g), (vEnum i).k = k ∧
+      ∀ (O : Oracle) (w : List Bool) (y : List Γ₁) (b : Bool) (t : ℕ),
+        Nonempty (OTM2OutputsInTime O h.tm
+          (((pair_encoding (fin_encoding_string Bool) (fin_encoding_string Γ₁)).encode (w, y)).map
+            h.inputAlphabet.invFun)
+          (some ((finEncodingBoolBool.encode b).map h.outputAlphabet.invFun)) t) ↔
+        Nonempty (OTM2OutputsInTime O (vEnum i).N.toOracleFinTM2
+          (((pair_encoding (fin_encoding_string Bool)
+            (fin_encoding_string (Fin (vEnum i).g))).encode (w, y.map ρ)).map (vEnum i).inE.symm)
+          (some [(vEnum i).outE.symm b]) t)
+
+/-- F4, Lemma 4 of §5.2: halting configurations are terminal, so a machine has at most one
+output on an input, whatever the time bounds. -/
+theorem OracleFinTM2.step_haltList (tm : OracleFinTM2) (A : Oracle) (o : List (tm.Γ tm.k₁)) :
+    tm.step A (tm.haltList o) = none
+theorem OracleFinTM2.haltList_injective (tm : OracleFinTM2) : Function.Injective tm.haltList
+theorem OTM2OutputsInTime.output_unique {A : Oracle} {tm : OracleFinTM2} {l : List (tm.Γ tm.k₀)}
+    {o o' : List (tm.Γ tm.k₁)} {t t' : ℕ}
+    (h : OTM2OutputsInTime A tm l (some o) t) (h' : OTM2OutputsInTime A tm l (some o') t') :
+    o = o' ∧ h.steps = h'.steps
+/-- F4', the form §5.7 uses: given one output, any other candidate within at least the same
+time is the output iff it is equal to it. -/
+theorem OTM2OutputsInTime.outputs_iff_eq … (h : OTM2OutputsInTime A tm l (some o) t)
+    (o' : List (tm.Γ tm.k₁)) {t' : ℕ} (ht : t ≤ t') :
+    Nonempty (OTM2OutputsInTime A tm l (some o') t') ↔ o' = o
+theorem OTM2OutputsInTime.bool_iff {βΓ : Type} (ι : tm.Γ tm.k₁ ≃ βΓ) {b : βΓ}
+    (h : OTM2OutputsInTime A tm l (some [ι.symm b]) t) (b' : βΓ) :
+    Nonempty (OTM2OutputsInTime A tm l (some [ι.symm b']) t) ↔ b' = b
+```
+
+How (N) of §5.3 is read off N4v: `M_i := (vEnum i).N.toOracleFinTM2`, `g_i := (vEnum i).g`,
+`k_i := (vEnum i).k`, `D_i := M_i.depth`; "`M_i^O` outputs `[b]` on `w#y'`" is
+`Nonempty (OTM2OutputsInTime O M_i (((pair_encoding …).encode (w, y')).map inE.symm)
+(some [outE.symm b]) t)`. Codes are oracle-independent: `vEnum` is a closed term, and the `i`
+of N4v does not depend on the oracle `O` quantified after it.
+
+### 4.7 Construction of the normal form (paper proof, before the Lean)
+
+Fix `tm` and a finite seed `X`. `κ : tm.K ≃ Fin nK`, `λ : tm.Λ ≃ Fin nΛ`, `ς : tm.σ ≃ Fin nσ` are
+`Fintype.equivFin`. For each `k`, `symSet k ⊆ tm.Γ k` is finite (finitely many statements,
+each pushing finitely many `Set.range (f ·)` with `σ` finite; the input alphabet is finite; the
+query alphabet is `≃ Bool`; `X k` is finite), so `ε k : symSet k ≃ Fin (Nat.card (symSet k))`.
+Put `a j := Nat.card (symSet (κ.symm j))`, so `a (κ k) = Nat.card (symSet k)` propositionally;
+`enc k` and `dec k` are `ε k` and its inverse composed with `Fin.cast` of that equation (with a
+junk value for `enc k x` when `x ∉ symSet k`, never reached). The statement translation `tr`
+replaces `push k f` by `push (κ k) (enc k ∘ f ∘ ς.symm)`, `pop`/`peek` by the same with
+`o.map (dec k)` on the read symbol, states by `ς`, labels by `λ`; the program is
+`m l' b := tr (tm.m (λ.symm l') b)`; `qAlpha := tm.queryAlphabet ∘ dec kq` (a bijection because
+`symSet kq` is everything).
+
+Simulation map `e : N.Cfg → tm.Cfg`, from the normal form **to** the original (so that no
+reachability invariant is needed): label `λ.symm`, state `ς.symm`, stack `k` is
+`(c.stk (κ k)).map (dec k)`. One step commutes: `tm.step O (e c) = (N.step O c).map e`, because
+(i) the query strings agree, `tm.query (e c) = N.query c`; (ii) by induction on the statement,
+`stepAux (tr q) v S` maps to `stepAux q (ς.symm v) (e S)`: at a `push k f` the pushed symbol
+`f v` is in `symSet k`, so `dec (enc (f v)) = f v`; at `pop`/`peek`, `head?` commutes with
+`map`; `Fin.cast` only ever appears as `Fin.cast h (Fin.cast h.symm i) = i`, and `κ.symm (κ k)`
+never has to be rewritten because `e` evaluates `κ` forwards only. Then `iter_map` transports
+runs. `e (N.initList (l.map enc)) = tm.initList l` (input alphabet is in `symSet`), and
+`e d = tm.haltList (o.map dec) ↔ d = N.haltList o` (`e` is injective on labels, states and
+stacks since `enc ∘ dec = id`). N3a follows; N3b/N3c compose with the alphabet equivalences,
+using `X k := {x | k = k₁}` so that `dec k₁` is a bijection. N4 is N3c at the two alphabets,
+with `ρ := Fintype.equivFin Γ₁` and `Sum.map id (Option.map ρ)` on the pair alphabet, plus the
+enumeration.
+
 ---
 
 ## 5. Paper proof: the self-referential oracle is well defined and gives `P^A = NP^A`
@@ -377,11 +587,12 @@ within `t'` steps, then `o = o'`.
 A halted configuration has no successor, so `step^{s''}(init u)` is undefined for `s'' > s`;
 hence `s' = s` and `halt(o) = halt(o')`. The output stack of `halt(o)` is `o`. ∎
 
-(Lemma 4 is F4 of the plan. It is not formalised this session.)
+(Lemma 4 is F4 of the plan: `OTM2OutputsInTime.output_unique`, with the forms
+`outputs_iff_eq` and `bool_iff` used in §5.7; stated in §4.6 and proved in session 2, §8.2.)
 
 ### 5.3 Codes (assumed here; N1–N4 of the plan)
 
-The proof uses one fact about machines that is not proved until the normal-form sessions:
+The proof uses one fact about machines, stated in Lean form as N4v in §4.6 (session 2):
 
 > **(N)** There is a sequence `e : ℕ → VCode` of *verifier codes*. A code `i` consists of an
 > oracle machine `M_i` whose input alphabet is identified with `{0, 1} ⊔ {#} ⊔ [g_i]` and whose
@@ -400,7 +611,7 @@ Two properties of (N) matter and are easy to lose:
 2. `D_i` is the depth of the coded machine `M_i` itself, not of `V`. The definition of `A` and
    all bounds below mention only `M_i`.
 
-### 5.4 Definition of `A`
+### 5.4 Definition of `A` (the chosen definition: decision D6, approved 2026-10-07)
 
 **Frames.** `frame(i, T, v) = 1^i 0 1^T 0 v` for `i, T ∈ ℕ`, `v ∈ {0,1}*`. Every binary string
 has at most one such decomposition (`i` = number of leading ones, then a zero, `T` = number of
@@ -538,7 +749,7 @@ Where the hypotheses are used:
 * Lemma 4 turns "outputs `[f(w,y)]` within the budget" into "outputs `[true]` within the budget
   iff `f(w,y) = true`". Without it a machine that had not halted yet could not be excluded.
 
-### 5.8 Difference from PLAN §4.1, for decision
+### 5.8 The alternative with budget `T` (not used; D6 decided for §5.4)
 
 PLAN §4.1 defines membership with budget `T` and oracle `A ∩ {|z| < |x|}`, and chooses
 `T(n) ≥ n + 1 + n^k + (c + 1)·q(n + 1 + n^k)`. That version is also correct, by a different
@@ -553,16 +764,17 @@ to the truncated run. But in that version:
 The version in §5.4 changes one thing: the budget is `⌊(T ∸ μ)/(D_i + 1)⌋` instead of `T`. The
 padding function, the choice of `T(n)` and the machine `pad` are the same as in the plan. The
 cost is one definition (`D_i` read off the code, three lines of arithmetic); the gain is
-Proposition 5 for every frame and the cleaner equation (†). **This is a change to D6 of the plan
-(not yet formalised) and needs your approval; nothing in this session's Lean depends on it.**
+Proposition 5 for every frame and the cleaner equation (†). **Decision D6 (approved 2026-10-07, session 2): the budget
+`⌊(T ∸ μ)/(D_i + 1)⌋` of §5.4 is the chosen definition of `A`, recorded in PLAN §4.1. The
+budget-`T` variant described in this subsection is not used.**
 
 ### 5.9 Not yet formal, and what could still go wrong
 
-* (N) is assumed. In particular the normal form must preserve "outputs `[b]` within `t` steps"
-  exactly, for every oracle, with the same query strings (so that `M_i^A` really is the verifier
-  run with `A`). `D_i` is whatever depth the normal form has; it need not equal `D(V)`.
+* (N) is proved: it is N4v (`exists_vcode`, session 2, §8.2), exact in time and for every
+  oracle. `D_i` is the depth of the coded machine `(vEnum i).N.toOracleFinTM2`; no relation to
+  `D(V)` is proved or needed.
 * `pad` as a machine (A4) and the power bound `(n + c')^d` are not built.
-* Lemma 4 (F4) is not formalised.
+* Lemma 4 (F4) is proved (session 2, §8.2).
 * The certificate bound `|y| ≤ |w|^k` is the Clay one, including `0^0 = 1`. `A` and `L` use the
   same expression with the same `k`, so nothing depends on its behaviour at small `n`.
 
@@ -803,6 +1015,200 @@ recompiled (`logs/session1-build.txt`; `grep -c -i -E "warning|error"` on it pri
 ✔ [1215/1217] Built Relativization.Comp (10s)
 ✔ [1216/1217] Built Relativization (7.8s)
 Build completed successfully (1217 jobs).
+exit: 0
+```
+
+`lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).
+
+---
+
+## 8. Lemma table and checks (session 2, 2026-10-07)
+
+### 8.1 Files
+
+| File | Lines (non-blank) | Content |
+|---|---|---|
+| `Relativization/Halt.lean` | 103 (83) | F4: terminal halting configurations, unique output |
+| `Relativization/Countable.lean` | 102 (84) | N1: `TM2.Stmt` over finite data is countable |
+| `Relativization/Normal.lean` | 438 (374) | D4 `NFMachine`; the normal form `NF.nf`; N3a, N3b, N3c |
+| `Relativization/Codes.lean` | 319 (263) | `DCode`, `VCode`; N2 (countability, `dEnum`, `vEnum`); N4d, N4d', N4v, N4v' |
+| `Relativization.lean` | 32 (26) | imports (+4 lines) |
+| **Session 2 total** | **962 (804) in the four new files; 815 non-blank with the root module** | |
+| **Repository total** | **2,306 (1,945)** | 635 constants: 272 named, 363 auxiliary (session 2 audit classification, which counts `mk`/`injEq` as auxiliary and structure projections as named) |
+
+Session 1 files are unchanged (byte for byte: no session 1 definition or proof was touched).
+
+### 8.2 Results asked for in the session brief
+
+All **proved**. Axioms are from the literal `#print axioms` output in §8.5.
+
+| Id | Lean name | File:line | Statement | Differences from §4.6 as first written | Axioms |
+|---|---|---|---|---|---|
+| D4 | `NFMachine`, `NFMachine.toOracleFinTM2` | Normal:28, 53 | normal-form machines and their reading as oracle machines | `toOracleFinTM2` is an `abbrev` (see §8.4 item 3) | the three |
+| N1 | `TM2.Stmt.countable` | Countable:97 | `Countable (TM2.Stmt Γ Λ σ)` for countable `K`, `Λ`, finite `σ`, finite `Γ k` | none (the plan's "countable `Γ k`" is false, §4.5 item 1) | the three |
+| N2 | `NFMachine.countable`, `DCode.countable`, `VCode.countable` | Codes:60, 95, 140 | the three code types are countable | none | the three |
+| N2 | `dEnum`, `dEnum_surjective`, `vEnum`, `vEnum_surjective` | Codes:268–278 | surjections `ℕ → DCode`, `ℕ → VCode` | none | the three |
+| N3a | `NF.nf_outputs_iff` | Normal:364 | every machine: NF outputs `o` on `enc₀ l` within `t` iff `tm` outputs `o.map dec` on `l` within `t`, every oracle | `enc₀` (input alphabet) in place of `enc … tm.k₀` (§8.4 item 1) | the three |
+| N3b | `exists_nf` | Normal:390 | `[Finite (tm.Γ tm.k₁)]`: ∃ NF and `e₀ : Fin (N.a N.k₀) ≃ tm.Γ tm.k₀`, `e₁ : … ≃ tm.Γ tm.k₁` with the same outputs in the same time, every oracle | none | the three |
+| N3c | `exists_nf_equiv` | Normal:420 | the same through given alphabet equivalences `ι₀`, `ι₁` with `[Finite βΓ]` | none | the three |
+| N4d | `exists_dcode` | Codes:149 | every polynomial-time oracle decider has a `DCode` with the same polynomial, same outputs in the same time under every oracle | none | the three |
+| N4d' | `exists_dcode_decides` | Codes:161 | the code decides `f` under `A` within its own polynomial | none | the three |
+| N4v | `exists_vcode` | Codes:285 | statement (N) of §5.3, with `i : ℕ`, `vEnum i` | `ι₀ : V.Γ V.k₀ ≃ pairΓ Γ₁` where `pairΓ Γ₁ := Bool ⊕ Option Γ₁` is the `pair_encoding` alphabet by `rfl` (`pair_encoding_Γ`) | the three |
+| N4v' | `exists_vcode_of_verifier` | Codes:302 | the same for the verifier structure inside `InNP`, output written as `outputsFun` writes it | none; it is `exists_vcode` applied, by definitional unfolding | the three |
+| F4 | `OracleFinTM2.step_haltList`, `OracleFinTM2.haltList_injective`, `OTM2OutputsInTime.output_unique` | Halt:26, 32, 65 | halting configurations are terminal; at most one output, reached at the same step, whatever the time bounds | none | the three |
+| F4' | `OTM2OutputsInTime.outputs_iff_eq`, `OTM2OutputsInTime.bool_iff` | Halt:79, 90 | given one output, a candidate is an output iff equal to it | none | the three |
+
+"The three" = `[propext, Classical.choice, Quot.sound]`.
+
+### 8.3 Supporting declarations (all proved; names as in the files)
+
+| File | Declarations |
+|---|---|
+| Halt | `OracleFinTM2.haltList_stk_self`, `iter_eq_some_of_terminal`, `OracleFinTM2.run_unique_aux` |
+| Countable | `StmtCountable.Node`, `arity`, `arityFintype`, `arityEncodable`, `toW`, `ofW`, `ofW_toW`, `toW_injective` |
+| Normal | `pushSyms`, `pushSyms_finite`; `NF.pushed`, `pushed_finite`, `symSet`, `mem_symSet_of_pushed`, `mem_symSet_k₀`, `mem_symSet_kq`, `mem_symSet_of_X`, `symSet_finite`, `κ`, `ℓ`, `ς`, `aFun`, `aFun_eq`, `ε`, `enc`, `dec`, `dec_mem`, `dec_enc`, `enc_dec`, `dec_injective`, `enc₀`, `dec_enc₀`, `qAlpha`, `pushSyms_subset_pushed`, `tr`, `nf`, `NCfg`, `eStk`, `eStk_update`, `eStk_injective`, `e`, `e_injective`, `stepAux_tr`, `query_e`, `step_e`, `iter_e`, `e_initList`, `e_haltList` |
+| Codes | `equivCountable`, `polynomialNatCountable`; `NFMachine.Fiber`, `fiberCountable`, `Data`, `toData`, `ofData`, `ofData_toData`; `DCode.Data/toData/ofData/ofData_toData`; `pairΓ`, `pair_encoding_Γ`; `VCode.Data/toData/ofData/ofData_toData`; `pairMap`, `pairEquiv`, `pairMap_cert`, `pair_encode_map`, `exists_vcode_aux`; `d0`, `v0`, `DCode.nonempty`, `VCode.nonempty` |
+
+### 8.4 Things a reviewer should know
+
+1. **`NF.enc` is defined on the reachable symbols only.** §4.6 first wrote
+   `NF.enc … (k) : tm.Γ k → Fin (…)`. That function cannot exist: a work stack may have a
+   nonempty alphabet of which nothing is ever pushed, so its normal-form alphabet is `Fin 0` and
+   there is no junk value to send unreachable symbols to. `NF.enc tm hX k : symSet tm X k → Fin …`
+   takes a membership proof; the statement translation `NF.tr` carries the proof that every
+   pushed symbol is reachable; `NF.enc₀` is the version on the whole input alphabet (which is
+   reachable by definition of `symSet`). N3a is stated with `enc₀`. Nothing else in §4.6 changed.
+2. **No session 1 definition was changed**, and none needed to be. The simulation map goes from
+   the normal form to the original machine (§4.7), so no reachability invariant on
+   configurations is needed, and `κ.symm (κ k)` never has to be rewritten: the only transport is
+   `Fin.cast` of `a (κ k) = Nat.card (symSet k)`, and it only ever appears as
+   `Fin.cast h (Fin.cast h.symm i) = i`.
+3. **`NFMachine.toOracleFinTM2` is an `abbrev`.** With a plain `def`, terms such as
+   `N.toOracleFinTM2.Γ N.toOracleFinTM2.k₀` and `Fin (N.a N.k₀)` are definitionally equal but
+   not reducibly so, and `simp`/`rw` fail on `List.map`/`Option.map` whose implicit types differ
+   that way (the same phenomenon as §7.4 item 7). Making the reading reducible removes it for
+   everything downstream. The `OracleFinTM2.Cfg` of session 1 is left as it was.
+4. **N1 needs finite alphabets**, not countable ones (§4.5 item 1). The proof writes a statement
+   as a `WType` (`toW`), reads it back (`ofW`, a left inverse, so injectivity is `rfl`-level), and
+   uses Mathlib's `Encodable (WType β)`; the node type is made `Encodable` by
+   `Encodable.ofCountable` (classical).
+5. **The time overhead is zero.** `OTM2OutputsInTime` transports with the same `steps`
+   (`nf_outputs_iff` keeps `s`), so "within `t` steps" is preserved for every `t`, which is what
+   (N) and the plan's N3 need. No polynomial overhead appears anywhere.
+6. **Countability of the code data.** `NFMachine.Data` is a nested `Σ`; Lean's instance search
+   for `Countable` of the whole nest exceeds the default `synthInstance.maxSize`, which is why
+   the fiber `NFMachine.Fiber` has its own instance (`fiberCountable`): with it each search is
+   small. No `set_option` is used.
+7. **Global instances added:** `TM2.Stmt.countable` (N1), `equivCountable`
+   (`Countable (α ≃ β)` from `Countable (α → β)`), `polynomialNatCountable`,
+   `NFMachine.fiberCountable`, `NFMachine.countable`, `DCode.countable`, `VCode.countable`,
+   `DCode.nonempty`, `VCode.nonempty`, and the two `Fintype`/`Encodable` instances on
+   `StmtCountable.arity`. All are in namespace `Relativization`.
+8. **`d0`, `v0`** are two trivial machines used only to show `DCode` and `VCode` are inhabited
+   (needed by `exists_surjective_nat`). `v0`'s stack alphabets are `cond b (pairΓ (Fin 0)) Bool`
+   so that no `Fin`-literal arithmetic has to reduce inside a type.
+9. **Not done, by instruction:** no stage construction, no half of the main theorem, no `pad`
+   machine, nothing of A1–A6 or B1–B6. `NFMachine.toOracleFinTM2.depth` is whatever it is; no
+   relation to `tm.depth` is proved or needed (`D_i` in §5 is the depth of the coded machine).
+10. **Local attributes.** One more `attribute [local instance]` line (Normal:96, the four
+    `Fintype` fields of `OracleFinTM2`), as in session 1. No `@[reducible]` (the `abbrev`s are
+    `NFMachine.toOracleFinTM2`, `NF.κ`/`ℓ`/`ς`, `NF.NCfg`, `StmtCountable.Node`,
+    `NFMachine.Fiber`, the three `Data`s, `pairΓ`). No macros, syntax, elaborators, `deriving`,
+    `set_option`, or `#eval`.
+
+### 8.5 Check outputs
+
+Full logs are in `logs/` (not committed): `session2-axioms-all.txt`, `session2-print-axioms.txt`,
+`session2-build.txt`.
+
+**(a) Every constant, read-only audit** (`Lean.collectAxioms` over every constant whose module
+is `Relativization*`; the audit script is outside the repository). Last lines of
+`logs/session2-axioms-all.txt`:
+
+```
+TOTAL constants in Relativization modules: 635 (272 named, 363 auxiliary)
+named in new modules (Halt, Countable, Normal, Codes): 129
+UNION of axioms used: #[propext, Classical.choice, Quot.sound]
+CONSTANTS using anything outside [propext, Classical.choice, Quot.sound]: #[]
+```
+
+**(b) Literal `#print axioms` on each of the 129 named declarations of the four new
+modules** (`logs/session2-print-axioms.txt`, 129 output lines, 0 errors).
+Distribution:
+
+```
+      1 depends on axioms: [Quot.sound]
+     69 depends on axioms: [propext, Classical.choice, Quot.sound]
+     21 depends on axioms: [propext, Quot.sound]
+     38 does not depend on any axioms
+```
+
+`grep -c sorryAx` on both logs prints `0` and `0`. The results of §8.2:
+
+```
+'Relativization.NFMachine' does not depend on any axioms
+'Relativization.NFMachine.toOracleFinTM2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.TM2.Stmt.countable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NFMachine.countable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.DCode.countable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.VCode.countable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.dEnum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.dEnum_surjective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.vEnum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.vEnum_surjective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.nf' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.nf_outputs_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_nf' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_nf_equiv' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_dcode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_dcode_decides' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_vcode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_vcode_of_verifier' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.step_haltList' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.haltList_injective' depends on axioms: [propext, Quot.sound]
+'Relativization.OTM2OutputsInTime.output_unique' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OTM2OutputsInTime.outputs_iff_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OTM2OutputsInTime.bool_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.DCode' depends on axioms: [propext, Quot.sound]
+'Relativization.VCode' does not depend on any axioms
+```
+
+**(c) Banned-token scan** over `Relativization.lean` and `Relativization/*.lean`, the same three
+scans as §7.5 (c):
+
+```
+== banned tokens (whole word) in project Lean sources ==
+grep exit: 1 (1 = no match)
+== metaprogramming / environment-modifying markers ==
+Relativization/Comp.lean:27:attribute [local instance] FinTM2.kFin FinTM2.ΛFin FinTM2.σFin FinTM2.Γk₀Fin
+Relativization/Comp.lean:39:@[reducible] def CΓ : CK M₁ M₂ → Type
+Relativization/Normal.lean:96:attribute [local instance] OracleFinTM2.kFin OracleFinTM2.ΛFin OracleFinTM2.σFin
+Relativization/Oracle.lean:261:attribute [local instance] OracleFinTM2.ΛFin
+Relativization/Plain.lean:23:attribute [local instance] FinTM2.kFin
+Relativization/Plain.lean:28:@[reducible] def PΓ : Option M.K → Type
+grep exit: 0
+== opaque / unsafeCast / debug markers ==
+grep exit: 1
+```
+
+The five session 1 hits are unchanged; the one new hit is the local attribute of §8.4 item 10.
+
+**(d) `lake build`**, after deleting this project's own build artifacts so that every module was
+recompiled (`logs/session2-build.txt`; `grep -c -i -E "warning|error"` on it prints
+`0`):
+
+```
+✔ [1235/1245] Built Relativization.Countable (11s)
+✔ [1236/1245] Built Relativization.Oracle (12s)
+✔ [1237/1245] Built Relativization.Classes (12s)
+✔ [1238/1245] Built Relativization.Halt (12s)
+✔ [1239/1245] Built Relativization.Normal (12s)
+✔ [1240/1245] Built Relativization.Self (11s)
+✔ [1241/1245] Built Relativization.Plain (11s)
+✔ [1242/1245] Built Relativization.Comp (11s)
+✔ [1243/1245] Built Relativization.Codes (11s)
+✔ [1244/1245] Built Relativization (8.2s)
+Build completed successfully (1245 jobs).
 exit: 0
 ```
 

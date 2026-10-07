@@ -1,0 +1,129 @@
+'Relativization.DCode' depends on axioms: [propext, Quot.sound]
+'Relativization.DCode.Data' depends on axioms: [propext, Quot.sound]
+'Relativization.DCode.N' depends on axioms: [propext, Quot.sound]
+'Relativization.DCode.countable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.DCode.inE' depends on axioms: [propext, Quot.sound]
+'Relativization.DCode.nonempty' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.DCode.ofData' depends on axioms: [propext, Quot.sound]
+'Relativization.DCode.ofData_toData' depends on axioms: [propext, Quot.sound]
+'Relativization.DCode.outE' depends on axioms: [propext, Quot.sound]
+'Relativization.DCode.time' depends on axioms: [propext, Quot.sound]
+'Relativization.DCode.toData' depends on axioms: [propext, Quot.sound]
+'Relativization.NFMachine.Data' does not depend on any axioms
+'Relativization.NFMachine.Fiber' does not depend on any axioms
+'Relativization.NFMachine.countable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NFMachine.fiberCountable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NFMachine.ofData' does not depend on any axioms
+'Relativization.NFMachine.ofData_toData' does not depend on any axioms
+'Relativization.NFMachine.toData' does not depend on any axioms
+'Relativization.VCode' does not depend on any axioms
+'Relativization.VCode.Data' does not depend on any axioms
+'Relativization.VCode.N' does not depend on any axioms
+'Relativization.VCode.countable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.VCode.g' does not depend on any axioms
+'Relativization.VCode.inE' does not depend on any axioms
+'Relativization.VCode.k' does not depend on any axioms
+'Relativization.VCode.nonempty' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.VCode.ofData' does not depend on any axioms
+'Relativization.VCode.ofData_toData' does not depend on any axioms
+'Relativization.VCode.outE' does not depend on any axioms
+'Relativization.VCode.toData' does not depend on any axioms
+'Relativization.d0' depends on axioms: [propext, Quot.sound]
+'Relativization.dEnum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.dEnum_surjective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.equivCountable' depends on axioms: [Quot.sound]
+'Relativization.exists_dcode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_dcode_decides' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_vcode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_vcode_aux' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_vcode_of_verifier' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.pairEquiv' depends on axioms: [propext, Quot.sound]
+'Relativization.pairMap' does not depend on any axioms
+'Relativization.pairMap_cert' does not depend on any axioms
+'Relativization.pair_encode_map' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.pair_encoding_Γ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.pairΓ' does not depend on any axioms
+'Relativization.polynomialNatCountable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.v0' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.vEnum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.vEnum_surjective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.StmtCountable.Node' does not depend on any axioms
+'Relativization.StmtCountable.arity' does not depend on any axioms
+'Relativization.StmtCountable.arityEncodable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.StmtCountable.arityFintype' depends on axioms: [propext, Quot.sound]
+'Relativization.StmtCountable.ofW' does not depend on any axioms
+'Relativization.StmtCountable.ofW_toW' does not depend on any axioms
+'Relativization.StmtCountable.toW' does not depend on any axioms
+'Relativization.StmtCountable.toW_injective' does not depend on any axioms
+'Relativization.TM2.Stmt.countable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OTM2OutputsInTime.bool_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OTM2OutputsInTime.output_unique' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OTM2OutputsInTime.outputs_iff_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.haltList_injective' depends on axioms: [propext, Quot.sound]
+'Relativization.OracleFinTM2.haltList_stk_self' depends on axioms: [propext, Quot.sound]
+'Relativization.OracleFinTM2.run_unique_aux' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.step_haltList' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.iter_eq_some_of_terminal' does not depend on any axioms
+'Relativization.NF.NCfg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.aFun' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.aFun_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.dec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.dec.congr_simp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.dec_enc' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.dec_enc₀' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.dec_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.dec_mem' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.e' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.e.congr_simp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.eStk' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.eStk.congr_simp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.eStk_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.eStk_update' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.e_haltList' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.e_initList' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.e_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.enc' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.enc.congr_simp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.enc_dec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.enc₀' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.enc₀.congr_simp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.iter_e' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.mem_symSet_kq' depends on axioms: [propext, Quot.sound]
+'Relativization.NF.mem_symSet_k₀' depends on axioms: [propext, Quot.sound]
+'Relativization.NF.mem_symSet_of_X' depends on axioms: [propext, Quot.sound]
+'Relativization.NF.mem_symSet_of_pushed' depends on axioms: [propext, Quot.sound]
+'Relativization.NF.nf' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.nf_outputs_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.pushSyms_subset_pushed' depends on axioms: [propext, Quot.sound]
+'Relativization.NF.pushed' depends on axioms: [propext, Quot.sound]
+'Relativization.NF.pushed_finite' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.qAlpha' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.query_e' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.stepAux_tr' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.step_e' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.symSet' depends on axioms: [propext, Quot.sound]
+'Relativization.NF.symSet_finite' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.tr' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.tr.congr_simp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.ε' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.ε.congr_simp' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.κ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.ς' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NF.ℓ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.NFMachine' does not depend on any axioms
+'Relativization.NFMachine.a' does not depend on any axioms
+'Relativization.NFMachine.init' does not depend on any axioms
+'Relativization.NFMachine.kq' does not depend on any axioms
+'Relativization.NFMachine.k₀' does not depend on any axioms
+'Relativization.NFMachine.k₁' does not depend on any axioms
+'Relativization.NFMachine.m' does not depend on any axioms
+'Relativization.NFMachine.main' does not depend on any axioms
+'Relativization.NFMachine.nK' does not depend on any axioms
+'Relativization.NFMachine.nΛ' does not depend on any axioms
+'Relativization.NFMachine.nσ' does not depend on any axioms
+'Relativization.NFMachine.qAlpha' does not depend on any axioms
+'Relativization.NFMachine.toOracleFinTM2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_nf' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_nf_equiv' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.pushSyms' does not depend on any axioms
+'Relativization.pushSyms_finite' depends on axioms: [propext, Classical.choice, Quot.sound]

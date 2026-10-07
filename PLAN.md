@@ -1,8 +1,9 @@
 # PLAN — Baker-Gill-Solovay in Lean 4 + Mathlib
 
 Status: plan approved 2026-10-07 with decisions Q1 (yes), Q2/Q3 (yes, with conditions), Q5 (binary
-first). Session 1 (foundations and faithfulness checks) is done; see §6.7 for the revised estimate
-and for corrections to this plan, and `NOTES.md` for statements, proofs and check outputs.
+first). Session 1 (foundations and faithfulness checks) and session 2 (normal form N1–N4, unique
+output F4) are done; see §6.7 and §6.8 for the revised estimates and for corrections to this
+plan, and `NOTES.md` for statements, proofs and check outputs.
 Nothing is committed.
 
 Target: there is an oracle `A` with `P^A = NP^A` and an oracle `B` with `P^B ≠ NP^B`,
@@ -329,22 +330,27 @@ on other machine models, so none of it transfers to TM2.
 Fix a surjection `e : ℕ → VCode` onto normal-form oracle verifiers (§4.2), each code carrying a
 certificate alphabet size `g` and an exponent `k`. Write `frame i T v = 1^i 0 1^T 0 v`. Define
 
-> `x ∈ A` iff, with `(i, T, v) = decode x` and `w = v.reverse`: there is a certificate `y` with
-> `|y| ≤ |w|^k` such that verifier `e i`, run on `w#y` with oracle `A ∩ {z : |z| < |x|}`, halts
-> with output `[true]` within `T` steps.
+> `x ∈ A` iff, with `(i, T, v) = decode x`, `w = v.reverse`, `n = |w|`, `μ = n + 1 + n^{k_i}`,
+> `D_i = depth (e i)` and the **step budget** `β = ⌊(T ∸ μ) / (D_i + 1)⌋`: there is a
+> certificate `y ∈ [g_i]*` with `|y| ≤ n^{k_i}` such that verifier `e i`, run on `w#y` with
+> oracle `A`, halts with output `[true]` within `β` steps.
 
-Membership of `x` refers only to shorter strings, so `A` exists by recursion on length. The
-universal simulation lives in the definition of `A`, as mathematics. No universal machine, no
-PSPACE, no QBF, no Savitch.
+**Decision D6 (approved 2026-10-07): this budget, not `T`, is the definition.** With it every
+query asked within the budget is strictly shorter than `x` for every certificate and every
+oracle (NOTES §5.5), so `A` is defined by recursion on length through
+`A_{m+1} = A_m ∪ {x : |x| = m ∧ Φ(A_m, x)}` and then satisfies the untruncated equation
+`x ∈ A ↔ Φ(A, x)` (NOTES §5.6). The budget-`T` version with the oracle cut off at length `|x|`
+(the first draft of this paragraph) is recorded in NOTES §5.8 and is not used. The universal
+simulation lives in the definition of `A`, as mathematics. No universal machine, no PSPACE, no
+QBF, no Savitch.
 
-Why `NP^A ⊆ P^A`. Let `L ∈ NP^A` via a verifier with code `i`, time polynomial `q`, exponent `k`
-and push budget `c` per step. Take `T(n) = (n + c')^d` at least
-`n + 1 + n^k + (c + 1) · q(n + 1 + n^k)` (such `c', d` exist: `Pkg.eval_le_pow` in PvsNP). Let
-`pad w = frame i (T |w|) w.reverse`. In the real run under `A` the verifier halts within `T` steps
-and every query is shorter than `pad w` (query length is at most the input length plus `c` per
-step), so by locality the run under the truncated oracle is the same run. Hence
-`w ∈ L ↔ pad w ∈ A`. `pad` is a plain polynomial-time function, so `L ∈ P^A` by `oracleComp` with
-the T3 decider. The other inclusion is T4.
+Why `NP^A ⊆ P^A`. Let `L ∈ NP^A` via a verifier with code `i` (so `k_i = k`), time polynomial
+`q` and depth `D = D_i`. Take `T(n) = (n + c')^d` at least `μ(n) + (D + 1) · q(μ(n))` with
+`μ(n) = n + 1 + n^k` (such `c', d` exist: `Pkg.eval_le_pow` in PvsNP). Let
+`pad w = frame i (T |w|) w.reverse`. Its budget is at least `q(μ(|w|))`, so under `A` the coded
+verifier halts on every short certificate within the budget with the verifier's answer, and by
+unique output (F4) `pad w ∈ A ↔ w ∈ L` (NOTES §5.7). `pad` is a plain polynomial-time function,
+so `L ∈ P^A` by `oracleComp` with the T3 decider. The other inclusion is T4.
 
 I have not traced a citation for this construction; the argument is elementary and is written out
 above. It needs verifying step by step in Lean like everything else.
@@ -454,7 +460,7 @@ one `Bool`.
 | D3 | `InP`, `InNP`, `PEqNP`, `ClassEquality` | §3.2 |
 | D4 | `NFMachine`, `NFMachine.toOracleFinTM2`; code types `DCode` (deciders) and `VCode` (verifiers with `g`, `k`) | §4.2 |
 | D5 | `sepLang`; the stage sequence and `sepOracle` | §4.2 |
-| D6 | `frame`, `decode`; the level functional and `univOracle` | §4.1 |
+| D6 | `frame`, `decode`; the budget `⌊(T ∸ μ)/(D + 1)⌋`; the level functional and `univOracle` | §4.1 (decided 2026-10-07) |
 
 ```lean
 structure NFMachine where
@@ -685,10 +691,10 @@ these supersede it.
 1. §3.4 and §3.2 ("both directions are immediate"): only `P^∅ ⊆ P` is immediate. See the F6 row.
 2. §4.1 ("I have not traced a citation") and §7 ("the cheap oracle is not the textbook one"):
    the self-referential oracle is reported to be Theorem 1 of Baker-Gill-Solovay 1975 itself
-   (`A = K(A)`); the PSPACE-complete oracle is their Theorem 2. Citation and its provenance:
-   NOTES §6. It also means §2.4 item 3 should claim a formalisation of the original first
+   (`A = K(A)`); the PSPACE-complete oracle is their Theorem 2. **Unconfirmed**: the paper has
+   not yet been checked by the author; citation and its provenance: NOTES §6. It also means §2.4 item 3 should claim a formalisation of the original first
    proof, not a new route.
-3. §4.1, definition of `A` (D6) — **proposed change, needs approval**: step budget
+3. §4.1, definition of `A` (D6) — **approved 2026-10-07 and now written into §4.1**: step budget
    `⌊(T ∸ (n + 1 + n^k)) / (D + 1)⌋` instead of `T`, where `D` is the depth of the coded
    machine. With budget `T`, a machine pushing two or more symbols per step asks queries longer
    than the coded tuple, and "membership refers only to shorter strings" holds only because the
@@ -696,6 +702,74 @@ these supersede it.
    are the same. Argument and comparison: NOTES §5.5 and §5.8.
 4. §6.4 F5: the bound uses `depth` (maximum over paths of pushes onto the query stack), not a
    port of `Comp.pushBound` (sum over branches of pushes onto any stack).
+
+### 6.8 Revision after session 2 (2026-10-07)
+
+**Done in session 2:** F4; D4 (`NFMachine`); N1, N2, N3, N4; decision D6 recorded in §4.1.
+Session 2 of the §6.7 table was to be "F4; copy `Prog`/`Emb`; B1, B2", and N1–N4 were sessions
+3–4. The copies and B1, B2 are **not done**; nothing of B3–B6, A1–A6 or T5–T8 was started.
+Details and check outputs: `NOTES.md` §8.
+
+**Actual against estimate** (non-blank lines; file headers and docstrings included):
+
+| Plan item | Estimated | Actual | Where | Note |
+|---|---|---|---|---|
+| F4 | 60 | 83 | `Halt.lean` | includes the two F4' forms used by NOTES §5.7 |
+| D4 `NFMachine` | (part of 80 for D4–D6) | 38 | `Normal.lean` 25–64 | |
+| N1 | 80 | 84 | `Countable.lean` | hand-written `WType` injection, no `deriving`; needs finite alphabets (NOTES §4.5 item 1) |
+| N2 | 50 | 134 | `Codes.lean` 22–145, 229–279 | **2×**: three code types, two enumerations, two witness machines, two countability instances |
+| N3 | 400–600 | 318 | `Normal.lean` 66–end | under the range: the simulation map goes from the normal form to the original, so no reachability invariant on configurations (NOTES §4.7, §8.4) |
+| N4 | 120 | 111 | `Codes.lean` 147–227, 281–end | includes the pair-alphabet translation |
+| Root module | 0 | 11 | `Relativization.lean` | |
+| **Session total** | **710–910** | **815** | 962 lines including blanks | inside the range |
+
+Revised blocks (non-blank lines written so far: 1,130 + 815 = 1945):
+
+| Block | Original | Revised | Reason |
+|---|---|---|---|
+| Definitions | 200 | 136 + 38 done + 50 (D5, D6) | |
+| Foundation F1–F9 | 1,100 | 1077 done | complete |
+| Normal form N1–N4 | 650–850 | 647 done | complete |
+| Separation B1–B6 | 970 | 970 | unchanged |
+| Collapse A1–A6 | 1,600 | 1,650 | unchanged (D6 approved) |
+| Main | 20 | 20 | |
+| **Total new or ported** | **4,500–4,800** | **about 4,650–4,750** | 1945 written |
+| Verbatim copies (`Prog`, `Emb`) | 980 | 980 | not copied yet; first needed for B1 |
+
+Finished repository: still 5,500 to 8,000 lines; the central estimate is now nearer the bottom
+of that range, since the two blocks with design risk that are done (F7, N3) both came in under.
+
+**Sessions.** Session 2 covered the plan's F4 and sessions 3–4 (N1–N4), but not the copies or
+B1, B2.
+
+| Session | Content |
+|---|---|
+| 1 (done) | Q1; D1–D3; F1–F3, F5–F9; `P ⊆ P^A` |
+| 2 (done) | F4; D4; N1–N4; D6 decided |
+| 3 | copy `Prog`/`Emb`; B1, B2 |
+| 4–5 | B3–B6: **T6 done** |
+| 6 | A1–A3 |
+| 7–8 | A4 |
+| 9 | A5, A6: **T5 and T7 done** |
+| 10 | Red-team pass, axiom audit, `leanchecker`, README |
+| 11–12 | Stretch: T8 |
+
+About 10 sessions for T7, plausibly 9 to 13; 2 more for T8.
+
+**Corrections to earlier sections of this plan, found in session 2.**
+
+5. §4.2 item 3 and §6.4 N1: `Countable (TM2.Stmt Γ Λ σ)` needs `Finite (Γ k)` for every `k`,
+   not `Countable (Γ k)` (`Option ℕ → Bool` is uncountable). Harmless: normal forms have `Fin`
+   alphabets.
+6. §6.4 N3: the output-alphabet equivalence needs `Finite (tm.Γ tm.k₁)`, which `OracleFinTM2`
+   does not require. The normal form exists for every machine (N3a, with the output translated
+   by the decoding map); the equivalence form (N3b, N3c) is stated under that hypothesis, which
+   every machine inside an `OTM2ComputableInPolyTime` with finite `βΓ` satisfies.
+7. §4.2 "`Countable NFMachine` follows from Mathlib instances plus one lemma": true, but the
+   instance search for the nested `Σ` exceeds Lean's default size, so the fiber gets its own
+   instance (NOTES §8.4 item 6). No `set_option`.
+8. §6.5 mitigation 1 ("configuration map from the normal-form machine to the original") was the
+   right call and is what was done; mitigations 2 and 3 were not needed.
 
 ## 7. Risks and open points
 
