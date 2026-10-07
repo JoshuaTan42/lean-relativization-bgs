@@ -1,0 +1,135 @@
+'Relativization.sepLang' does not depend on any axioms
+'Relativization.sepLang_inNP' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.sepLang_replicate_iff' depends on axioms: [propext]
+'Relativization.Emb.Agree' depends on axioms: [Quot.sound]
+'Relativization.Emb.Embeds' depends on axioms: [Quot.sound]
+'Relativization.Emb.Frame' does not depend on any axioms
+'Relativization.Emb.OEmbeds' depends on axioms: [propext, Quot.sound]
+'Relativization.Emb.SEmb' does not depend on any axioms
+'Relativization.Emb.mapS' depends on axioms: [Quot.sound]
+'Relativization.Emb.runLe_embed' depends on axioms: [propext, Quot.sound]
+'Relativization.Emb.run_embed' depends on axioms: [propext, Quot.sound]
+'Relativization.Emb.run_embed_oracle' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Emb.stepAux_mapS' depends on axioms: [propext, Quot.sound]
+'Relativization.OTM2OutputsInTime.ofORun' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.step_eq_plain' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.step_live' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.Bud' does not depend on any axioms
+'Relativization.Prog.Flag' does not depend on any axioms
+'Relativization.Prog.ORun' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.Reach' does not depend on any axioms
+'Relativization.Prog.Run' does not depend on any axioms
+'Relativization.Prog.RunLe' does not depend on any axioms
+'Relativization.Prog.addU' does not depend on any axioms
+'Relativization.Prog.addU_addU' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.addU_of_not_mem' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.addU_pair_fst' depends on axioms: [propext]
+'Relativization.Prog.addU_pair_ne' depends on axioms: [propext]
+'Relativization.Prog.addU_pair_snd' depends on axioms: [propext]
+'Relativization.Prog.addU_single_ne' depends on axioms: [propext]
+'Relativization.Prog.addU_single_self' depends on axioms: [propext]
+'Relativization.Prog.addU_update' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.addU_zero' depends on axioms: [Quot.sound]
+'Relativization.Prog.add_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.cmpLoop_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.cmpStep' does not depend on any axioms
+'Relativization.Prog.cmp_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.cnt' does not depend on any axioms
+'Relativization.Prog.cnt_add' depends on axioms: [propext]
+'Relativization.Prog.cnt_injective' depends on axioms: [propext]
+'Relativization.Prog.cnt_length' depends on axioms: [propext]
+'Relativization.Prog.cnt_succ' does not depend on any axioms
+'Relativization.Prog.cnt_zero' does not depend on any axioms
+'Relativization.Prog.compare_succ_succ' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.copy_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.decr' does not depend on any axioms
+'Relativization.Prog.decr_run_cnt' depends on axioms: [propext]
+'Relativization.Prog.decr_run_pos' depends on axioms: [propext]
+'Relativization.Prog.decr_run_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.emit' does not depend on any axioms
+'Relativization.Prog.emitDiff_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.emitR' does not depend on any axioms
+'Relativization.Prog.emitR_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.emit_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.forHead' does not depend on any axioms
+'Relativization.Prog.forLoop_le' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.forLoop_reach' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.forLoop_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.incr' does not depend on any axioms
+'Relativization.Prog.incr_run' depends on axioms: [propext]
+'Relativization.Prog.incr_run_cnt' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.instFlagBool' does not depend on any axioms
+'Relativization.Prog.mul_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.pair_nodupKeys' depends on axioms: [propext]
+'Relativization.Prog.pushAll' does not depend on any axioms
+'Relativization.Prog.pushList' does not depend on any axioms
+'Relativization.Prog.rep' does not depend on any axioms
+'Relativization.Prog.rep_add' depends on axioms: [propext]
+'Relativization.Prog.rep_succ' depends on axioms: [propext]
+'Relativization.Prog.rep_succ'' depends on axioms: [propext]
+'Relativization.Prog.rep_zero' does not depend on any axioms
+'Relativization.Prog.single_nodupKeys' depends on axioms: [propext]
+'Relativization.Prog.stepAux_pushAll' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.stepAux_pushList' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.sumFrom' does not depend on any axioms
+'Relativization.Prog.sumFrom_const' depends on axioms: [propext]
+'Relativization.Prog.sumFrom_le' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.xfer' does not depend on any axioms
+'Relativization.Prog.xferE' does not depend on any axioms
+'Relativization.Prog.xferE_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.xfer_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.RΓ' does not depend on any axioms
+'Relativization.Sep.Rσ' does not depend on any axioms
+'Relativization.Sep.bitOf' does not depend on any axioms
+'Relativization.Sep.bits' does not depend on any axioms
+'Relativization.Sep.bits_cons' depends on axioms: [propext]
+'Relativization.Sep.bits_encode' depends on axioms: [propext, Quot.sound]
+'Relativization.Sep.haltList_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.hasBit' does not depend on any axioms
+'Relativization.Sep.initList_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.loop_run' depends on axioms: [propext, Quot.sound]
+'Relativization.Sep.prog' does not depend on any axioms
+'Relativization.Sep.revComputable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.revTM' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.revTM_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.step_cons' depends on axioms: [propext, Quot.sound]
+'Relativization.Sep.step_nil' depends on axioms: [propext, Quot.sound]
+'Relativization.Sep.sym' does not depend on any axioms
+'Relativization.Sep.update_mk_false' depends on axioms: [propext, Quot.sound]
+'Relativization.Sep.update_mk_true' depends on axioms: [propext, Quot.sound]
+'Turing.TM2OutputsInTime.ofRun' depends on axioms: [propext, Quot.sound]
+'Relativization.Emb.Agree.update' depends on axioms: [propext, Quot.sound]
+'Relativization.Emb.Frame.refl' does not depend on any axioms
+'Relativization.Emb.Frame.trans' does not depend on any axioms
+'Relativization.Emb.Frame.update' does not depend on any axioms
+'Relativization.Emb.SEmb.e' does not depend on any axioms
+'Relativization.Emb.SEmb.ι' does not depend on any axioms
+'Relativization.Prog.Bud.fin' does not depend on any axioms
+'Relativization.Prog.Bud.start' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.Flag.tag' does not depend on any axioms
+'Relativization.Prog.Flag.untag' does not depend on any axioms
+'Relativization.Prog.Flag.untag_tag' does not depend on any axioms
+'Relativization.Prog.ORun.head' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.ORun.of_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.ORun.of_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.ORun.of_run_visited' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.ORun.trans' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.ORun.zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.Reach.of_eq' does not depend on any axioms
+'Relativization.Prog.Reach.refl' does not depend on any axioms
+'Relativization.Prog.Reach.trans' depends on axioms: [propext]
+'Relativization.Prog.Run.bud' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.Run.congr_simp' depends on axioms: [Quot.sound]
+'Relativization.Prog.Run.head' does not depend on any axioms
+'Relativization.Prog.Run.le' does not depend on any axioms
+'Relativization.Prog.Run.of_eq' does not depend on any axioms
+'Relativization.Prog.Run.reach' does not depend on any axioms
+'Relativization.Prog.Run.single' depends on axioms: [propext]
+'Relativization.Prog.Run.trans' depends on axioms: [propext]
+'Relativization.Prog.Run.zero' does not depend on any axioms
+'Relativization.Prog.RunLe.bud' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.RunLe.mono' does not depend on any axioms
+'Relativization.Prog.RunLe.reach' does not depend on any axioms
+'Relativization.Prog.RunLe.refl' does not depend on any axioms
+'Relativization.Prog.RunLe.trans' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.addU.congr_simp' depends on axioms: [Quot.sound]

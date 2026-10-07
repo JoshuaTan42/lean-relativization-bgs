@@ -1,0 +1,15 @@
+✔ [1237/1250] Built Relativization.Countable (10s)
+✔ [1238/1250] Built Relativization.Oracle (10s)
+✔ [1239/1250] Built Relativization.Classes (13s)
+✔ [1240/1250] Built Relativization.Halt (13s)
+✔ [1241/1250] Built Relativization.Normal (13s)
+✔ [1242/1250] Built Relativization.Prog (13s)
+✔ [1243/1250] Built Relativization.Plain (11s)
+✔ [1244/1250] Built Relativization.Emb (11s)
+✔ [1245/1250] Built Relativization.Self (12s)
+✔ [1246/1250] Built Relativization.Codes (12s)
+✔ [1247/1250] Built Relativization.Comp (12s)
+✔ [1248/1250] Built Relativization.Sep (8.4s)
+✔ [1249/1250] Built Relativization (8.2s)
+Build completed successfully (1250 jobs).
+exit: 0

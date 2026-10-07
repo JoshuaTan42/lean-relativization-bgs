@@ -7,6 +7,9 @@ import Relativization.Halt
 import Relativization.Countable
 import Relativization.Normal
 import Relativization.Codes
+import Relativization.Prog
+import Relativization.Emb
+import Relativization.Sep
 
 /-!
 # Baker-Gill-Solovay
@@ -27,6 +30,15 @@ Session 2 (normal form and unique output):
   simulation (N3);
 * `Relativization.Codes`: decider and verifier codes, their enumerations (N2), and the codes of
   deciders and verifiers (N4).
+
+Session 3 (program library and the separating language):
+
+* `Relativization.Prog`: the `TM2` program library ported from PvsNP, with the transfer of plain
+  runs to oracle runs;
+* `Relativization.Emb`: stack embedding of a sub-machine into a host, ported from PvsNP, with an
+  oracle-host version;
+* `Relativization.Sep`: the machine `(w, y) ↦ (w ++ y).reverse` (B1), the separating language
+  `sepLang` and `sepLang B ∈ NP^B` (B2).
 
 See `NOTES.md` for statements, the lemma table and check outputs; `PLAN.md` for the plan.
 -/

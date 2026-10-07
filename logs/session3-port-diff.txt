@@ -1,0 +1,21 @@
+== Prog: PvsNP body (namespace..end) vs port body ==
+1c1
+4a5
+933c934,1039
+diff hunks above; lines differing or added (counting '<' and '>'):
+110
+< namespace PvsNP.Prog
+< end PvsNP.Prog
+== Emb: same ==
+1c1,3
+< namespace PvsNP.Emb
+3d4
+< open PvsNP.Prog Turing Function
+98,102d98
+< theorem iter_none {α : Type} (f : α → Option α) (n : ℕ) : (flip bind f)^[n] none = none := by
+<   induction n with
+<   | zero => rfl
+<   | succ n ih => rw [iterate_succ_apply]; exact ih
+< 
+158c154,215
+< end PvsNP.Emb

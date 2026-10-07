@@ -771,6 +771,75 @@ About 10 sessions for T7, plausibly 9 to 13; 2 more for T8.
 8. §6.5 mitigation 1 ("configuration map from the normal-form machine to the original") was the
    right call and is what was done; mitigations 2 and 3 were not needed.
 
+### 6.9 Revision after session 3 (2026-10-07)
+
+**Done in session 3:** `Prog` and `Emb` ported from `D:\PvsNP` (`c271016`) with an oracle-run
+layer (NOTES §4.8, O1–O5); B1 (`Sep.revComputable`); B2 (`sepLang`, `sepLang_inNP`), plus
+`sepLang_replicate_iff` for B6. This is the §6.8 table's session 3, complete. Nothing of B3–B6,
+A1–A6 or T5–T8 was started. Details and check outputs: `NOTES.md` §9.
+
+**Actual against estimate** (non-blank lines; file headers and docstrings included):
+
+| Plan item | Estimated | Actual | Where | Note |
+|---|---|---|---|---|
+| copy `Prog` | 823 verbatim | 800 verbatim + 30 header | `Prog.lean` 1–39, 40–968 | compiled unchanged (namespace and header only) |
+| copy `Emb` | 155 verbatim | 133 verbatim + 20 header | `Emb.lean` 1–27, 28–176 | compiled unchanged; its `iter_none` dropped (duplicate of `Relativization.iter_none`) |
+| adaptation (not in the plan) | 0 | 89 + 53 | `Prog.lean` 969–1073, `Emb.lean` 177–237 | `ORun`, O2/O3 transfers, O5 packaging, `OEmbeds`, `run_embed_oracle` |
+| B1 | 200 | 143 | `Sep.lean` 1–169 | one label, one step per input symbol; uses only `Prog.Run` and `TM2OutputsInTime.ofRun` |
+| B2 | 50 | 25 | `Sep.lean` 171–197 | includes `sepLang_replicate_iff` |
+| Root module | 0 | 10 | `Relativization.lean` | |
+| **Session total** | **250 new + 978 copied** | **373 new + 933 copied** | 1,510 lines (1,295 non-blank) in the three new files | new lines inside the range once the unplanned oracle layer (142) is separated: B1 + B2 came to 168 against 250 |
+
+Revised blocks (non-blank lines written so far: 1,945 + 373 = 2,318 new; 933 ported verbatim):
+
+| Block | Original | Revised | Reason |
+|---|---|---|---|
+| Definitions | 200 | 136 + 38 done + 50 (D5, D6) | |
+| Foundation F1–F9 | 1,100 | 1,077 done | complete |
+| Normal form N1–N4 | 650–850 | 647 done | complete |
+| Program library (oracle layer) | 0 | 142 done | unplanned; §4.8 of NOTES |
+| Separation B1–B6 | 970 | 168 done + 720 (B3–B6) | B1, B2 came in at 2/3 of the estimate |
+| Collapse A1–A6 | 1,600 | 1,650 | unchanged |
+| Main | 20 | 20 | |
+| **Total new or ported** | **4,500–4,800** | **about 4,750–4,850** | 2,318 written |
+| Verbatim copies (`Prog`, `Emb`) | 980 | 933 | done |
+
+Finished repository: still 5,500 to 8,000 lines; the repository is at 3,828 lines (3,250 non-blank)
+after session 3, with the two machine-heavy blocks (A3, A4) still to come.
+
+**Sessions.** Unchanged from §6.8 except that session 3 is done.
+
+| Session | Content |
+|---|---|
+| 1 (done) | Q1; D1–D3; F1–F3, F5–F9; `P ⊆ P^A` |
+| 2 (done) | F4; D4; N1–N4; D6 decided |
+| 3 (done) | copy `Prog`/`Emb` (+ oracle layer); B1, B2 |
+| 4–5 | B3–B6: **T6 done** |
+| 6 | A1–A3 |
+| 7–8 | A4 |
+| 9 | A5, A6: **T5 and T7 done** |
+| 10 | Red-team pass, axiom audit, `leanchecker`, README |
+| 11–12 | Stretch: T8 |
+
+About 10 sessions for T7, plausibly 9 to 13; 2 more for T8.
+
+**Corrections to earlier sections of this plan, found in session 3.**
+
+9. §5 "verbatim copies are expected to compile unchanged; this has not been run": run now. Both
+   files compiled unchanged on the first attempt (same toolchain and Mathlib commit); the only
+   edits are the module headers, the namespaces, and the removal of `Emb.iter_none`
+   (`logs/session3-port-diff.txt`).
+10. §5 "Limits of the reuse" and §6.4 B1 "needs `Prog`": B1 needs none of the counter
+    primitives. A symbol-copying loop keeps the popped symbol in the state (`σ = Option (Bool ⊕
+    Option Bool)`), so one label and one step per symbol suffice; from `Prog` it uses `Run`,
+    `Run.head`, `Run.zero`, `Run.of_eq` and the packaging `TM2OutputsInTime.ofRun`. The counter
+    primitives are first needed by A3/A4 (`pad`).
+11. §6.4 estimate for the copies did not include an oracle layer. `Prog` is a library for plain
+    programs (its `Run` is `TM2.step M` of a fixed program), and the oracle step selects the
+    statement by the oracle's answer, so the two are connected by the transfer lemmas
+    `ORun.of_run` (all labels oblivious) and `ORun.of_run_visited` (visited labels oblivious), and
+    `Emb.run_embed` gets an oracle-host twin. 142 lines, NOTES §4.8. No machine of the plan needs
+    more: every `Prog`-built machine is plain, and the oracle machines are hand-written or composed.
 ## 7. Risks and open points
 
 - **Faithfulness of option H.** The "one oracle bit per step" convention is equivalent to the

@@ -1,0 +1,16 @@
+== banned tokens (whole word) in project Lean sources ==
+grep exit: 1 (1 = no match)
+== metaprogramming / environment-modifying markers ==
+Relativization/Comp.lean:27:attribute [local instance] FinTM2.kFin FinTM2.ΛFin FinTM2.σFin FinTM2.Γk₀Fin
+Relativization/Comp.lean:39:@[reducible] def CΓ : CK M₁ M₂ → Type
+Relativization/Normal.lean:96:attribute [local instance] OracleFinTM2.kFin OracleFinTM2.ΛFin OracleFinTM2.σFin
+Relativization/Oracle.lean:261:attribute [local instance] OracleFinTM2.ΛFin
+Relativization/Plain.lean:23:attribute [local instance] FinTM2.kFin
+Relativization/Plain.lean:28:@[reducible] def PΓ : Option M.K → Type
+Relativization/Prog.lean:49:attribute [simp] Flag.untag_tag
+Relativization/Prog.lean:93:@[simp] theorem cnt_length {α : Type} (u : α) (n : ℕ) : (cnt u n).length = n :=
+Relativization/Prog.lean:98:@[simp] theorem cnt_zero {α : Type} (u : α) : cnt u 0 = [] := rfl
+Relativization/Prog.lean:656:@[simp] theorem rep_zero {α : Type} (ys : List α) : rep ys 0 = [] := rfl
+grep exit: 0
+== opaque / unsafeCast / debug markers ==
+grep exit: 1

@@ -522,6 +522,142 @@ enumeration.
 
 ---
 
+### 4.8 Session 3 (2026-10-07): what `Prog` and `Emb` assume about the machine model
+
+Written before the port. Source: `D:\PvsNP` at `c271016`, `Prog.lean` (958 lines, 823 non-blank)
+and `Emb.lean` (179 lines, 155 non-blank), both importing Mathlib only (`Emb` imports `Prog`).
+Target: `Relativization/Prog.lean`, `Relativization/Emb.lean`, namespaces `Relativization.Prog`,
+`Relativization.Emb`. `D:\PvsNP` is not modified.
+
+**Assumptions common to every definition and lemma of `Prog`.**
+
+| | Assumption | Status with the oracle query stack |
+|---|---|---|
+| P1 | **Fixed program.** The machine is `M : Λ → TM2.Stmt Γ Λ σ`, the step is `TM2.step M`, and the statement run at a label depends on the label only. Every run lemma has hypotheses `M l = …` for the labels it occupies and concludes `Run M n c d := (flip bind (TM2.step M))^[n] (some c) = some d`. | **Breaks.** An oracle machine's program is `tm.m : Λ → Bool → Stmt` and its step is `TM2.step (fun l => tm.m l (decide (tm.query c ∈ A))) c`: the statement depends on the configuration through the query stack. So `Run M` is not the oracle run, and no `Prog` lemma says anything about `tm.step A` as it stands. It does *not* break at a label `l` where `tm.m l true = tm.m l false` ("oblivious" label): there the oracle step is the plain step of `fun l => tm.m l false`. Bridges O1–O3 below. |
+| P2 | **Halting convention.** `Run` is only ever used between live configurations `⟨some l, v, S⟩`; one step at a live label is `stepAux (M l)`; a halted configuration `⟨none, …⟩` is absorbing (`step = none`, used through `iter_none`). | Unchanged: `OracleFinTM2.step` is `TM2.step` of some program, so a halted configuration steps to `none` for every oracle. |
+| P3 | **No distinguished stacks.** `Prog` never mentions `k₀`, `k₁`, `initList`, `haltList` or `FinTM2`; stacks are an arbitrary `K` with `DecidableEq K`. | Unchanged. The query stack `kq` is one more stack to `Prog`. A primitive that pushes onto `kq` changes the query string; that is harmless for the primitive's own lemma (P1 is about the statement, not the query) but it means a bridge may not assume the query string is constant along a run. |
+| P4 | **One bit of state.** `[Flag σ]`: after a pop the primitives overwrite the whole state with `Flag.tag o.isSome` and branch on `Flag.untag`. | Unchanged. The oracle's answer is fed to the program, not stored in `σ`; `Prog` primitives cannot look at it, which is exactly P1. |
+| P5 | **Step-count notions.** `Run` (exact), `RunLe`, `Bud` (bounded), `Reach` (some length) are all about `TM2.step M`. | Oracle analogue `ORun` added (O1); the bounded forms are not duplicated (the separation and collapse need exact counts of plain machines plus one composition). |
+| P6 | `cnt`, `addU`, `pushAll`, `pushList`, `rep`, `sumFrom` and their lemmas: lists and arithmetic. | Model-free. |
+| P7 | `stepAux_pushAll`, `stepAux_pushList`: about `TM2.stepAux` only. | Hold verbatim in both models (`stepAux` is shared). |
+| P8 | **Global instance and simp attributes.** `instance : Flag Bool`; `attribute [simp] Flag.untag_tag`; `@[simp] cnt_length`, `cnt_zero`, `rep_zero`. | Copied. `Flag` and the three definitions are new, so no earlier declaration can elaborate differently (checked by rebuilding, §9.4). |
+
+**Lemma by lemma** (what each one assumes beyond P1–P3; all are copied verbatim):
+
+| `Prog` declarations | Assumes | Oracle status |
+|---|---|---|
+| `Run`, `Run.zero/head/trans/of_eq/single` | P1, P2 | sequencing lemmas; oracle twins for `zero`, `head`, `trans`, `single` are O1 |
+| `cnt`, `cnt_*` | P6 | — |
+| `incr`, `decr`, `incr_run`, `incr_run_cnt`, `decr_run_pos/cnt/zero` | P1, P4 | via O2/O3 |
+| `pushAll`, `addU`, `addU_*`, `stepAux_pushAll` | P6, P7 | — |
+| `xfer`, `xfer_run`, `addU_single_*`, `single_nodupKeys` | P1, P4; `k ∉ ps.keys` | via O2/O3 |
+| `cmpStep`, `cmpLoop_run`, `cmp_run`, `compare_succ_succ` | P1, P4; five distinct stacks | via O2/O3 |
+| `sumFrom`, `sumFrom_const`, `sumFrom_le` | P6 | — |
+| `forHead`, `forLoop_run` | P1, P4; `c ≠ cd`; caller invariant `P` | via O2/O3 |
+| `pushList`, `stepAux_pushList`, `emit`, `emit_run` | P7, P1 | via O2/O3 |
+| `pair_nodupKeys`, `addU_pair_*`, `copy_run`, `add_run`, `mul_run` | P1, P4 | via O2/O3 |
+| `rep`, `rep_*`, `emitR`, `emitR_run`, `xferE`, `xferE_run`, `emitDiff_run` | P6, P1, P4 | via O2/O3 |
+| `Reach`, `Reach.*`, `forLoop_reach` | P1, P5 | not duplicated |
+| `RunLe`, `Bud`, `Run.le`, `RunLe.*`, `Bud.*`, `forLoop_le` | P1, P5 | not duplicated |
+
+"Via O2/O3": the lemma holds for an oracle machine `tm` at labels where `tm.m l b` does not depend
+on `b`; because `Prog`'s conclusions do not list the labels a run visits, the bridge usable for
+a whole machine is O2 (every label oblivious, e.g. `Plain.toOracle M`), and the sharp bridge O3
+needs the visited labels from the caller.
+
+**`Emb`.**
+
+| `Emb` declarations | Assumes | Oracle status |
+|---|---|---|
+| `SEmb` (injective stack renaming, alphabet bijections) | nothing about steps | model-free |
+| `mapS` (statement translation) | `stepAux` level | model-free |
+| `Embeds E φ M M'` | **host is a plain program** `M' : Λ' → Stmt` (P1 for the host); sub-machine plain | **Breaks** for an oracle host: the type is wrong. Oracle variant `OEmbeds E φ M tm := ∀ l, (∀ b, tm.m (φ l) b = mapS E φ (M l)) ∨ M l = .halt` (O4): the host ignores the oracle on the image of `φ`. The sub-machine stays plain (it is built with `Prog`). |
+| `Agree`, `Frame`, `Frame.refl/trans/update`, `Agree.update` | stacks only | model-free. For an oracle host: if `kq` is outside the image of `e`, `Frame` says the embedded run leaves the query string alone; if inside, the query string changes, which is irrelevant because the host ignores the answer at those labels. |
+| `stepAux_mapS` | `stepAux` only | verbatim |
+| `iter_none` | generic | **dropped**: duplicate of `Relativization.iter_none` (Oracle.lean) |
+| `run_embed`, `runLe_embed` | sub-machine plain; host plain (P1); halting labels of the sub-machine excluded (`M l = .halt` escape, so the host may do anything there) | `run_embed` holds verbatim for plain hosts (the `pad` host of A4 is plain). Oracle-host version `run_embed_oracle` (O4) added: same induction, with the host step `tm.step A` and the statement at `φ l` rewritten by `OEmbeds`. The halting escape is the hook by which an oracle host continues (for instance with a query) after a plain sub-machine. `runLe_embed` not duplicated. |
+
+**What the port adds** (the adaptation; all in `Prog.lean` and `Emb.lean` under a final section
+"Oracle machines"):
+
+```lean
+/-- O1 -/ def ORun (tm : OracleFinTM2) (A : Oracle) (n : ℕ) (c d : tm.Cfg) : Prop :=
+  (flip bind (tm.step A))^[n] (some c) = some d
+theorem ORun.zero, ORun.head, ORun.trans, ORun.of_eq      -- as for `Run`
+/-- one oracle step at a live label runs the statement selected by the oracle's answer -/
+theorem OracleFinTM2.step_live (tm) (A) (l : tm.Λ) (v) (S) :
+    tm.step A ⟨some l, v, S⟩ =
+      some (TM2.stepAux (tm.m l (decide (tm.query ⟨some l, v, S⟩ ∈ A))) v S)
+/-- O2 -/ theorem OracleFinTM2.step_eq_plain {M : tm.Λ → TM2.Stmt tm.Γ tm.Λ tm.σ}
+    (hl : ∀ b, tm.m l b = M l) (v) (S) : tm.step A ⟨some l, v, S⟩ = TM2.step M ⟨some l, v, S⟩
+theorem ORun.of_run (h : ∀ l b, tm.m l b = M l) : Run M n c d → ORun tm A n c d
+/-- O3, sharp: only the labels visited before step `n` must be oblivious -/
+theorem ORun.of_run_visited (hM : ∀ l, ∀ b, tm.m l b = M l ∨ ∀ j < n, ∀ e,
+      (flip bind (TM2.step M))^[j] (some c) = some e → e.l ≠ some l) :
+    Run M n c d → ORun tm A n c d
+/-- O5, packaging -/
+def TM2OutputsInTime.ofRun {tm : FinTM2} (h : Run tm.m n (initList tm l) (haltList tm l'))
+    (hn : n ≤ t) : TM2OutputsInTime tm l (some l') t
+def OTM2OutputsInTime.ofORun {tm : OracleFinTM2} (h : ORun tm A n (tm.initList l) (tm.haltList l'))
+    (hn : n ≤ t) : OTM2OutputsInTime A tm l (some l') t
+/-- O4, in `Emb` -/
+def OEmbeds (E : SEmb Γ tm.Γ) (φ : Λ → tm.Λ) (M : Λ → TM2.Stmt Γ Λ tm.σ) : Prop :=
+  ∀ l, (∀ b, tm.m (φ l) b = mapS E φ (M l)) ∨ M l = .halt
+theorem run_embed_oracle (hM : OEmbeds E φ M) … : Run M n ⟨l, v, S⟩ ⟨some l', v', T⟩ → Agree E S S' →
+    ∃ T', ORun tm A n ⟨l.map φ, v, S'⟩ ⟨some (φ l'), v', T'⟩ ∧ Agree E T T' ∧ Frame E S' T'
+```
+
+O3 is stated with the visited-label condition on the *plain* run (which the caller has), so it
+needs no invariant about the oracle run. No session 1 or 2 definition changes.
+
+**What is not adapted, and why.** `Prog` stays a library for plain programs. Every machine the
+plan builds with it is plain (`revTM` below, `pad` in A4), and every oracle machine of the
+project is either hand-written (`selfTM`, 4 labels) or a composition (`oracleComp`,
+`Plain.toOracle`). Generalising `Run` to a configuration-dependent program would touch every
+`simp only [TM2.step, hp, …]` call in 958 lines for no present consumer; O1–O5 give the same
+reach for machines that read the oracle at hand-written labels only.
+
+### 4.9 Statements for session 3: B1 and B2, in the form the separation argument uses
+
+The separation (PLAN §4.2, B3–B6) uses B2 exactly once: assuming `PEqNP B` for the constructed
+oracle `B`, `InNP B (fin_encoding_string Bool) (sepLang B)` gives `InP B … (sepLang B)`, hence
+(N4d') a decider code and its stage; the stage's inspection of the language is through the
+unfolding `0^n ∈ sepLang B ↔ ∃ y, |y| ≤ n ∧ y.reverse ++ 0^n ∈ B`. So the form needed is
+`InNP B … (sepLang B)` for *every* `B` (the oracle is fixed only in B6), with `sepLang` as the
+plan writes it. B1 is used only inside B2. Checked against PLAN §6.4: both forms are strong
+enough and true as written; `(w ++ y).reverse = y.reverse ++ w.reverse`, and the certificate
+bound of `InNP` at `k = 1` is `y.length ≤ w.length ^ 1`, which is the bound in `sepLang`. No
+correction of the kind N1 needed.
+
+```lean
+/-- The one-loop machine: input alphabet `Bool ⊕ Option Bool` (the `pair_encoding` alphabet),
+output alphabet `Bool`, one label, state = the symbol just popped. Each step pops one input
+symbol and pushes its bit on the output (the separator pushes nothing); on empty input it halts.
+`|w| + 1 + |y| + 1` steps. -/
+def Sep.revTM : FinTM2
+
+/-- B1 -/ noncomputable def Sep.revComputable :
+    TM2ComputableInPolyTime
+      (pair_encoding (fin_encoding_string Bool) (fin_encoding_string Bool)).encode
+      (fin_encoding_string Bool).encode
+      (fun p : List Bool × List Bool => (p.1 ++ p.2).reverse)
+-- `time := X + 1`; `revComputable.tm = revTM`, both alphabet equivalences are `Equiv.refl`.
+
+/-- The separating language (PLAN §4.2, verbatim). -/
+def sepLang (B : Oracle) : Language (List Bool) :=
+  fun w => ∃ y : List Bool, y.length ≤ w.length ∧ y.reverse ++ w.reverse ∈ B
+
+/-- B2 -/ theorem sepLang_inNP (B : Oracle) : InNP B (fin_encoding_string Bool) (sepLang B)
+-- witnesses: `Γ₁ := Bool`, `R w y := y.reverse ++ w.reverse ∈ B`, `k := 1`, decider
+-- `oracleComp B revComputable (the T3 machine)`.
+
+/-- For B6 (stated now, used later): on `0^n` the certificate is a prefix of length `≤ n`. -/
+theorem sepLang_replicate_iff (B : Oracle) (n : ℕ) :
+    sepLang B (List.replicate n false) ↔
+      ∃ u : List Bool, u.length ≤ n ∧ u ++ List.replicate n false ∈ B
+```
+
+---
 ## 5. Paper proof: the self-referential oracle is well defined and gives `P^A = NP^A`
 
 No Lean in this section. Everything here is to be formalised in later sessions (A1–A6) except
@@ -1210,6 +1346,227 @@ recompiled (`logs/session2-build.txt`; `grep -c -i -E "warning|error"` on it pri
 ✔ [1244/1245] Built Relativization (8.2s)
 Build completed successfully (1245 jobs).
 exit: 0
+```
+
+`lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).
+
+---
+
+## 9. Lemma table and checks (session 3, 2026-10-07)
+
+### 9.1 Files
+
+| File | Lines (non-blank) | Content |
+|---|---|---|
+| `Relativization/Prog.lean` | 1,074 (920) | `Prog` from PvsNP `c271016`, verbatim body (lines 40–968, 800 non-blank) under a new header (30) and namespace; section "Oracle machines" (969–1073, 89): O1 `ORun`, O2 `step_live`/`step_eq_plain`/`ORun.of_run`, O3 `ORun.of_run_visited`, O5 `TM2OutputsInTime.ofRun`/`OTM2OutputsInTime.ofORun` |
+| `Relativization/Emb.lean` | 238 (207) | `Emb` from PvsNP, verbatim body (28–176, 133 non-blank) minus its `iter_none`, under a new header (20); section "Oracle hosts" (177–237, 53): O4 `OEmbeds`, `run_embed_oracle` |
+| `Relativization/Sep.lean` | 198 (168) | B1 `Sep.revTM`, `Sep.revComputable` (1–169); `sepLang`, B2 `sepLang_inNP`, `sepLang_replicate_iff` (171–197) |
+| `Relativization.lean` | 44 (36) | imports (+12 lines) |
+| **Session 3 total** | **1,510 (1,295) in the three new files; 1,305 non-blank with the root module: 933 verbatim, 372 new** | |
+| **Repository total** | **3,828 (3,250)** | 928 constants: 407 named, 521 auxiliary (same classification as session 2: 272 + 135 = 407) |
+
+Session 1 and 2 files are unchanged (byte for byte; the `.olean`s of all nine earlier modules
+are identical before and after the from-scratch rebuild, §9.5 (e)). `D:\PvsNP` is unchanged
+(`git -C D:\PvsNP status` was not needed: nothing there was opened for writing).
+
+### 9.2 Results asked for in the session brief
+
+All **proved**. Axioms are from the literal `#print axioms` output in §9.5.
+
+| Id | Lean name | File:line | Statement | Differences from §4.8/§4.9 as first written | Axioms |
+|---|---|---|---|---|---|
+| copy | `Relativization.Prog.*` (93 named declarations) | Prog:40–968 | PvsNP `Prog` verbatim | none (`logs/session3-port-diff.txt`: only the `namespace`/`end` lines differ) | all within the three |
+| copy | `Relativization.Emb.*` (14 named declarations of the copy) | Emb:28–176 | PvsNP `Emb` verbatim | `iter_none` dropped (§4.8, E6) | all within the three |
+| O1 | `Prog.ORun`, `ORun.zero/head/trans/of_eq` | Prog:981–1001 | oracle run, sequencing | none | the three |
+| O2 | `OracleFinTM2.step_live`, `OracleFinTM2.step_eq_plain`, `Prog.ORun.of_run` | Prog:1004, 1012, 1020 | one oracle step at a live label; oblivious label ⇒ plain step; all labels oblivious ⇒ plain run is oracle run | declared in namespace `OracleFinTM2` (via `_root_`) rather than `Prog` | the three |
+| O3 | `Prog.ORun.of_run_visited` | Prog:1032 | labels visited before the last step oblivious ⇒ plain run is oracle run | the visited-label condition is written as "every configuration reached in `j < n` plain steps has an oblivious label", not as the disjunction of §4.8 (same content, usable form) | the three |
+| O5 | `Turing.TM2OutputsInTime.ofRun`, `Relativization.OTM2OutputsInTime.ofORun` | Prog:1060, 1066 | run from `initList` to `haltList` in `n ≤ t` steps ⇒ output within `t` | none; computable (no `Classical.choose`, unlike PvsNP's `outputsOfRunLe`) | `[propext, Quot.sound]`; the three |
+| O4 | `Emb.OEmbeds`, `Emb.run_embed_oracle` | Emb:186, 193 | oracle host ignoring the answer on the image of `φ`; `run_embed` for it | none | the three |
+| B1 | `Sep.revTM`, `Sep.revComputable` | Sep:50, 148 | `(w, y) ↦ (w ++ y).reverse` is `TM2ComputableInPolyTime` on `pair_encoding (fes Bool) (fes Bool)` → `fes Bool`, time `X + 1` | none | the three |
+| B2 | `sepLang`, `sepLang_inNP` | Sep:173, 177 | `sepLang B ∈ NP^B` for every `B`; `sepLang` verbatim from PLAN §4.2 | none | `sepLang`: none; `sepLang_inNP`: the three |
+| for B6 | `sepLang_replicate_iff` | Sep:189 | `0^n ∈ sepLang B ↔ ∃ u, |u| ≤ n ∧ u ++ 0^n ∈ B` | none | `[propext]` |
+
+"The three" = `[propext, Classical.choice, Quot.sound]`.
+
+### 9.3 Supporting declarations (all proved; names as in the files)
+
+| File | Declarations |
+|---|---|
+| Prog (copy) | `Flag`, `instFlagBool`, `Run`, `Run.zero/head/trans/of_eq/single`, `cnt`, `cnt_length/succ/zero/add/injective`, `incr`, `decr`, `incr_run`, `incr_run_cnt`, `decr_run_pos/cnt/zero`, `pushAll`, `addU`, `addU_zero/addU/of_not_mem/update`, `stepAux_pushAll`, `xfer`, `xfer_run`, `addU_single_self/ne`, `single_nodupKeys`, `compare_succ_succ`, `cmpStep`, `cmpLoop_run`, `cmp_run`, `sumFrom`, `sumFrom_const/le`, `forHead`, `forLoop_run`, `pushList`, `stepAux_pushList`, `emit`, `emit_run`, `pair_nodupKeys`, `addU_pair_fst/snd/ne`, `copy_run`, `add_run`, `mul_run`, `rep`, `rep_zero/succ/succ'/add`, `emitR`, `emitR_run`, `xferE`, `xferE_run`, `emitDiff_run`, `Reach`, `Run.reach`, `Reach.refl/of_eq/trans`, `forLoop_reach`, `RunLe`, `Bud`, `Run.le`, `RunLe.reach/mono/refl/trans`, `Bud.start`, `Run.bud`, `RunLe.bud`, `Bud.fin`, `forLoop_le` (and the auto-generated `Run.congr_simp`, `addU.congr_simp`) |
+| Emb (copy) | `SEmb`, `mapS`, `Embeds`, `Agree`, `Frame`, `Frame.refl/trans/update`, `Agree.update`, `stepAux_mapS`, `run_embed`, `runLe_embed` |
+| Sep | `RΓ`, `Rσ`, `sym`, `hasBit`, `bitOf`, `prog`, `mk`, `update_mk_false/true`, `bits`, `bits_cons`, `bits_encode`, `step_nil`, `step_cons`, `loop_run`, `initList_eq`, `haltList_eq`, `revTM_run` |
+
+### 9.4 Things a reviewer should know
+
+1. **Global instance added: `Relativization.Prog.instFlagBool : Flag Bool`** (verbatim from
+   PvsNP, Prog:47). Also global simp attributes on new lemmas: `Flag.untag_tag` (Prog:49),
+   `cnt_length` (93), `cnt_zero` (98), `rep_zero` (656). `Flag`, `cnt`, `rep` are new, so no
+   earlier declaration can mention them; and no earlier module imports a new one. Confirmed by
+   the from-scratch rebuild: the `.olean` of every session 1 and 2 module has the same SHA-256
+   before and after (§9.5 (e)). No other instance was added (`OEmbeds`, `ORun` are plain
+   definitions).
+2. **Verbatim means verbatim.** `logs/session3-port-diff.txt` is `diff` of the bodies
+   (`namespace … end`): for `Prog` the only differing lines are the two namespace lines (plus one
+   blank line added after `open`); for `Emb` the namespace/`open` lines and the removed
+   `iter_none`. The appended oracle sections are the `a`/`c` hunks at the end.
+3. **`Prog` stays a library for plain programs** (NOTES §4.8, "What is not adapted"). The
+   oracle layer is five lemmas and two packaging definitions. `ORun.of_run_visited` takes the
+   visited-label condition on the *plain* run, so a caller who knows which labels a `Prog`-built
+   block visits can transfer it into an oracle machine that reads the oracle elsewhere;
+   `run_embed_oracle` does this for a whole embedded sub-machine (the host may read the oracle at
+   any label outside the image of `φ`, and at the images of the sub-machine's halting labels).
+4. **`step_live`, `step_eq_plain` live in `OracleFinTM2`**, `ofRun` in `Turing.TM2OutputsInTime`,
+   `ofORun` in `Relativization.OTM2OutputsInTime` (declared with `_root_` from inside
+   `Relativization.Prog`). They are stated over the raw `TM2.Cfg tm.Γ tm.Λ tm.σ` for the reason of
+   §7.4 item 7; `ORun` itself is over `tm.Cfg`.
+5. **`Sep.revTM`:** `K = Bool` (input `false`, output `true`), `Λ = Unit`, `σ = Option (Bool ⊕
+   Option Bool)` (the symbol just popped; `none` initially and at the halt, so the halting
+   configuration is `haltList`). One step per input symbol plus one halting step: `|w#y| + 1`.
+   `RΓ` is an `abbrev` by `match` on `Bool`; `Γk₀Fin` is given explicitly with `inferInstanceAs`.
+   The machine does not use the `Prog` counter primitives (PLAN §6.9 item 10); it uses `Run`,
+   `Run.head`, `Run.zero`, `Run.of_eq` and `TM2OutputsInTime.ofRun`.
+6. **Hidden implicit types again** (the phenomenon of §7.4 item 7 and §8.4 item 3): in
+   `sepLang_inNP`, `y.length ≤ w.length` with `w : List Bool` and
+   `y.length ≤ ((fin_encoding_string Bool).encode w).length ^ 1` print the same after `simp`, but
+   the second `List.length` is at `List (fin_encoding_string Bool).Γ`; `simpa` fails and
+   `rw [pow_one]; exact hy` succeeds (definitional at default transparency). In `revComputable`
+   the input/output lists are matched by `List.map_id _` through the same defeq, as in T3.
+7. **Audit classification.** The whole-environment audit classifies a constant as auxiliary when
+   a name component is `mk`, so `Sep.mk` (the stack builder) is not in the `#print axioms` file;
+   its line in the all-constants log is `Relativization.Sep Relativization.Sep.mk #[]`.
+8. **Not done, by instruction:** no stage construction (B3–B6), nothing of A1–A6, T5–T8. Not
+   duplicated for oracle machines: `RunLe`, `Bud`, `Reach`, `forLoop_le/reach`, `runLe_embed`
+   (not needed by the plan).
+9. **Local attributes, syntax.** No new `attribute [local instance]`, no `@[reducible]` (the new
+   `abbrev`s are `RΓ`, `Rσ`). `Prog` and `Emb` use `omit [inst] in` (core syntax to drop an
+   unused section instance). No macros, `syntax`, elaborators, `deriving`, `set_option`, `#eval`.
+
+### 9.5 Check outputs
+
+Full logs are in `logs/`: `session3-axioms-all.txt`, `session3-print-axioms.txt`,
+`session3-build.txt`, `session3-scan.txt`, `session3-port-diff.txt`,
+`session3-olean-before.txt`, `session3-olean-after.txt`. The audit scripts are outside the
+repository.
+
+**(a) Every constant, read-only audit** (`Lean.collectAxioms` over every constant whose module
+is `Relativization*`, as in sessions 1 and 2). Last lines of `logs/session3-axioms-all.txt`:
+
+```
+TOTAL constants in Relativization modules: 928 (407 named, 521 auxiliary)
+named in new modules (Prog, Emb, Sep): 135
+UNION of axioms used: #[propext, Classical.choice, Quot.sound]
+CONSTANTS using anything outside [propext, Classical.choice, Quot.sound]: #[]
+```
+
+Per module: 192 constants in `Prog`, 53 in `Emb`, 48 in `Sep` (`grep -c "^Relativization.Prog "`
+etc. on the log).
+
+**(b) Literal `#print axioms` on each of the 135 named declarations of the three new
+modules** (`logs/session3-print-axioms.txt`, 135 output lines, 0 errors). Distribution
+(`sed -E "s/^'[^']*' //" | sort | uniq -c`; the `rep_succ'` line sorts apart because of the
+quote in its name and is a `[propext]` line):
+
+```
+      1 'Relativization.Prog.rep_succ'' depends on axioms: [propext]
+      6 depends on axioms: [Quot.sound]
+     35 depends on axioms: [propext, Classical.choice, Quot.sound]
+     20 depends on axioms: [propext, Quot.sound]
+     21 depends on axioms: [propext]
+     52 does not depend on any axioms
+```
+
+`grep -c sorryAx` on both logs prints `0` and `0`. The results of §9.2:
+
+```
+'Relativization.Prog.Run' does not depend on any axioms
+'Relativization.Prog.instFlagBool' does not depend on any axioms
+'Relativization.Prog.xfer_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.forLoop_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.mul_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.emitDiff_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Emb.stepAux_mapS' depends on axioms: [propext, Quot.sound]
+'Relativization.Emb.run_embed' depends on axioms: [propext, Quot.sound]
+'Relativization.Prog.ORun' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.step_live' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OracleFinTM2.step_eq_plain' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.ORun.of_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Prog.ORun.of_run_visited' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Turing.TM2OutputsInTime.ofRun' depends on axioms: [propext, Quot.sound]
+'Relativization.OTM2OutputsInTime.ofORun' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Emb.OEmbeds' depends on axioms: [propext, Quot.sound]
+'Relativization.Emb.run_embed_oracle' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.revTM' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.loop_run' depends on axioms: [propext, Quot.sound]
+'Relativization.Sep.revTM_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Sep.revComputable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.sepLang' does not depend on any axioms
+'Relativization.sepLang_inNP' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.sepLang_replicate_iff' depends on axioms: [propext]
+```
+
+**(c) Banned-token scan** over `Relativization.lean` and `Relativization/*.lean`, the same three
+scans as §7.5 (c) (`logs/session3-scan.txt`):
+
+```
+== banned tokens (whole word) in project Lean sources ==
+grep exit: 1 (1 = no match)
+== metaprogramming / environment-modifying markers ==
+Relativization/Comp.lean:27:attribute [local instance] FinTM2.kFin FinTM2.ΛFin FinTM2.σFin FinTM2.Γk₀Fin
+Relativization/Comp.lean:39:@[reducible] def CΓ : CK M₁ M₂ → Type
+Relativization/Normal.lean:96:attribute [local instance] OracleFinTM2.kFin OracleFinTM2.ΛFin OracleFinTM2.σFin
+Relativization/Oracle.lean:261:attribute [local instance] OracleFinTM2.ΛFin
+Relativization/Plain.lean:23:attribute [local instance] FinTM2.kFin
+Relativization/Plain.lean:28:@[reducible] def PΓ : Option M.K → Type
+Relativization/Prog.lean:49:attribute [simp] Flag.untag_tag
+Relativization/Prog.lean:93:@[simp] theorem cnt_length {α : Type} (u : α) (n : ℕ) : (cnt u n).length = n :=
+Relativization/Prog.lean:98:@[simp] theorem cnt_zero {α : Type} (u : α) : cnt u 0 = [] := rfl
+Relativization/Prog.lean:656:@[simp] theorem rep_zero {α : Type} (ys : List α) : rep ys 0 = [] := rfl
+grep exit: 0
+== opaque / unsafeCast / debug markers ==
+grep exit: 1
+```
+
+The six session 1–2 hits are unchanged; the four new hits are the simp attributes of §9.4
+item 1 (verbatim from PvsNP). The scan does not match `instance : Flag Bool` (no `@[instance]`
+attribute); it is reported in §9.4 item 1.
+
+**(d) `lake build`**, after deleting this project's own build artifacts
+(`.lake/build/lib/lean/Relativization*`, `.lake/build/ir/Relativization*`) so that every module
+was recompiled (`logs/session3-build.txt`; `grep -c -i -E "warning|error"` on it prints `0`):
+
+```
+✔ [1237/1250] Built Relativization.Countable (10s)
+✔ [1238/1250] Built Relativization.Oracle (10s)
+✔ [1239/1250] Built Relativization.Classes (13s)
+✔ [1240/1250] Built Relativization.Halt (13s)
+✔ [1241/1250] Built Relativization.Normal (13s)
+✔ [1242/1250] Built Relativization.Prog (13s)
+✔ [1243/1250] Built Relativization.Plain (11s)
+✔ [1244/1250] Built Relativization.Emb (11s)
+✔ [1245/1250] Built Relativization.Self (12s)
+✔ [1246/1250] Built Relativization.Codes (12s)
+✔ [1247/1250] Built Relativization.Comp (12s)
+✔ [1248/1250] Built Relativization.Sep (8.4s)
+✔ [1249/1250] Built Relativization (8.2s)
+Build completed successfully (1250 jobs).
+exit: 0
+```
+
+**(e) Earlier modules elaborate unchanged.** SHA-256 of each session 1–2 `.olean` before any
+change of this session (`logs/session3-olean-before.txt`) and after the from-scratch rebuild
+with the new modules present (`logs/session3-olean-after.txt`):
+
+```
+== olean hashes: earlier modules, before vs after the from-scratch rebuild ==
+Classes.olean: identical (43f4554b909236c7)
+Codes.olean: identical (c5e2c117e4ebe67f)
+Comp.olean: identical (c560c3c025efabec)
+Countable.olean: identical (d4012351737c0774)
+Halt.olean: identical (bbec64145c811dcf)
+Normal.olean: identical (292ec4f641ebb808)
+Oracle.olean: identical (aba34f40f7e4fc08)
+Plain.olean: identical (538a20892c70be80)
+Self.olean: identical (2a154bef41f53627)
 ```
 
 `lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).
