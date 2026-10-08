@@ -1,0 +1,146 @@
+import Relativization
+
+/-!
+Red-team check RT1 (task 1): the exact statement, every definition it depends on, and an
+independent hand-written restatement that does not mention `InP`, `InNP`, `PEqNP`,
+`OTM2ComputableInPolyTime`, `OTM2OutputsInTime` or `OracleFinTM2.step`.
+-/
+
+open Relativization Turing Computability Millennium
+
+#check @Relativization.baker_gill_solovay
+
+/-- The claimed type, re-typed by hand. -/
+example : (∃ A : Relativization.Oracle, Relativization.PEqNP A) ∧
+    (∃ B : Relativization.Oracle, ¬ Relativization.PEqNP B) :=
+  Relativization.baker_gill_solovay
+
+section prints
+set_option pp.fullNames true
+#print Relativization.Oracle
+#print Relativization.PEqNP
+#print Relativization.ClassEquality
+#print Relativization.InP
+#print Relativization.InNP
+#print Relativization.OTM2ComputableInPolyTime
+#print Relativization.OTM2OutputsInTime
+#print Relativization.OracleFinTM2
+#print Relativization.OracleFinTM2.step
+#print Relativization.OracleFinTM2.query
+#print Relativization.OracleFinTM2.Cfg
+#print Relativization.OracleFinTM2.initList
+#print Relativization.OracleFinTM2.haltList
+#print Relativization.OracleFinTM2.toFinTM2
+#print StateTransition.EvalsToInTime
+#print StateTransition.EvalsTo
+#print Turing.FinTM2
+#print Turing.FinTM2.Cfg
+#print Turing.initList
+#print Turing.haltList
+#print Turing.TM2.Stmt
+#print Turing.TM2.Cfg
+#print Turing.TM2.step
+#print Turing.TM2.stepAux
+#print Computability.FinEncoding
+#print Computability.Encoding
+#print Computability.finEncodingBoolBool
+#print Computability.encodeBool
+#print Millennium.Language
+#print Millennium.fin_encoding_string
+#print Millennium.pair_encoding
+#print Millennium.InPolynomialTime
+#print Millennium.InNondeterministicPolynomialTime
+#print Millennium.PolynomialTimeCheckingRelation
+#print Millennium.ClayPVersusNP
+#print Millennium.ClayPVersusNP.Formulations.ClassEquality
+#print Turing.TM2ComputableInPolyTime
+#print Turing.TM2ComputableAux
+#print Turing.TM2OutputsInTime
+end prints
+
+namespace RT
+
+open Classical in
+/-- One step of `tm` with oracle `A`, written out: the program for the current label is chosen
+by whether the current query stack (top first, read as bits) is in `A`. -/
+noncomputable def oStep (tm : OracleFinTM2) (A : Set (List Bool)) (c : TM2.Cfg tm.Γ tm.Λ tm.σ) :
+    Option (TM2.Cfg tm.Γ tm.Λ tm.σ) :=
+  TM2.step (fun l => tm.m l (decide ((c.stk tm.kq).map tm.queryAlphabet ∈ A))) c
+
+/-- Hand-written: `tm` with oracle `A` decides `f` within a polynomial `p`: on every input it
+reaches the halting configuration with output `[f a]` after at most `p (|enc a|)` steps. -/
+def PolyDecider {α αΓ : Type} (A : Set (List Bool)) (enc : α → List αΓ) (f : α → Bool) : Prop :=
+  ∃ (tm : OracleFinTM2) (ι₀ : tm.Γ tm.k₀ ≃ αΓ) (ι₁ : tm.Γ tm.k₁ ≃ Bool) (p : Polynomial ℕ),
+    ∀ a : α, ∃ s ≤ p.eval (enc a).length,
+      (flip bind (oStep tm A))^[s] (some (tm.initList ((enc a).map ι₀.symm))) =
+        some (tm.haltList [ι₁.symm (f a)])
+
+/-- `L ∈ P^A`, hand-written. -/
+def InP' (A : Set (List Bool)) (L : List Bool → Prop) : Prop :=
+  ∃ f : List Bool → Bool, PolyDecider A id f ∧ ∀ w, L w ↔ f w = true
+
+/-- The `w#y` string of a pair, hand-written. -/
+def pairEnc (Γ₁ : Type) (p : List Bool × List Γ₁) : List (Bool ⊕ Option Γ₁) :=
+  p.1.map Sum.inl ++ Sum.inr none :: p.2.map (fun b => Sum.inr (some b))
+
+/-- `L ∈ NP^A`, hand-written: polynomially bounded certificates over a finite alphabet, checked
+by a polynomial-time oracle decider on `w#y`. -/
+def InNP' (A : Set (List Bool)) (L : List Bool → Prop) : Prop :=
+  ∃ (Γ₁ : Type) (_ : Fintype Γ₁) (R : List Bool → List Γ₁ → Prop) (k : ℕ),
+    (∃ g : List Bool × List Γ₁ → Bool, PolyDecider A (pairEnc Γ₁) g ∧ ∀ p, R p.1 p.2 ↔ g p = true) ∧
+      ∀ w, L w ↔ ∃ y : List Γ₁, y.length ≤ w.length ^ k ∧ R w y
+
+theorem oStep_eq (tm : OracleFinTM2) (A : Set (List Bool)) : oStep tm A = tm.step A := rfl
+
+theorem polyDecider_iff {α αΓ : Type} (A : Set (List Bool)) (enc : α → List αΓ) (f : α → Bool) :
+    PolyDecider A enc f ↔
+      Nonempty (OTM2ComputableInPolyTime A enc finEncodingBoolBool.encode f) := by
+  constructor
+  · rintro ⟨tm, ι₀, ι₁, p, H⟩
+    choose s hs hrun using H
+    exact ⟨⟨tm, ι₀, ι₁, p, fun a => ⟨⟨s a, hrun a⟩, hs a⟩⟩⟩
+  · rintro ⟨h⟩
+    exact ⟨h.tm, h.inputAlphabet, h.outputAlphabet, h.time, fun a =>
+      ⟨(h.outputsFun a).steps, (h.outputsFun a).steps_le_m, (h.outputsFun a).evals_in_steps⟩⟩
+
+theorem inP'_iff (A : Oracle) (L : Language (List Bool)) :
+    InP' A L ↔ InP A (fin_encoding_string Bool) L := by
+  constructor
+  · rintro ⟨f, hf, hL⟩
+    obtain ⟨h⟩ := (polyDecider_iff A id f).mp hf
+    exact ⟨f, h, hL⟩
+  · rintro ⟨f, h, hL⟩
+    exact ⟨f, (polyDecider_iff A id f).mpr ⟨h⟩, hL⟩
+
+theorem inNP'_iff (A : Oracle) (L : Language (List Bool)) :
+    InNP' A L ↔ InNP A (fin_encoding_string Bool) L := by
+  constructor
+  · rintro ⟨Γ₁, hΓ, R, k, ⟨g, hg, hR⟩, hL⟩
+    obtain ⟨h⟩ := (polyDecider_iff A (pairEnc Γ₁) g).mp hg
+    exact ⟨Γ₁, hΓ, R, k, ⟨g, h, hR⟩, hL⟩
+  · rintro ⟨Γ₁, hΓ, R, k, ⟨g, h, hR⟩, hL⟩
+    exact ⟨Γ₁, hΓ, R, k, ⟨g, (polyDecider_iff A (pairEnc Γ₁) g).mpr ⟨h⟩, hR⟩, hL⟩
+
+/-- Baker-Gill-Solovay, in the hand-written vocabulary, with the separation stated as
+"some language is in NP^B and not in P^B". -/
+theorem bgs_explicit :
+    (∃ A : Set (List Bool), ∀ L : List Bool → Prop, InP' A L ↔ InNP' A L) ∧
+      (∃ B : Set (List Bool), ∃ L : List Bool → Prop, InNP' B L ∧ ¬ InP' B L) := by
+  obtain ⟨⟨A, hA⟩, ⟨B, hB⟩⟩ := baker_gill_solovay
+  refine ⟨⟨A, fun L => (inP'_iff A L).trans ((hA L).trans (inNP'_iff A L).symm)⟩, ?_⟩
+  -- task 1b: `¬ PEqNP B` gives a language in `NP^B \ P^B`, using `P^B ⊆ NP^B` (T4)
+  have : ∃ L : Language (List Bool),
+      InNP B (fin_encoding_string Bool) L ∧ ¬ InP B (fin_encoding_string Bool) L := by
+    by_contra hno
+    exact hB fun L => ⟨inP_subset_inNP B Bool L, fun hN =>
+      Classical.byContradiction fun hP => hno ⟨L, hN, hP⟩⟩
+  obtain ⟨L, hN, hP⟩ := this
+  exact ⟨B, L, (inNP'_iff B L).mpr hN, fun h => hP ((inP'_iff B L).mp h)⟩
+
+end RT
+
+#print axioms RT.polyDecider_iff
+#print axioms RT.inP'_iff
+#print axioms RT.inNP'_iff
+#print axioms RT.bgs_explicit
+#print axioms Relativization.baker_gill_solovay

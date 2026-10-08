@@ -1,0 +1,114 @@
+Thu Oct  8 14:29:58 AUSEST 2026
+$ lake env leanchecker --verbose Relativization
+replaying Relativization
+replaying Relativization.Univ
+replaying Relativization.Stage
+replaying Relativization.Sep
+replaying Relativization.Self
+replaying Relativization.Queries
+replaying Relativization.Prog
+replaying Relativization.Plain
+replaying Relativization.Pad
+replaying Relativization.Oracle
+replaying Relativization.Normal
+replaying Relativization.Halt
+replaying Relativization.Frame
+replaying Relativization.Emb
+replaying Relativization.Counter
+replaying Relativization.Countable
+replaying Relativization.Count
+replaying Relativization.Comp
+replaying Relativization.Collapse
+replaying Relativization.Codes
+replaying Relativization.Classes
+replaying Relativization.BakerGillSolovay
+LEANCHECKER_PREFIX_EXIT=0
+Thu Oct  8 14:32:28 AUSEST 2026
+$ lake env leanchecker --verbose Relativization.Oracle
+replaying Relativization.Oracle
+EXIT[Relativization.Oracle]=0
+$ lake env leanchecker --verbose Relativization.Classes
+replaying Relativization.Classes
+EXIT[Relativization.Classes]=0
+$ lake env leanchecker --verbose Relativization.Plain
+replaying Relativization.Plain
+EXIT[Relativization.Plain]=0
+$ lake env leanchecker --verbose Relativization.Self
+replaying Relativization.Self
+EXIT[Relativization.Self]=0
+$ lake env leanchecker --verbose Relativization.Comp
+replaying Relativization.Comp
+EXIT[Relativization.Comp]=0
+$ lake env leanchecker --verbose Relativization.Halt
+replaying Relativization.Halt
+EXIT[Relativization.Halt]=0
+$ lake env leanchecker --verbose Relativization.Countable
+replaying Relativization.Countable
+EXIT[Relativization.Countable]=0
+$ lake env leanchecker --verbose Relativization.Normal
+replaying Relativization.Normal
+EXIT[Relativization.Normal]=0
+$ lake env leanchecker --verbose Relativization.Codes
+replaying Relativization.Codes
+EXIT[Relativization.Codes]=0
+$ lake env leanchecker --verbose Relativization.Prog
+replaying Relativization.Prog
+EXIT[Relativization.Prog]=0
+$ lake env leanchecker --verbose Relativization.Emb
+replaying Relativization.Emb
+EXIT[Relativization.Emb]=0
+$ lake env leanchecker --verbose Relativization.Sep
+replaying Relativization.Sep
+EXIT[Relativization.Sep]=0
+$ lake env leanchecker --verbose Relativization.Count
+replaying Relativization.Count
+EXIT[Relativization.Count]=0
+$ lake env leanchecker --verbose Relativization.Queries
+replaying Relativization.Queries
+EXIT[Relativization.Queries]=0
+$ lake env leanchecker --verbose Relativization.Stage
+replaying Relativization.Stage
+EXIT[Relativization.Stage]=0
+$ lake env leanchecker --verbose Relativization.Frame
+replaying Relativization.Frame
+EXIT[Relativization.Frame]=0
+$ lake env leanchecker --verbose Relativization.Univ
+replaying Relativization.Univ
+EXIT[Relativization.Univ]=0
+$ lake env leanchecker --verbose Relativization.Counter
+replaying Relativization.Counter
+EXIT[Relativization.Counter]=0
+$ lake env leanchecker --verbose Relativization.Pad
+replaying Relativization.Pad
+EXIT[Relativization.Pad]=0
+$ lake env leanchecker --verbose Relativization.Collapse
+replaying Relativization.Collapse
+EXIT[Relativization.Collapse]=0
+$ lake env leanchecker --verbose Relativization.BakerGillSolovay
+replaying Relativization.BakerGillSolovay
+EXIT[Relativization.BakerGillSolovay]=0
+$ lake env leanchecker --verbose Relativization
+replaying Relativization
+replaying Relativization.Univ
+replaying Relativization.Stage
+replaying Relativization.Sep
+replaying Relativization.Self
+replaying Relativization.Queries
+replaying Relativization.Prog
+replaying Relativization.Plain
+replaying Relativization.Pad
+replaying Relativization.Oracle
+replaying Relativization.Normal
+replaying Relativization.Halt
+replaying Relativization.Frame
+replaying Relativization.Emb
+replaying Relativization.Counter
+replaying Relativization.Countable
+replaying Relativization.Count
+replaying Relativization.Comp
+replaying Relativization.Collapse
+replaying Relativization.Codes
+replaying Relativization.Classes
+replaying Relativization.BakerGillSolovay
+EXIT[Relativization]=0
+Thu Oct  8 14:57:28 AUSEST 2026

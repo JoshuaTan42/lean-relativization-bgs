@@ -1,0 +1,314 @@
+Thu Oct  8 14:46:21 AUSEST 2026
+$ lake env lean <scratchpad>/RT4_Env.lean
+constants in Relativization modules: 1642
+per module: [Relativization.BakerGillSolovay=3,
+ Relativization.Classes=4,
+ Relativization.Codes=86,
+ Relativization.Collapse=29,
+ Relativization.Comp=140,
+ Relativization.Count=14,
+ Relativization.Countable=85,
+ Relativization.Counter=167,
+ Relativization.Emb=53,
+ Relativization.Frame=33,
+ Relativization.Halt=9,
+ Relativization.Normal=116,
+ Relativization.Oracle=116,
+ Relativization.Pad=341,
+ Relativization.Plain=61,
+ Relativization.Prog=192,
+ Relativization.Queries=10,
+ Relativization.Self=18,
+ Relativization.Sep=48,
+ Relativization.Stage=81,
+ Relativization.Univ=36]
+UNION of collectAxioms over all of them: [Quot.sound, Classical.choice, propext]
+constants whose collectAxioms is not within [propext, Classical.choice, Quot.sound]: 0 []
+flags (axiom/opaque/quot/unsafe/partial/extern/implemented_by): 12 [PARTIAL Relativization.StmtCountable.toW._unsafe_rec,
+ PARTIAL Relativization.Comp.lift₁._unsafe_rec,
+ PARTIAL Relativization.Comp.lift₂._unsafe_rec,
+ PARTIAL Relativization.dropOnes._unsafe_rec,
+ PARTIAL Relativization.ones._unsafe_rec,
+ PARTIAL Relativization.pushDepth._unsafe_rec,
+ PARTIAL Relativization.StmtCountable.ofW._unsafe_rec,
+ PARTIAL Relativization.Prog.sumFrom._unsafe_rec,
+ PARTIAL Relativization.pushSyms._unsafe_rec,
+ PARTIAL Relativization.Emb.mapS._unsafe_rec,
+ PARTIAL Relativization.Univ.level._unsafe_rec,
+ PARTIAL Relativization.Plain.liftS._unsafe_rec]
+constants in Relativization modules outside namespace Relativization: 130 [_private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_6   [module Relativization.Pad],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.eq_4   [module Relativization.Emb],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.splitter   [module Relativization.Pad],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.eq_3   [module Relativization.Comp],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.eq_3   [module Relativization.Oracle],
+ Turing.haltList.eq_1   [module Relativization.Plain],
+ _private.Relativization.Comp.0.Relativization.Comp.lab₁.match_1.eq_2   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_8   [module Relativization.Pad],
+ _private.Relativization.Comp.0.Relativization.Comp.CΓ.match_1.eq_2   [module Relativization.Comp],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.eq_3   [module Relativization.Emb],
+ _private.Relativization.Pad.0.Relativization.Pad.F1.match_1.eq_1   [module Relativization.Pad],
+ _private.Relativization.Comp.0.Relativization.Comp.CΓ.match_1.eq_1   [module Relativization.Comp],
+ _private.Relativization.Comp.0.Relativization.Comp.CΓ.match_1.eq_3   [module Relativization.Comp],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.eq_7   [module Relativization.Oracle],
+ _private.Relativization.Pad.0.Relativization.Pad.F2.match_1.eq_3   [module Relativization.Pad],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_3.eq_3   [module Relativization.Comp],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_3.eq_5   [module Relativization.Comp],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.splitter   [module Relativization.Comp],
+ _private.Relativization.Plain.0.Relativization.Plain.PΓ.match_1.splitter   [module Relativization.Plain],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_1.eq_1   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypePK.match_5.eq_1   [module Relativization.Pad],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.eq_2   [module Relativization.Emb],
+ Turing.initList.eq_1   [module Relativization.Oracle],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_3   [module Relativization.Pad],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.eq_4   [module Relativization.Normal],
+ _private.Relativization.Comp.0.Relativization.Comp.lab₁.match_1.splitter   [module Relativization.Comp],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.eq_7   [module Relativization.Plain],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.eq_5   [module Relativization.Plain],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.eq_1   [module Relativization.Comp],
+ _private.Relativization.Frame.0.Relativization.decode.match_1.eq_2   [module Relativization.Frame],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypePL.match_5.eq_1   [module Relativization.Pad],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.splitter   [module Relativization.Plain],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.eq_2   [module Relativization.Normal],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.eq_7   [module Relativization.Countable],
+ _private.Relativization.Sep.0.Relativization.Sep.RΓ.match_1.eq_2   [module Relativization.Sep],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.eq_6   [module Relativization.Oracle],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.eq_5   [module Relativization.Countable],
+ _private.Relativization.Pad.0.Relativization.Pad.F2.match_1.eq_4   [module Relativization.Pad],
+ _private.Relativization.Plain.0.Relativization.Plain.PΓ.match_1.eq_1   [module Relativization.Plain],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.eq_6   [module Relativization.Comp],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.eq_1   [module Relativization.Normal],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.eq_2   [module Relativization.Comp],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.eq_4   [module Relativization.Comp],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.eq_6   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_4   [module Relativization.Pad],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.splitter   [module Relativization.Countable],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.eq_6   [module Relativization.Countable],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.eq_6   [module Relativization.Emb],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.eq_2   [module Relativization.Comp],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.eq_5   [module Relativization.Countable],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_3.eq_4   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypePL.match_5.eq_2   [module Relativization.Pad],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.eq_3   [module Relativization.Normal],
+ _private.Relativization.Prog.0.Relativization.Prog.sumFrom.match_1.splitter   [module Relativization.Prog],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_3.eq_2   [module Relativization.Comp],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.eq_5   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_5   [module Relativization.Pad],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.splitter   [module Relativization.Normal],
+ _private.Relativization.Comp.0.Relativization.Comp.lab₁.match_1.eq_1   [module Relativization.Comp],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_1.splitter   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.F1.match_1.eq_2   [module Relativization.Pad],
+ _private.Relativization.Prog.0.Relativization.Prog.sumFrom.match_1.eq_1   [module Relativization.Prog],
+ _private.Relativization.Pad.0.Relativization.Pad.F3.match_1.eq_2   [module Relativization.Pad],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.eq_4   [module Relativization.Countable],
+ _private.Relativization.Prog.0.Relativization.Prog.sumFrom.match_1.eq_2   [module Relativization.Prog],
+ _private.Relativization.Pad.0.Relativization.Pad.F3.match_1.eq_3   [module Relativization.Pad],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.eq_1   [module Relativization.Emb],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypePL.match_5.splitter   [module Relativization.Pad],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.eq_1   [module Relativization.Oracle],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.eq_5   [module Relativization.Oracle],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.eq_3   [module Relativization.Plain],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.eq_6   [module Relativization.Countable],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.eq_2   [module Relativization.Countable],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypePK.match_5.eq_2   [module Relativization.Pad],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.eq_1   [module Relativization.Countable],
+ Turing.TM2OutputsInTime.ofRun   [module Relativization.Prog],
+ _private.Relativization.Pad.0.Relativization.Pad.F2.match_1.eq_2   [module Relativization.Pad],
+ _private.Relativization.Sep.0.Relativization.Sep.RΓ.match_1.splitter   [module Relativization.Sep],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.eq_1   [module Relativization.Comp],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.eq_6   [module Relativization.Plain],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.eq_4   [module Relativization.Countable],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.eq_7   [module Relativization.Countable],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.eq_5   [module Relativization.Comp],
+ _private.Relativization.Frame.0.Relativization.decode.match_1.splitter   [module Relativization.Frame],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.eq_4   [module Relativization.Comp],
+ Turing.TM2OutputsInTime.ofRunLe._proof_1   [module Relativization.Counter],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.eq_7   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.F3.match_1.eq_1   [module Relativization.Pad],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_1.eq_2   [module Relativization.Comp],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.splitter   [module Relativization.Emb],
+ _private.Relativization.Pad.0.Relativization.Pad.F3.match_1.splitter   [module Relativization.Pad],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.eq_3   [module Relativization.Comp],
+ _private.Relativization.Frame.0.Relativization.decode.match_1.eq_1   [module Relativization.Frame],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.eq_2   [module Relativization.Oracle],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_3.splitter   [module Relativization.Comp],
+ _private.Relativization.Sep.0.Relativization.Sep.sym.match_1.eq_1   [module Relativization.Sep],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.eq_4   [module Relativization.Plain],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_9   [module Relativization.Pad],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_2   [module Relativization.Pad],
+ _private.Relativization.Pad.0.Relativization.Pad.F1.match_1.splitter   [module Relativization.Pad],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.eq_3   [module Relativization.Countable],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.eq_1   [module Relativization.Countable],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_3.eq_6   [module Relativization.Comp],
+ _private.Relativization.Comp.0.Relativization.Comp.CΓ.match_1.splitter   [module Relativization.Comp],
+ _private.Relativization.Sep.0.Relativization.Sep.sym.match_1.splitter   [module Relativization.Sep],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.splitter   [module Relativization.Comp],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.eq_5   [module Relativization.Normal],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_1   [module Relativization.Pad],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.eq_7   [module Relativization.Pad],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.eq_1   [module Relativization.Plain],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.splitter   [module Relativization.Oracle],
+ _private.Relativization.Pad.0.Relativization.Pad.F2.match_1.splitter   [module Relativization.Pad],
+ _private.Relativization.Plain.0.Relativization.Plain.PΓ.match_1.eq_2   [module Relativization.Plain],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.eq_3   [module Relativization.Countable],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.eq_7   [module Relativization.Emb],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_3.eq_1   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.F2.match_1.eq_1   [module Relativization.Pad],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypePK.match_5.splitter   [module Relativization.Pad],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.eq_2   [module Relativization.Countable],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.eq_7   [module Relativization.Normal],
+ Turing.TM2OutputsInTime.ofRunLe._proof_2   [module Relativization.Counter],
+ _private.Relativization.Sep.0.Relativization.Sep.sym.match_1.eq_2   [module Relativization.Sep],
+ _private.Relativization.Sep.0.Relativization.Sep.RΓ.match_1.eq_1   [module Relativization.Sep],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.eq_4   [module Relativization.Oracle],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.splitter   [module Relativization.Countable],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.eq_2   [module Relativization.Plain],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.eq_5   [module Relativization.Emb],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.eq_6   [module Relativization.Normal],
+ Turing.TM2OutputsInTime.ofRunLe   [module Relativization.Counter],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.eq_7   [module Relativization.Comp]]
+constants without declaration ranges: standard auto-generated suffix 828; other 56: [_private.Relativization.Pad.0.Relativization.Pad.instFintypeCL.match_5.splitter (def)   [module Relativization.Pad],
+ Relativization.Counter.MS.enumList_nodup (theorem)   [module Relativization.Counter],
+ Relativization.NF.tr.congr_simp (theorem)   [module Relativization.Normal],
+ Relativization.Pad.PC.enumList_nodup (theorem)   [module Relativization.Pad],
+ Relativization.pushDepth.congr_simp (theorem)   [module Relativization.Oracle],
+ Relativization.decode._sparseCasesOn_2.else_eq (theorem)   [module Relativization.Frame],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₁.match_1.splitter (def)   [module Relativization.Comp],
+ _private.Relativization.Plain.0.Relativization.Plain.PΓ.match_1.splitter (def)   [module Relativization.Plain],
+ Relativization.NF.e.congr_simp (theorem)   [module Relativization.Normal],
+ _private.Relativization.Comp.0.Relativization.Comp.lab₁.match_1.splitter (def)   [module Relativization.Comp],
+ Relativization.Prog.Run.congr_simp (theorem)   [module Relativization.Prog],
+ _private.Relativization.Plain.0.Relativization.Plain.liftS.match_1.splitter (def)   [module Relativization.Plain],
+ Relativization.Pad.F2._sparseCasesOn_1.else_eq (theorem)   [module Relativization.Pad],
+ Relativization.NF.enc.congr_simp (theorem)   [module Relativization.Normal],
+ Relativization.Counter.PW.proxyType (def)   [module Relativization.Counter],
+ Relativization.Pad.F1._sparseCasesOn_1.else_eq (theorem)   [module Relativization.Pad],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.ofW.match_1.splitter (def)   [module Relativization.Countable],
+ Relativization.Counter.PW.proxyTypeEquiv (def)   [module Relativization.Counter],
+ Relativization.NF.enc₀.congr_simp (theorem)   [module Relativization.Normal],
+ _private.Relativization.Prog.0.Relativization.Prog.sumFrom.match_1.splitter (def)   [module Relativization.Prog],
+ Relativization.NF.eStk.congr_simp (theorem)   [module Relativization.Normal],
+ Relativization.Pad.F3._sparseCasesOn_1.else_eq (theorem)   [module Relativization.Pad],
+ _private.Relativization.Normal.0.Relativization.NF.tr.match_1.splitter (def)   [module Relativization.Normal],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_1.splitter (def)   [module Relativization.Comp],
+ Relativization.Counter.SK.proxyTypeEquiv (def)   [module Relativization.Counter],
+ Relativization.Counter.xf.congr_simp (theorem)   [module Relativization.Counter],
+ Relativization.Pad.CL.proxyTypeEquiv (def)   [module Relativization.Pad],
+ Relativization.NF.ε.congr_simp (theorem)   [module Relativization.Normal],
+ Relativization.Pad.PK.proxyType (def)   [module Relativization.Pad],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypePL.match_5.splitter (def)   [module Relativization.Pad],
+ Relativization.decode._sparseCasesOn_1.else_eq (theorem)   [module Relativization.Frame],
+ _private.Relativization.Sep.0.Relativization.Sep.RΓ.match_1.splitter (def)   [module Relativization.Sep],
+ Relativization.Counter.SK.proxyType (def)   [module Relativization.Counter],
+ Relativization.Pad.PC.enumList_getElem?_ctorIdx_eq (theorem)   [module Relativization.Pad],
+ Relativization.Counter.MS.enumList_getElem?_ctorIdx_eq (theorem)   [module Relativization.Counter],
+ _private.Relativization.Frame.0.Relativization.decode.match_1.splitter (def)   [module Relativization.Frame],
+ _private.Relativization.Emb.0.Relativization.Emb.mapS.match_1.splitter (def)   [module Relativization.Emb],
+ Relativization.Prog.addU.congr_simp (theorem)   [module Relativization.Prog],
+ _private.Relativization.Pad.0.Relativization.Pad.F3.match_1.splitter (def)   [module Relativization.Pad],
+ _private.Relativization.Comp.0.Relativization.Comp.prog.match_3.splitter (def)   [module Relativization.Comp],
+ _private.Relativization.Pad.0.Relativization.Pad.F1.match_1.splitter (def)   [module Relativization.Pad],
+ _private.Relativization.Comp.0.Relativization.Comp.CΓ.match_1.splitter (def)   [module Relativization.Comp],
+ _private.Relativization.Sep.0.Relativization.Sep.sym.match_1.splitter (def)   [module Relativization.Sep],
+ _private.Relativization.Comp.0.Relativization.Comp.lift₂.match_1.splitter (def)   [module Relativization.Comp],
+ _private.Relativization.Oracle.0.Relativization.pushDepth.match_1.splitter (def)   [module Relativization.Oracle],
+ Relativization.Pad.PL.proxyType (def)   [module Relativization.Pad],
+ Relativization.Pad.CL.proxyType (def)   [module Relativization.Pad],
+ _private.Relativization.Pad.0.Relativization.Pad.F2.match_1.splitter (def)   [module Relativization.Pad],
+ Relativization.Pad.PK.proxyTypeEquiv (def)   [module Relativization.Pad],
+ Relativization.NF.dec.congr_simp (theorem)   [module Relativization.Normal],
+ Relativization.Emb.SEmb.mk.congr_simp (theorem)   [module Relativization.Pad],
+ Relativization.Pad.PL.proxyTypeEquiv (def)   [module Relativization.Pad],
+ _private.Relativization.Pad.0.Relativization.Pad.instFintypePK.match_5.splitter (def)   [module Relativization.Pad],
+ Relativization.Pad.PC.ofNat_ctorIdx (theorem)   [module Relativization.Pad],
+ _private.Relativization.Countable.0.Relativization.StmtCountable.toW.match_1.splitter (def)   [module Relativization.Countable],
+ Relativization.Counter.MS.ofNat_ctorIdx (theorem)   [module Relativization.Counter]]
+modules in the import closure: 3583; top-level prefixes: [Init,
+ Lean,
+ Std,
+ Batteries,
+ Mathlib,
+ ImportGraph,
+ Aesop,
+ Qq,
+ Plausible,
+ LeanSearchClient,
+ ProofWidgets,
+ Relativization,
+ Problems]
+axiom declarations in the whole environment: 15
+Classical.choice   [module Init.Prelude]
+Quot.sound   [module Init.Core]
+lcVoid   [module Init.Prelude]
+lcCast   [module Init.Prelude]
+lcErased   [module Init.Prelude]
+propext   [module Init.Core]
+Quot.lcInv   [module Init.Prelude]
+lcAny   [module Init.Prelude]
+Lean.ofReduceNat   [module Init.Core]
+Lean.trustCompiler   [module Init.Core]
+isScalarObj   [module Init.Prelude]
+Lean.ofReduceBool   [module Init.Core]
+lcProof   [module Init.Prelude]
+lcUnreachable   [module Init.Prelude]
+sorryAx   [module Init.Prelude]
+WALK Relativization.baker_gill_solovay: axioms [Quot.sound,
+ Classical.choice,
+ propext]; constants visited 11574; theorems visited 6832; missing []
+WALK Relativization.collapse: axioms [Quot.sound,
+ Classical.choice,
+ propext]; constants visited 11013; theorems visited 6449; missing []
+WALK Relativization.separation: axioms [Quot.sound,
+ Classical.choice,
+ propext]; constants visited 10622; theorems visited 6298; missing []
+WALK Relativization.univOracle_pEqNP: axioms [Quot.sound,
+ Classical.choice,
+ propext]; constants visited 11012; theorems visited 6448; missing []
+WALK Relativization.sepOracle_not_pEqNP: axioms [Quot.sound,
+ Classical.choice,
+ propext]; constants visited 10621; theorems visited 6297; missing []
+CLOSURE of baker_gill_solovay: 11574 constants; from Relativization modules 857; unsafe 0 []; partial 0 []; opaque 3 [Lean.opaqueId,
+ String.Internal.append,
+ Polynomial.wrapped._@.Mathlib.Algebra.Polynomial.Eval.Defs.2849575019._hygCtx._hyg.2]; extern 53; implemented_by 5 [List.attachWith,
+ Lean.Name.num,
+ Lean.Name.str,
+ Lean.Name.anonymous,
+ Nat.repr]
+WALK from all 1642 Relativization constants: axioms [Quot.sound,
+ Classical.choice,
+ propext]; constants visited 12413; theorems visited 7398; missing []
+WALK sanity [sorryAx, Classical.em]: [Quot.sound, Classical.choice, sorryAx, propext]
+declarations in Relativization.Collapse and Relativization.BakerGillSolovay: 32
+'Relativization.baker_gill_solovay' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.collapse' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.eval_le_pow' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_pad_reduction' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inNP_subset_inP' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inP_of_pad_reduction' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.pow_weaken' depends on axioms: [propext, Quot.sound]
+'Relativization.separation' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.univOracle_pEqNP' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.Acc_reverse' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.eval_le_budget' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.exists_exponents' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.muPoly' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.muPoly_eval' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.padFun_mem_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.padPoly' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.padPoly_eval' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OTM2OutputsInTime.mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.eval_le_pow._proof_1_1' depends on axioms: [propext, Quot.sound]
+'Relativization.eval_le_pow._proof_1_2' depends on axioms: [propext, Quot.sound]
+'Relativization.eval_le_pow._proof_1_3' depends on axioms: [propext, Quot.sound]
+'Relativization.eval_le_pow._proof_1_4' depends on axioms: [propext, Quot.sound]
+'Relativization.eval_le_pow._proof_1_5' depends on axioms: [propext, Quot.sound]
+'Relativization.exists_pad_reduction._proof_1_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.padFun.eq_1' depends on axioms: [propext]
+'Relativization.pow_weaken._proof_1_1' depends on axioms: [propext, Quot.sound]
+'Relativization.pow_weaken._proof_1_2' depends on axioms: [propext, Quot.sound]
+'Relativization.Collapse.muPoly.eq_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.padPoly.eq_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OTM2OutputsInTime.mono._proof_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.Acc.eq_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Univ.mu.eq_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+EXIT=0
+Thu Oct  8 14:47:44 AUSEST 2026

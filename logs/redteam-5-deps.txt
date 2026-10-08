@@ -1,0 +1,101 @@
+$ (for each manifest package) git -C .lake/packages/<dir> rev-parse HEAD; git status --porcelain; git remote get-url origin
+name               manifest rev                               HEAD                                       match  dirty  remote==url
+problems           603053dc267cf3efe422f438eb78098c0ececd6f   603053dc267cf3efe422f438eb78098c0ececd6f   YES    clean  True
+mathlib            fabf563a7c95a166b8d7b6efca11c8b4dc9d911f   fabf563a7c95a166b8d7b6efca11c8b4dc9d911f   YES    clean  True
+Physlib            3dddd61e231b2f8936dbaa1460dc60df71bc434d   3dddd61e231b2f8936dbaa1460dc60df71bc434d   YES    clean  True
+plausible          63045536fe95024e6c18fc7b48e03f506701c5bc   63045536fe95024e6c18fc7b48e03f506701c5bc   YES    clean  True
+LeanSearchClient   c5d5b8fe6e5158def25cd28eb94e4141ad97c843   c5d5b8fe6e5158def25cd28eb94e4141ad97c843   YES    clean  True
+importGraph        5c7542ed018c78194f1e2b903eaf6a792b74c03d   5c7542ed018c78194f1e2b903eaf6a792b74c03d   YES    clean  True
+proofwidgets       24b0d9dc081c5423f8eec7e866c441e5184f29d9   24b0d9dc081c5423f8eec7e866c441e5184f29d9   YES    clean  True
+aesop              e3cb2f741431ce31bf73549fb52316a57368b06f   e3cb2f741431ce31bf73549fb52316a57368b06f   YES    clean  True
+Qq                 f46324995fca5f0483b742e4eb4daec7f4ee50d2   f46324995fca5f0483b742e4eb4daec7f4ee50d2   YES    clean  True
+batteries          fa08db58b30eb033edcdab331bba000827f9f785   fa08db58b30eb033edcdab331bba000827f9f785   YES    clean  True
+doc-gen4           0bc516c1b9db83658d6475c40d9b1ed71219b921   0bc516c1b9db83658d6475c40d9b1ed71219b921   YES    clean  True
+Cli                92564e5770e4d09f2d86dfbf8ada1e9c715b384c   92564e5770e4d09f2d86dfbf8ada1e9c715b384c   YES    clean  True
+leansqlite         0be4df908d1a8e75b58961041e2b4973692623df   0be4df908d1a8e75b58961041e2b4973692623df   YES    clean  True
+UnicodeBasic       a2e430a4c9d3ad24078b8581fe0162fc5b0c9a6c   a2e430a4c9d3ad24078b8581fe0162fc5b0c9a6c   YES    clean  True
+BibtexQuery        5d31b64fb703c5d77f6ef4d1fb958f9bdf1ea539   5d31b64fb703c5d77f6ef4d1fb958f9bdf1ea539   YES    clean  True
+MD4Lean            6a3fb240133bcb7e1a066fdc784b3fdc304e3fc5   6a3fb240133bcb7e1a066fdc784b3fdc304e3fc5   YES    clean  True
+
+directories in .lake/packages: ['BibtexQuery', 'Cli', 'LeanSearchClient', 'MD4Lean', 'Physlib', 'Qq', 'UnicodeBasic', 'aesop', 'batteries', 'doc-gen4', 'importGraph', 'leansqlite', 'mathlib', 'plausible', 'problems', 'proofwidgets']
+manifest names: ['BibtexQuery', 'Cli', 'LeanSearchClient', 'MD4Lean', 'Physlib', 'Qq', 'UnicodeBasic', 'aesop', 'batteries', 'doc-gen4', 'importGraph', 'leansqlite', 'mathlib', 'plausible', 'problems', 'proofwidgets']
+
+$ compare root manifest revs with .lake/packages/mathlib/lake-manifest.json and .lake/packages/problems/lake-manifest.json
+mathlib   requires plausible          63045536fe95024e6c18fc7b48e03f506701c5bc  root-manifest SAME
+mathlib   requires LeanSearchClient   c5d5b8fe6e5158def25cd28eb94e4141ad97c843  root-manifest SAME
+mathlib   requires importGraph        5c7542ed018c78194f1e2b903eaf6a792b74c03d  root-manifest SAME
+mathlib   requires proofwidgets       24b0d9dc081c5423f8eec7e866c441e5184f29d9  root-manifest SAME
+mathlib   requires aesop              e3cb2f741431ce31bf73549fb52316a57368b06f  root-manifest SAME
+mathlib   requires Qq                 f46324995fca5f0483b742e4eb4daec7f4ee50d2  root-manifest SAME
+mathlib   requires batteries          fa08db58b30eb033edcdab331bba000827f9f785  root-manifest SAME
+mathlib   requires Cli                92564e5770e4d09f2d86dfbf8ada1e9c715b384c  root-manifest SAME
+problems  requires Physlib            3dddd61e231b2f8936dbaa1460dc60df71bc434d  root-manifest SAME
+problems  requires mathlib            fabf563a7c95a166b8d7b6efca11c8b4dc9d911f  root-manifest SAME
+problems  requires doc-gen4           0bc516c1b9db83658d6475c40d9b1ed71219b921  root-manifest SAME
+problems  requires plausible          63045536fe95024e6c18fc7b48e03f506701c5bc  root-manifest SAME
+problems  requires LeanSearchClient   c5d5b8fe6e5158def25cd28eb94e4141ad97c843  root-manifest SAME
+problems  requires importGraph        5c7542ed018c78194f1e2b903eaf6a792b74c03d  root-manifest SAME
+problems  requires proofwidgets       24b0d9dc081c5423f8eec7e866c441e5184f29d9  root-manifest SAME
+problems  requires aesop              e3cb2f741431ce31bf73549fb52316a57368b06f  root-manifest SAME
+problems  requires Qq                 f46324995fca5f0483b742e4eb4daec7f4ee50d2  root-manifest SAME
+problems  requires batteries          fa08db58b30eb033edcdab331bba000827f9f785  root-manifest SAME
+problems  requires leansqlite         0be4df908d1a8e75b58961041e2b4973692623df  root-manifest SAME
+problems  requires Cli                92564e5770e4d09f2d86dfbf8ada1e9c715b384c  root-manifest SAME
+problems  requires UnicodeBasic       a2e430a4c9d3ad24078b8581fe0162fc5b0c9a6c  root-manifest SAME
+problems  requires BibtexQuery        5d31b64fb703c5d77f6ef4d1fb958f9bdf1ea539  root-manifest SAME
+problems  requires MD4Lean            6a3fb240133bcb7e1a066fdc784b3fdc304e3fc5  root-manifest SAME
+
+$ grep -n "^\[\[require\]\]" -A4 .lake/packages/problems/lakefile.toml
+9:[[require]]
+10-name = "mathlib"
+11-git = "https://github.com/leanprover-community/mathlib4"
+12-rev = "v4.31.0"
+13-
+14:[[require]]
+15-name = "Physlib"
+16-git = "https://github.com/HEPLean/PhysLean"
+17-rev = "3dddd61e231b2f8936dbaa1460dc60df71bc434d"
+18-
+
+$ grep -n "^import" .lake/packages/problems/Problems/PVersusNP/Millennium.lean
+1:import Mathlib.Tactic.Basic
+2:import Mathlib.Computability.TuringMachine.StackTuringMachine
+3:import Mathlib.Computability.Primrec.List
+4:import Mathlib.Computability.TuringMachine.Computable
+5:import Mathlib.Computability.Encoding
+6:import Mathlib.Data.Finset.Basic
+7:import Mathlib.Data.Set.Basic
+8:import Mathlib.Order.Basic
+9:import Init.Data.List.Lemmas
+
+$ git -C .lake/packages/problems log --oneline -8
+603053d Reference the Hodge vacuity test in the warnings and README
+980f276 Add compiled witness that the Hodge statement is vacuous
+df469ba Bump version to 3.0.0
+1fdee4b Fix statement soundness across problems; add Tests library and CI
+8575f05 Fix implication direction in Yang-Mills locality hypotheses
+d214086 Merge pull request #7 from bordumb/dev-fixSmoothnessTop
+5dcba56 Fix Navier–Stokes smoothness to C^∞: pin (⊤ : ℕ∞) instead of the analytic top ⊤
+fd52071 Fix Hodge and Yang-Mills statement faithfulness
+
+$ git -C .lake/packages/problems log --oneline | grep -i sound
+1fdee4b Fix statement soundness across problems; add Tests library and CI
+
+$ git -C .lake/packages/problems merge-base --is-ancestor 1fdee4b HEAD; echo $?
+EXIT=0
+
+$ grep -n "rev\|mathlib\|problems\|path" /d/PvsNP/lakefile.toml
+3:# Reuse the dependency clones (mathlib, Physlib, ...) already fetched for the problems repo,
+4:# so the pinned revisions and built oleans are shared rather than re-downloaded.
+12:name = "problems"
+13:path = "LeanMillenniumPrizeProblems"
+
+$ git -C /d/PvsNP/LeanMillenniumPrizeProblems rev-parse HEAD
+603053dc267cf3efe422f438eb78098c0ececd6f
+
+$ diff of Millennium.lean: PvsNP copy vs Relativization package copy
+IDENTICAL
+
+$ cat /d/PvsNP/lean-toolchain lean-toolchain
+leanprover/lean4:v4.31.0
+leanprover/lean4:v4.31.0

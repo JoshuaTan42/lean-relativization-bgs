@@ -1,0 +1,10 @@
+start Thu Oct  8 14:57:42 AUSEST 2026
+$ lake env leanchecker --fresh --verbose Relativization
+replaying Relativization with --fresh
+LEANCHECKER_FRESH_EXIT[Relativization]=0
+end Thu Oct  8 15:02:37 AUSEST 2026
+start Thu Oct  8 15:02:37 AUSEST 2026
+$ lake env leanchecker --fresh --verbose Relativization.BakerGillSolovay
+replaying Relativization.BakerGillSolovay with --fresh
+LEANCHECKER_FRESH_EXIT[Relativization.BakerGillSolovay]=0
+end Thu Oct  8 15:06:10 AUSEST 2026

@@ -1,0 +1,193 @@
+import Relativization
+import Lean
+
+/-!
+Red-team check RT4 (task 4), written for this review: a whole-environment scan of every constant
+whose module is `Relativization` or `Relativization.*`, plus an axiom collector that walks the
+stored terms itself instead of using the per-olean axiom cache that `collectAxioms` /
+`#print axioms` consult for imported declarations.
+-/
+
+open Lean Elab Command
+
+namespace RT4
+
+def kindOf : ConstantInfo → String
+  | .axiomInfo _ => "axiom" | .defnInfo _ => "def" | .thmInfo _ => "theorem"
+  | .opaqueInfo _ => "opaque" | .quotInfo _ => "quot" | .inductInfo _ => "inductive"
+  | .ctorInfo _ => "ctor" | .recInfo _ => "rec"
+
+/-- Independent axiom collector: walks the types, values, constructors and recursor rules of
+every constant reachable from `roots`, as stored in the environment. Returns the axioms met,
+the number of constants visited, the names that could not be found, and the theorems met. -/
+def walkAxioms (env : Environment) (roots : Array Name) :
+    NameSet × Nat × Array Name × Nat := Id.run do
+  let mut visited : NameSet := {}
+  let mut count := 0
+  let mut thms := 0
+  let mut stack : Array Name := roots
+  let mut axs : NameSet := {}
+  let mut missing : Array Name := #[]
+  let mut fuel := 50000000
+  while fuel > 0 do
+    fuel := fuel - 1
+    match stack.back? with
+    | none => break
+    | some n =>
+      stack := stack.pop
+      if visited.contains n then continue
+      visited := visited.insert n
+      count := count + 1
+      match env.find? n with
+      | none => missing := missing.push n
+      | some ci =>
+        let mut es : Array Expr := #[ci.type]
+        match ci with
+        | .axiomInfo _ => axs := axs.insert n
+        | .defnInfo v => es := es.push v.value
+        | .thmInfo v => thms := thms + 1; es := es.push v.value
+        | .opaqueInfo v => es := es.push v.value
+        | .inductInfo v => for c in v.ctors do stack := stack.push c
+        | .recInfo v => for r in v.rules do es := es.push r.rhs
+        | _ => pure ()
+        for e in es do
+          for c in e.getUsedConstants do
+            unless visited.contains c do stack := stack.push c
+  return (axs, count, missing, thms)
+
+/-- The set of constants reachable from `roots` (same traversal as `walkAxioms`). -/
+def closureOf (env : Environment) (roots : Array Name) : NameSet := Id.run do
+  let mut visited : NameSet := {}
+  let mut stack : Array Name := roots
+  let mut fuel := 50000000
+  while fuel > 0 do
+    fuel := fuel - 1
+    match stack.back? with
+    | none => break
+    | some n =>
+      stack := stack.pop
+      if visited.contains n then continue
+      visited := visited.insert n
+      match env.find? n with
+      | none => pure ()
+      | some ci =>
+        let mut es : Array Expr := #[ci.type]
+        match ci with
+        | .defnInfo v => es := es.push v.value
+        | .thmInfo v => es := es.push v.value
+        | .opaqueInfo v => es := es.push v.value
+        | .inductInfo v => for c in v.ctors do stack := stack.push c
+        | .recInfo v => for r in v.rules do es := es.push r.rhs
+        | _ => pure ()
+        for e in es do
+          for c in e.getUsedConstants do
+            unless visited.contains c do stack := stack.push c
+  return visited
+
+def stdAxioms : List Name := [``propext, ``Classical.choice, ``Quot.sound]
+
+/-- Standard auto-generated declaration suffixes (structure/inductive machinery, equation
+lemmas, matchers, auxiliary proofs, instances). -/
+def autoSuffix (s : String) : Bool :=
+  ["rec", "recOn", "casesOn", "noConfusion", "noConfusionType", "below", "brecOn",
+    "binductionOn", "ibelow", "injEq", "inj", "sizeOf_spec", "ctorIdx", "eq_def", "induct",
+    "mutual_induct", "fun_cases", "mk", "ctorElim", "ctorElimType", "toCtorIdx", "ofNat",
+    "toNat", "ofNat_toNat", "toNat_ofNat", "enumList", "elim", "elimType", "decEq"].contains s ||
+  s.startsWith "eq_" || s.startsWith "match_" || s.startsWith "proof_" || s.startsWith "_" ||
+  s.startsWith "inst" || s.startsWith "noConfusion" || s.startsWith "ctorElim"
+
+end RT4
+
+open RT4 in
+run_cmd do
+  let env ← getEnv
+  let mods := env.header.moduleNames
+  let mut total := 0
+  let mut perMod : Array (Name × Nat) := #[]
+  let mut rows : Array String := #[]
+  let mut nonstd : Array String := #[]
+  let mut flags : Array String := #[]
+  let mut union : NameSet := {}
+  let mut outside : Array String := #[]
+  let mut noRangeStd := 0
+  let mut noRangeOther : Array String := #[]
+  let mut allAx : Array String := #[]
+  let mut ours : Array Name := #[]
+  for (n, ci) in env.constants.map₁.toList do
+    let some idx := env.getModuleIdxFor? n | continue
+    let m := mods[idx.toNat]!
+    if ci matches .axiomInfo _ then allAx := allAx.push s!"{n}   [module {m}]"
+    unless (`Relativization).isPrefixOf m do continue
+    total := total + 1
+    ours := ours.push n
+    match perMod.findIdx? (·.1 == m) with
+    | some i => perMod := perMod.modify i fun p => (p.1, p.2 + 1)
+    | none => perMod := perMod.push (m, 1)
+    let axs ← liftCoreM (collectAxioms n)
+    for a in axs do union := union.insert a
+    if axs.any (fun a => !stdAxioms.contains a) then nonstd := nonstd.push s!"{n} {axs}"
+    if ci.isUnsafe then flags := flags.push s!"UNSAFE {n}"
+    if ci.isPartial then flags := flags.push s!"PARTIAL {n}"
+    if isExtern env n then flags := flags.push s!"EXTERN {n}"
+    if (Compiler.getImplementedBy? env n).isSome then flags := flags.push s!"IMPLEMENTED_BY {n}"
+    if ci matches .axiomInfo _ then flags := flags.push s!"AXIOM {n}"
+    if ci matches .opaqueInfo _ then flags := flags.push s!"OPAQUE {n}"
+    if ci matches .quotInfo _ then flags := flags.push s!"QUOT {n}"
+    unless (`Relativization).isPrefixOf n do outside := outside.push s!"{n}   [module {m}]"
+    let r ← liftCoreM (findDeclarationRanges? n)
+    if r.isNone then
+      match n with
+      | .str _ s => if autoSuffix s then noRangeStd := noRangeStd + 1
+                    else noRangeOther := noRangeOther.push s!"{n} ({kindOf ci})   [module {m}]"
+      | _ => noRangeOther := noRangeOther.push s!"{n} ({kindOf ci})   [module {m}]"
+    rows := rows.push s!"{m} {n} {kindOf ci} {axs}"
+  let rows' := rows.qsort (· < ·)
+  IO.FS.writeFile "<scratchpad>/rt4_env_rows.txt"
+    (String.intercalate "\n" rows'.toList ++ "\n")
+  logInfo m!"constants in Relativization modules: {total}"
+  logInfo m!"per module: {perMod.qsort (fun a b => a.1.toString < b.1.toString) |>.map fun p => s!"{p.1}={p.2}"}"
+  logInfo m!"UNION of collectAxioms over all of them: {union.toList}"
+  logInfo m!"constants whose collectAxioms is not within [propext, Classical.choice, Quot.sound]: {nonstd.size} {nonstd}"
+  logInfo m!"flags (axiom/opaque/quot/unsafe/partial/extern/implemented_by): {flags.size} {flags}"
+  logInfo m!"constants in Relativization modules outside namespace Relativization: {outside.size} {outside}"
+  logInfo m!"constants without declaration ranges: standard auto-generated suffix {noRangeStd}; other {noRangeOther.size}: {noRangeOther}"
+  logInfo m!"modules in the import closure: {mods.size}; top-level prefixes: {(mods.map (·.getRoot)).toList.eraseDups}"
+  logInfo m!"axiom declarations in the whole environment: {allAx.size}\n{String.intercalate "\n" allAx.toList}"
+  -- independent term walk
+  for root in #[``Relativization.baker_gill_solovay, ``Relativization.collapse,
+      ``Relativization.separation, ``Relativization.univOracle_pEqNP,
+      ``Relativization.sepOracle_not_pEqNP] do
+    let (axs, cnt, missing, thms) := walkAxioms env #[root]
+    logInfo m!"WALK {root}: axioms {axs.toList}; constants visited {cnt}; theorems visited {thms}; missing {missing}"
+  let (_, _, _, _) := walkAxioms env #[]
+  let closure := (closureOf env #[``Relativization.baker_gill_solovay]).toList
+  let cl := closure.filterMap fun c => (env.find? c).map fun ci => (c, ci)
+  let unsafeC := cl.filter (·.2.isUnsafe) |>.map (·.1)
+  let partialC := cl.filter (·.2.isPartial) |>.map (·.1)
+  let opaqueC := cl.filter (fun p => p.2 matches .opaqueInfo _) |>.map (·.1)
+  let externC := cl.filter (fun p => isExtern env p.1) |>.map (·.1)
+  let implC := cl.filter (fun p => (Compiler.getImplementedBy? env p.1).isSome) |>.map (·.1)
+  let ourC := cl.filter (fun p => match env.getModuleIdxFor? p.1 with
+    | some i => (`Relativization).isPrefixOf mods[i.toNat]! | none => false) |>.map (·.1)
+  logInfo m!"CLOSURE of baker_gill_solovay: {closure.length} constants; from Relativization modules {ourC.length}; unsafe {unsafeC.length} {unsafeC}; partial {partialC.length} {partialC}; opaque {opaqueC.length} {opaqueC}; extern {externC.length}; implemented_by {implC.length} {implC}"
+  let (axs, cnt, missing, thms) := walkAxioms env ours
+  logInfo m!"WALK from all {ours.size} Relativization constants: axioms {axs.toList}; constants visited {cnt}; theorems visited {thms}; missing {missing}"
+  -- sensitivity check of the walker: a constant known to use sorryAx-free classical axioms and
+  -- the axiom `sorryAx` itself must be reported when reached
+  let (axs2, _, _, _) := walkAxioms env #[``sorryAx, ``Classical.em]
+  logInfo m!"WALK sanity [sorryAx, Classical.em]: {axs2.toList}"
+
+/-! `#print axioms` on every declaration of the two final modules, through the real command. -/
+run_cmd do
+  let env ← getEnv
+  let mods := env.header.moduleNames
+  let mut names : Array Name := #[]
+  for (n, _) in env.constants.map₁.toList do
+    let some idx := env.getModuleIdxFor? n | continue
+    let m := mods[idx.toNat]!
+    if m == `Relativization.Collapse || m == `Relativization.BakerGillSolovay then
+      names := names.push n
+  let sorted := names.qsort Name.lt
+  logInfo m!"declarations in Relativization.Collapse and Relativization.BakerGillSolovay: {sorted.size}"
+  for n in sorted do
+    elabCommand (← `(#print axioms $(mkIdent n)))

@@ -1,0 +1,291 @@
+Thu Oct  8 14:35:31 AUSEST 2026
+$ lake env lean <scratchpad>/RT1_Statement.lean
+baker_gill_solovay : (∃ A, PEqNP A) ∧ ∃ B, ¬PEqNP B
+@[reducible] def Relativization.Oracle : Type :=
+Set (List Bool)
+def Relativization.PEqNP : Relativization.Oracle → Prop :=
+fun A =>
+  ∀ (L : Millennium.Language (List Bool)),
+    Relativization.InP A (Millennium.fin_encoding_string Bool) L ↔
+      Relativization.InNP A (Millennium.fin_encoding_string Bool) L
+def Relativization.ClassEquality : Relativization.Oracle → Prop :=
+fun A =>
+  ∀ (alphabet : Type) [inst : Fintype alphabet] [Nontrivial alphabet] (L : Millennium.Language (List alphabet)),
+    Relativization.InP A (Millennium.fin_encoding_string alphabet) L ↔
+      Relativization.InNP A (Millennium.fin_encoding_string alphabet) L
+def Relativization.InP : Relativization.Oracle →
+  {α : Type} → Computability.FinEncoding α → Millennium.Language α → Prop :=
+fun A {α} ea L => ∃ f x, ∀ (a : α), L a ↔ f a = Bool.true
+def Relativization.InNP : Relativization.Oracle →
+  {α : Type} → Computability.FinEncoding α → Millennium.Language α → Prop :=
+fun A {α} ea L =>
+  ∃ Γ₁ x R k,
+    (Relativization.InP A (Millennium.pair_encoding ea (Millennium.fin_encoding_string Γ₁)) fun p => R p.1 p.2) ∧
+      ∀ (a : α), L a ↔ ∃ y, y.length ≤ (ea.encode a).length ^ k ∧ R a y
+structure Relativization.OTM2ComputableInPolyTime (A : Relativization.Oracle) {α β αΓ βΓ : Type} (ea : α → List αΓ)
+  (eb : β → List βΓ) (f : α → β) : Type 1
+number of parameters: 8
+fields:
+  Relativization.OTM2ComputableInPolyTime.tm : Relativization.OracleFinTM2
+  Relativization.OTM2ComputableInPolyTime.inputAlphabet : self.tm.Γ self.tm.k₀ ≃ αΓ
+  Relativization.OTM2ComputableInPolyTime.outputAlphabet : self.tm.Γ self.tm.k₁ ≃ βΓ
+  Relativization.OTM2ComputableInPolyTime.time : Polynomial ℕ
+  Relativization.OTM2ComputableInPolyTime.outputsFun : (a : α) →
+      Relativization.OTM2OutputsInTime A self.tm (List.map self.inputAlphabet.invFun (ea a))
+        (Option.some (List.map self.outputAlphabet.invFun (eb (f a)))) (Polynomial.eval (ea a).length self.time)
+constructor:
+  Relativization.OTM2ComputableInPolyTime.mk {A : Relativization.Oracle} {α β αΓ βΓ : Type} {ea : α → List αΓ}
+    {eb : β → List βΓ} {f : α → β} (tm : Relativization.OracleFinTM2) (inputAlphabet : tm.Γ tm.k₀ ≃ αΓ)
+    (outputAlphabet : tm.Γ tm.k₁ ≃ βΓ) (time : Polynomial ℕ)
+    (outputsFun :
+      (a : α) →
+        Relativization.OTM2OutputsInTime A tm (List.map inputAlphabet.invFun (ea a))
+          (Option.some (List.map outputAlphabet.invFun (eb (f a)))) (Polynomial.eval (ea a).length time)) :
+    Relativization.OTM2ComputableInPolyTime A ea eb f
+def Relativization.OTM2OutputsInTime : Relativization.Oracle →
+  (tm : Relativization.OracleFinTM2) → List (tm.Γ tm.k₀) → Option (List (tm.Γ tm.k₁)) → ℕ → Type :=
+fun A tm l l' m => StateTransition.EvalsToInTime (tm.step A) (tm.initList l) (Option.map tm.haltList l') m
+structure Relativization.OracleFinTM2 : Type 1
+number of parameters: 0
+fields:
+  Relativization.OracleFinTM2.K : Type
+  Relativization.OracleFinTM2.kDecidableEq : DecidableEq self.K
+  Relativization.OracleFinTM2.kFin : Fintype self.K
+  Relativization.OracleFinTM2.k₀ : self.K
+  Relativization.OracleFinTM2.k₁ : self.K
+  Relativization.OracleFinTM2.Γ : self.K → Type
+  Relativization.OracleFinTM2.Λ : Type
+  Relativization.OracleFinTM2.main : self.Λ
+  Relativization.OracleFinTM2.ΛFin : Fintype self.Λ
+  Relativization.OracleFinTM2.σ : Type
+  Relativization.OracleFinTM2.initialState : self.σ
+  Relativization.OracleFinTM2.σFin : Fintype self.σ
+  Relativization.OracleFinTM2.Γk₀Fin : Fintype (self.Γ self.k₀)
+  Relativization.OracleFinTM2.kq : self.K
+  Relativization.OracleFinTM2.queryAlphabet : self.Γ self.kq ≃ Bool
+  Relativization.OracleFinTM2.m : self.Λ → Bool → Turing.TM2.Stmt self.Γ self.Λ self.σ
+constructor:
+  Relativization.OracleFinTM2.mk {K : Type} [kDecidableEq : DecidableEq K] [kFin : Fintype K] (k₀ k₁ : K) (Γ : K → Type)
+    (Λ : Type) (main : Λ) [ΛFin : Fintype Λ] (σ : Type) (initialState : σ) [σFin : Fintype σ] [Γk₀Fin : Fintype (Γ k₀)]
+    (kq : K) (queryAlphabet : Γ kq ≃ Bool) (m : Λ → Bool → Turing.TM2.Stmt Γ Λ σ) : Relativization.OracleFinTM2
+def Relativization.OracleFinTM2.step : (tm : Relativization.OracleFinTM2) →
+  Relativization.Oracle → tm.Cfg → Option tm.Cfg :=
+fun tm A c => Turing.TM2.step (fun l => tm.m l (Decidable.decide (tm.query c ∈ A))) c
+def Relativization.OracleFinTM2.query : (tm : Relativization.OracleFinTM2) → tm.Cfg → List Bool :=
+fun tm c => List.map (⇑tm.queryAlphabet) (c.stk tm.kq)
+def Relativization.OracleFinTM2.Cfg : Relativization.OracleFinTM2 → Type :=
+fun tm => Turing.TM2.Cfg tm.Γ tm.Λ tm.σ
+def Relativization.OracleFinTM2.initList : (tm : Relativization.OracleFinTM2) → List (tm.Γ tm.k₀) → tm.Cfg :=
+fun tm s => Turing.initList (tm.toFinTM2 Bool.false) s
+def Relativization.OracleFinTM2.haltList : (tm : Relativization.OracleFinTM2) → List (tm.Γ tm.k₁) → tm.Cfg :=
+fun tm s => Turing.haltList (tm.toFinTM2 Bool.false) s
+def Relativization.OracleFinTM2.toFinTM2 : Relativization.OracleFinTM2 → Bool → Turing.FinTM2 :=
+fun tm b =>
+  { K := tm.K, kDecidableEq := tm.kDecidableEq, kFin := tm.kFin, k₀ := tm.k₀, k₁ := tm.k₁, Γ := tm.Γ, Λ := tm.Λ,
+    main := tm.main, ΛFin := tm.ΛFin, σ := tm.σ, initialState := tm.initialState, σFin := tm.σFin, Γk₀Fin := tm.Γk₀Fin,
+    m := fun l => tm.m l b }
+structure StateTransition.EvalsToInTime.{u_1} {σ : Type u_1} (f : σ → Option σ) (a : σ) (b : Option σ) (m : ℕ) : Type
+number of parameters: 5
+parents:
+  StateTransition.EvalsToInTime.toEvalsTo : StateTransition.EvalsTo f a b
+fields:
+  StateTransition.EvalsTo.steps : ℕ
+  StateTransition.EvalsTo.evals_in_steps : (flip Bind.bind f)^[self.steps] (Option.some a) = b
+  StateTransition.EvalsToInTime.steps_le_m : self.steps ≤ m
+constructor:
+  StateTransition.EvalsToInTime.mk.{u_1} {σ : Type u_1} {f : σ → Option σ} {a : σ} {b : Option σ} {m : ℕ}
+    (toEvalsTo : StateTransition.EvalsTo f a b) (steps_le_m : toEvalsTo.steps ≤ m) :
+    StateTransition.EvalsToInTime f a b m
+field notation resolution order:
+  StateTransition.EvalsToInTime, StateTransition.EvalsTo
+structure StateTransition.EvalsTo.{u_1} {σ : Type u_1} (f : σ → Option σ) (a : σ) (b : Option σ) : Type
+number of parameters: 4
+fields:
+  StateTransition.EvalsTo.steps : ℕ
+  StateTransition.EvalsTo.evals_in_steps : (flip Bind.bind f)^[self.steps] (Option.some a) = b
+constructor:
+  StateTransition.EvalsTo.mk.{u_1} {σ : Type u_1} {f : σ → Option σ} {a : σ} {b : Option σ} (steps : ℕ)
+    (evals_in_steps : (flip Bind.bind f)^[steps] (Option.some a) = b) : StateTransition.EvalsTo f a b
+structure Turing.FinTM2 : Type 1
+number of parameters: 0
+fields:
+  Turing.FinTM2.K : Type
+  Turing.FinTM2.kDecidableEq : DecidableEq self.K
+  Turing.FinTM2.kFin : Fintype self.K
+  Turing.FinTM2.k₀ : self.K
+  Turing.FinTM2.k₁ : self.K
+  Turing.FinTM2.Γ : self.K → Type
+  Turing.FinTM2.Λ : Type
+  Turing.FinTM2.main : self.Λ
+  Turing.FinTM2.ΛFin : Fintype self.Λ
+  Turing.FinTM2.σ : Type
+  Turing.FinTM2.initialState : self.σ
+  Turing.FinTM2.σFin : Fintype self.σ
+  Turing.FinTM2.Γk₀Fin : Fintype (self.Γ self.k₀)
+  Turing.FinTM2.m : self.Λ → Turing.TM2.Stmt self.Γ self.Λ self.σ
+constructor:
+  Turing.FinTM2.mk {K : Type} [kDecidableEq : DecidableEq K] [kFin : Fintype K] (k₀ k₁ : K) (Γ : K → Type) (Λ : Type)
+    (main : Λ) [ΛFin : Fintype Λ] (σ : Type) (initialState : σ) [σFin : Fintype σ] [Γk₀Fin : Fintype (Γ k₀)]
+    (m : Λ → Turing.TM2.Stmt Γ Λ σ) : Turing.FinTM2
+def Turing.FinTM2.Cfg : Turing.FinTM2 → Type :=
+fun tm => Turing.TM2.Cfg tm.Γ tm.Λ tm.σ
+def Turing.initList : (tm : Turing.FinTM2) → List (tm.Γ tm.k₀) → tm.Cfg :=
+fun tm s => { l := Option.some tm.main, var := tm.initialState, stk := fun k => if h : k = tm.k₀ then ⋯.mpr s else [] }
+def Turing.haltList : (tm : Turing.FinTM2) → List (tm.Γ tm.k₁) → tm.Cfg :=
+fun tm s => { l := Option.none, var := tm.initialState, stk := fun k => if h : k = tm.k₁ then ⋯.mpr s else [] }
+inductive Turing.TM2.Stmt.{u_1, u_2, u_3, u_4} : {K : Type u_1} →
+  (K → Type u_2) → Type u_3 → Type u_4 → Type (max (max (max u_1 u_2) u_3) u_4)
+number of parameters: 4
+constructors:
+Turing.TM2.Stmt.push : {K : Type u_1} →
+  {Γ : K → Type u_2} →
+    {Λ : Type u_3} → {σ : Type u_4} → (k : K) → (σ → Γ k) → Turing.TM2.Stmt Γ Λ σ → Turing.TM2.Stmt Γ Λ σ
+Turing.TM2.Stmt.peek : {K : Type u_1} →
+  {Γ : K → Type u_2} →
+    {Λ : Type u_3} → {σ : Type u_4} → (k : K) → (σ → Option (Γ k) → σ) → Turing.TM2.Stmt Γ Λ σ → Turing.TM2.Stmt Γ Λ σ
+Turing.TM2.Stmt.pop : {K : Type u_1} →
+  {Γ : K → Type u_2} →
+    {Λ : Type u_3} → {σ : Type u_4} → (k : K) → (σ → Option (Γ k) → σ) → Turing.TM2.Stmt Γ Λ σ → Turing.TM2.Stmt Γ Λ σ
+Turing.TM2.Stmt.load : {K : Type u_1} →
+  {Γ : K → Type u_2} → {Λ : Type u_3} → {σ : Type u_4} → (σ → σ) → Turing.TM2.Stmt Γ Λ σ → Turing.TM2.Stmt Γ Λ σ
+Turing.TM2.Stmt.branch : {K : Type u_1} →
+  {Γ : K → Type u_2} →
+    {Λ : Type u_3} → {σ : Type u_4} → (σ → Bool) → Turing.TM2.Stmt Γ Λ σ → Turing.TM2.Stmt Γ Λ σ → Turing.TM2.Stmt Γ Λ σ
+Turing.TM2.Stmt.goto : {K : Type u_1} →
+  {Γ : K → Type u_2} → {Λ : Type u_3} → {σ : Type u_4} → (σ → Λ) → Turing.TM2.Stmt Γ Λ σ
+Turing.TM2.Stmt.halt : {K : Type u_1} → {Γ : K → Type u_2} → {Λ : Type u_3} → {σ : Type u_4} → Turing.TM2.Stmt Γ Λ σ
+structure Turing.TM2.Cfg.{u_1, u_2, u_3, u_4} {K : Type u_1} (Γ : K → Type u_2) (Λ : Type u_3) (σ : Type u_4) :
+  Type (max (max (max u_1 u_2) u_3) u_4)
+number of parameters: 4
+fields:
+  Turing.TM2.Cfg.l : Option Λ
+  Turing.TM2.Cfg.var : σ
+  Turing.TM2.Cfg.stk : (k : K) → List (Γ k)
+constructor:
+  Turing.TM2.Cfg.mk.{u_1, u_2, u_3, u_4} {K : Type u_1} {Γ : K → Type u_2} {Λ : Type u_3} {σ : Type u_4} (l : Option Λ)
+    (var : σ) (stk : (k : K) → List (Γ k)) : Turing.TM2.Cfg Γ Λ σ
+def Turing.TM2.step.{u_1, u_2, u_3, u_4} : {K : Type u_1} →
+  {Γ : K → Type u_2} →
+    {Λ : Type u_3} →
+      {σ : Type u_4} →
+        [DecidableEq K] → (Λ → Turing.TM2.Stmt Γ Λ σ) → Turing.TM2.Cfg Γ Λ σ → Option (Turing.TM2.Cfg Γ Λ σ) :=
+fun {K} {Γ} {Λ} {σ} [DecidableEq K] M x =>
+  match x with
+  | { l := Option.none, var := var, stk := stk } => Option.none
+  | { l := Option.some l, var := v, stk := S } => Option.some (Turing.TM2.stepAux (M l) v S)
+def Turing.TM2.stepAux.{u_1, u_2, u_3, u_4} : {K : Type u_1} →
+  {Γ : K → Type u_2} →
+    {Λ : Type u_3} →
+      {σ : Type u_4} → [DecidableEq K] → Turing.TM2.Stmt Γ Λ σ → σ → ((k : K) → List (Γ k)) → Turing.TM2.Cfg Γ Λ σ :=
+fun {K} {Γ} {Λ} {σ} [DecidableEq K] x x_1 x_2 =>
+  Turing.TM2.Stmt.brecOn (motive := fun x => σ → ((k : K) → List (Γ k)) → Turing.TM2.Cfg Γ Λ σ) x Turing.TM2.stepAux._f
+    x_1 x_2
+structure Computability.FinEncoding.{u} (α : Type u) : Type (max 1 u)
+number of parameters: 1
+parents:
+  Computability.FinEncoding.toEncoding : Computability.Encoding α
+fields:
+  Computability.Encoding.Γ : Type
+  Computability.Encoding.encode : α → List self.Γ
+  Computability.Encoding.decode : List self.Γ → Option α
+  Computability.Encoding.decode_encode : ∀ (x : α), self.decode (self.encode x) = Option.some x
+  Computability.FinEncoding.ΓFin : Fintype self.Γ
+constructor:
+  Computability.FinEncoding.mk.{u} {α : Type u} (toEncoding : Computability.Encoding α) (ΓFin : Fintype toEncoding.Γ) :
+    Computability.FinEncoding α
+field notation resolution order:
+  Computability.FinEncoding, Computability.Encoding
+structure Computability.Encoding.{u, v} (α : Type u) : Type (max u (v + 1))
+number of parameters: 1
+fields:
+  Computability.Encoding.Γ : Type v
+  Computability.Encoding.encode : α → List self.Γ
+  Computability.Encoding.decode : List self.Γ → Option α
+  Computability.Encoding.decode_encode : ∀ (x : α), self.decode (self.encode x) = Option.some x
+constructor:
+  Computability.Encoding.mk.{u, v} {α : Type u} (Γ : Type v) (encode : α → List Γ) (decode : List Γ → Option α)
+    (decode_encode : ∀ (x : α), decode (encode x) = Option.some x) : Computability.Encoding α
+def Computability.finEncodingBoolBool : Computability.FinEncoding Bool :=
+{ Γ := Bool, encode := Computability.encodeBool, decode := fun x => Option.some (Computability.decodeBool x),
+  decode_encode := Computability.finEncodingBoolBool._proof_1, ΓFin := Bool.fintype }
+def Computability.encodeBool : Bool → List Bool :=
+Pure.pure
+def Millennium.Language : Type → Type :=
+fun α => α → Prop
+def Millennium.fin_encoding_string : (alphabet : Type) →
+  [Fintype alphabet] → Computability.FinEncoding (List alphabet) :=
+fun alphabet [Fintype alphabet] =>
+  { Γ := alphabet, encode := id, decode := fun l => Option.some l, decode_encode := ⋯, ΓFin := inferInstance }
+def Millennium.pair_encoding : {α β : Type} →
+  Computability.FinEncoding α → Computability.FinEncoding β → Computability.FinEncoding (α × β) :=
+fun {α β} ea eb =>
+  { Γ := Millennium.pair_symbol✝ ea eb,
+    encode := fun p =>
+      List.map Sum.inl (ea.encode p.1) ++
+        Sum.inr Option.none :: List.map (fun b => Sum.inr (Option.some b)) (eb.encode p.2),
+    decode := fun l =>
+      match Millennium.parse_pair✝ l with
+      | Option.some (a_list, b_list) =>
+        match ea.decode a_list, eb.decode b_list with
+        | Option.some a, Option.some b => Option.some (a, b)
+        | x, x_1 => Option.none
+      | Option.none => Option.none,
+    decode_encode := ⋯, ΓFin := inferInstance }
+def Millennium.InPolynomialTime : {α : Type} → Computability.FinEncoding α → Millennium.Language α → Prop :=
+fun {α} ea L => ∃ f _comp, ∀ (a : α), L a ↔ f a = Bool.true
+def Millennium.InNondeterministicPolynomialTime : {α : Type} →
+  Computability.FinEncoding α → Millennium.Language α → Prop :=
+fun {α} ea L =>
+  ∃ Γ₁ x R k,
+    Millennium.PolynomialTimeCheckingRelation ea (Millennium.fin_encoding_string Γ₁) R ∧
+      ∀ (a : α), L a ↔ ∃ y, y.length ≤ (ea.encode a).length ^ k ∧ R a y
+def Millennium.PolynomialTimeCheckingRelation : {α β : Type} →
+  Computability.FinEncoding α → Computability.FinEncoding β → (α → β → Prop) → Prop :=
+fun {α β} ea eb R => Millennium.InPolynomialTime (Millennium.pair_encoding ea eb) fun p => R p.1 p.2
+def Millennium.ClayPVersusNP : Prop :=
+Millennium.ClayPVersusNP.Formulations.ClassEquality
+def Millennium.ClayPVersusNP.Formulations.ClassEquality : Prop :=
+∀ (alphabet : Type) [inst : Fintype alphabet] [Nontrivial alphabet] (L : Millennium.Language (List alphabet)),
+  Millennium.InPolynomialTime (Millennium.fin_encoding_string alphabet) L ↔
+    Millennium.InNondeterministicPolynomialTime (Millennium.fin_encoding_string alphabet) L
+structure Turing.TM2ComputableInPolyTime {α β αΓ βΓ : Type} (ea : α → List αΓ) (eb : β → List βΓ) (f : α → β) : Type 1
+number of parameters: 7
+parents:
+  Turing.TM2ComputableInPolyTime.toTM2ComputableAux : Turing.TM2ComputableAux αΓ βΓ
+fields:
+  Turing.TM2ComputableAux.tm : Turing.FinTM2
+  Turing.TM2ComputableAux.inputAlphabet : self.tm.Γ self.tm.k₀ ≃ αΓ
+  Turing.TM2ComputableAux.outputAlphabet : self.tm.Γ self.tm.k₁ ≃ βΓ
+  Turing.TM2ComputableInPolyTime.time : Polynomial ℕ
+  Turing.TM2ComputableInPolyTime.outputsFun : (a : α) →
+      Turing.TM2OutputsInTime self.tm (List.map self.inputAlphabet.invFun (ea a))
+        (Option.some (List.map self.outputAlphabet.invFun (eb (f a)))) (Polynomial.eval (ea a).length self.time)
+constructor:
+  Turing.TM2ComputableInPolyTime.mk {α β αΓ βΓ : Type} {ea : α → List αΓ} {eb : β → List βΓ} {f : α → β}
+    (toTM2ComputableAux : Turing.TM2ComputableAux αΓ βΓ) (time : Polynomial ℕ)
+    (outputsFun :
+      (a : α) →
+        Turing.TM2OutputsInTime toTM2ComputableAux.tm (List.map toTM2ComputableAux.inputAlphabet.invFun (ea a))
+          (Option.some (List.map toTM2ComputableAux.outputAlphabet.invFun (eb (f a))))
+          (Polynomial.eval (ea a).length time)) :
+    Turing.TM2ComputableInPolyTime ea eb f
+field notation resolution order:
+  Turing.TM2ComputableInPolyTime, Turing.TM2ComputableAux
+structure Turing.TM2ComputableAux (Γ₀ Γ₁ : Type) : Type 1
+number of parameters: 2
+fields:
+  Turing.TM2ComputableAux.tm : Turing.FinTM2
+  Turing.TM2ComputableAux.inputAlphabet : self.tm.Γ self.tm.k₀ ≃ Γ₀
+  Turing.TM2ComputableAux.outputAlphabet : self.tm.Γ self.tm.k₁ ≃ Γ₁
+constructor:
+  Turing.TM2ComputableAux.mk {Γ₀ Γ₁ : Type} (tm : Turing.FinTM2) (inputAlphabet : tm.Γ tm.k₀ ≃ Γ₀)
+    (outputAlphabet : tm.Γ tm.k₁ ≃ Γ₁) : Turing.TM2ComputableAux Γ₀ Γ₁
+def Turing.TM2OutputsInTime : (tm : Turing.FinTM2) → List (tm.Γ tm.k₀) → Option (List (tm.Γ tm.k₁)) → ℕ → Type :=
+fun tm l l' m => StateTransition.EvalsToInTime tm.step (Turing.initList tm l) (Option.map (Turing.haltList tm) l') m
+'RT.polyDecider_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT.inP'_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT.inNP'_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT.bgs_explicit' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.baker_gill_solovay' depends on axioms: [propext, Classical.choice, Quot.sound]
+EXIT=0
+Thu Oct  8 14:36:14 AUSEST 2026

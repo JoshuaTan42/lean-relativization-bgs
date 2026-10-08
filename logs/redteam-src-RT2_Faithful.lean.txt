@@ -1,0 +1,104 @@
+import Relativization
+
+/-!
+Red-team check RT2 (task 2): with the empty oracle the relativized classes are the repository's
+Clay (`Millennium`) classes, by the session-1 lemmas; and those lemmas are not vacuous (both
+sides are inhabited and neither side is every language).
+-/
+
+open Relativization Millennium Computability
+
+-- The session-1 lemmas, as stated.
+#check @Relativization.OracleFinTM2.step_empty
+#check @Relativization.inP_of_inPolynomialTime
+#check @Relativization.inP_empty_iff
+#check @Relativization.inNP_empty_iff
+#check @Relativization.classEquality_empty_iff
+#check @Relativization.inP_empty_bool_iff
+#check @Relativization.inNP_empty_bool_iff
+#check @Relativization.pEqNP_empty_iff
+
+-- They carry no hypotheses: re-typed by hand, for every encoding and every language.
+example : ∀ {α : Type} (ea : FinEncoding α) (L : Language α),
+    InP ∅ ea L ↔ InPolynomialTime ea L := @inP_empty_iff
+example : ∀ {α : Type} (ea : FinEncoding α) (L : Language α),
+    InNP ∅ ea L ↔ InNondeterministicPolynomialTime ea L := @inNP_empty_iff
+example : ClassEquality ∅ ↔ ClayPVersusNP := classEquality_empty_iff
+example : PEqNP ∅ ↔ ∀ L : Language (List Bool),
+    InPolynomialTime (fin_encoding_string Bool) L ↔
+      InNondeterministicPolynomialTime (fin_encoding_string Bool) L := pEqNP_empty_iff
+
+-- `∅` here is the empty set of binary strings.
+example : (∅ : Oracle) = {w : List Bool | False} := rfl
+
+namespace RT2
+
+/-- With the full oracle the step function is the plain machine with answer `true`. -/
+theorem step_univ (tm : OracleFinTM2) (c : tm.Cfg) :
+    tm.step Set.univ c = (tm.toFinTM2 true).step c := by
+  unfold OracleFinTM2.step
+  rw [@decide_eq_true _ (Classical.propDecidable _) (Set.mem_univ (tm.query c))]
+  rfl
+
+/-- A polynomial-time machine with the full oracle is a plain one (answer fixed to `true`). -/
+def toPlainUniv {α β αΓ βΓ : Type} {ea : α → List αΓ} {eb : β → List βΓ} {f : α → β}
+    (h : OTM2ComputableInPolyTime Set.univ ea eb f) : Turing.TM2ComputableInPolyTime ea eb f where
+  tm := h.tm.toFinTM2 true
+  inputAlphabet := h.inputAlphabet
+  outputAlphabet := h.outputAlphabet
+  time := h.time
+  outputsFun a :=
+    { steps := (h.outputsFun a).steps
+      evals_in_steps := by
+        have hstep : (h.tm.toFinTM2 true).step = h.tm.step Set.univ :=
+          funext fun c => (step_univ h.tm c).symm
+        rw [hstep]
+        exact (h.outputsFun a).evals_in_steps
+      steps_le_m := (h.outputsFun a).steps_le_m }
+
+/-- Clay `P` contains the empty language ... -/
+theorem clayP_empty_lang :
+    InPolynomialTime (fin_encoding_string Bool) (fun w => w ∈ (∅ : Oracle)) :=
+  (inP_empty_iff _ _).mp (oracle_inP ∅)
+
+/-- ... and the language of all strings (so it is not a one-element class) ... -/
+theorem clayP_all_lang :
+    InPolynomialTime (fin_encoding_string Bool) (fun w => w ∈ (Set.univ : Oracle)) := by
+  obtain ⟨f, h, hL⟩ := oracle_inP Set.univ
+  exact ⟨f, toPlainUniv h, hL⟩
+
+theorem clayP_all_ne_empty : (fun w : List Bool => w ∈ (Set.univ : Oracle)) ≠
+    (fun w => w ∈ (∅ : Oracle)) := fun h => by
+  simpa using congrFun h []
+
+/-- ... and both are in `P^∅` and `NP^∅` by T1, T2 and T4. -/
+theorem inNP_empty_all_lang :
+    InNondeterministicPolynomialTime (fin_encoding_string Bool) (fun w => w ∈ (Set.univ : Oracle)) :=
+  (inNP_empty_iff _ _).mp
+    (inP_subset_inNP ∅ Bool _ ((inP_empty_iff _ _).mpr clayP_all_lang))
+
+/-- Clay `P` does not contain every language: `sepLang sepOracle` is not in it (it is not even
+in `P^sepOracle ⊇ P`). -/
+theorem not_clayP_sep : ¬ InPolynomialTime (fin_encoding_string Bool) (sepLang sepOracle) :=
+  fun h => sepLang_not_inP (inP_of_inPolynomialTime sepOracle _ _ h)
+
+/-- Hence `P^∅` is not every language either (T1, right to left, is used here). -/
+theorem not_inP_empty_sep : ¬ InP ∅ (fin_encoding_string Bool) (sepLang sepOracle) :=
+  fun h => not_clayP_sep ((inP_empty_iff _ _).mp h)
+
+end RT2
+
+#print axioms Relativization.OracleFinTM2.step_empty
+#print axioms Relativization.inP_of_inPolynomialTime
+#print axioms Relativization.inP_empty_iff
+#print axioms Relativization.inNP_empty_iff
+#print axioms Relativization.classEquality_empty_iff
+#print axioms Relativization.inP_empty_bool_iff
+#print axioms Relativization.inNP_empty_bool_iff
+#print axioms Relativization.pEqNP_empty_iff
+#print axioms RT2.clayP_empty_lang
+#print axioms RT2.clayP_all_lang
+#print axioms RT2.clayP_all_ne_empty
+#print axioms RT2.inNP_empty_all_lang
+#print axioms RT2.not_clayP_sep
+#print axioms RT2.not_inP_empty_sep

@@ -1,0 +1,37 @@
+Thu Oct  8 14:38:29 AUSEST 2026
+$ lake env lean <scratchpad>/RT2_Faithful.lean
+OracleFinTM2.step_empty : ∀ (tm : OracleFinTM2) (c : tm.Cfg), tm.step ∅ c = (tm.toFinTM2 false).step c
+inP_of_inPolynomialTime : ∀ (A : Oracle) {α : Type} (ea : FinEncoding α) (L : Language α),
+  InPolynomialTime ea L → InP A ea L
+@inP_empty_iff : ∀ {α : Type} (ea : FinEncoding α) (L : Language α), InP ∅ ea L ↔ InPolynomialTime ea L
+@inNP_empty_iff : ∀ {α : Type} (ea : FinEncoding α) (L : Language α),
+  InNP ∅ ea L ↔ InNondeterministicPolynomialTime ea L
+classEquality_empty_iff : ClassEquality ∅ ↔ ClayPVersusNP
+inP_empty_bool_iff : ∀ (L : Language (List Bool)),
+  InP ∅ (fin_encoding_string Bool) L ↔ InPolynomialTime (fin_encoding_string Bool) L
+inNP_empty_bool_iff : ∀ (L : Language (List Bool)),
+  InNP ∅ (fin_encoding_string Bool) L ↔ InNondeterministicPolynomialTime (fin_encoding_string Bool) L
+pEqNP_empty_iff : PEqNP ∅ ↔
+  ∀ (L : Language (List Bool)),
+    InPolynomialTime (fin_encoding_string Bool) L ↔ InNondeterministicPolynomialTime (fin_encoding_string Bool) L
+<scratchpad>/RT2_Faithful.lean:32:26: warning: Variable name `w` is not explicitly referenced.
+
+The binding can be removed (if unused) or named `_` (if used implicitly).
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+'Relativization.OracleFinTM2.step_empty' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inP_of_inPolynomialTime' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inP_empty_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inNP_empty_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.classEquality_empty_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inP_empty_bool_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inNP_empty_bool_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.pEqNP_empty_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT2.clayP_empty_lang' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT2.clayP_all_lang' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT2.clayP_all_ne_empty' depends on axioms: [propext]
+'RT2.inNP_empty_all_lang' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT2.not_clayP_sep' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT2.not_inP_empty_sep' depends on axioms: [propext, Classical.choice, Quot.sound]
+EXIT=0
+Thu Oct  8 14:40:15 AUSEST 2026

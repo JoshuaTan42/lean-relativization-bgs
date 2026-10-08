@@ -1,0 +1,70 @@
+Red-team task 6: reading Baker-Gill-Solovay 1975 directly (2026-10-08)
+
+Source fetched
+  $ WebSearch "Baker Gill Solovay "Relativizations of the P =? NP question" SIAM Journal on Computing 1975 pdf"
+    -> https://cse.ucdenver.edu/~cscialtman/complexity/Relativizations%20of%20the%20P=NP%20Question%20(Original).pdf
+  $ WebFetch <that URL>
+    -> "the document text isn't extractable ... page images (object 41) are CCITT-encoded scanned bitmaps,
+        which contain no text layer"; binary saved (1,543,240 bytes, %PDF-1.3).
+  The Read tool could not render the PDF ("pdftoppm is not installed"); nothing was installed.
+
+How the pages were read
+  1. The PDF was copied into its own empty scratch directory (paper/bgs1975.pdf).
+  2. logs/redteam-src-pdf_ccitt.py.txt (stdlib-only Python, run with `python -I`) walked the PDF page
+     tree and wrapped each page's /CCITTFaxDecode (K -1, i.e. Group 4) image stream in a TIFF header:
+       page01.tif 4050 6000 129762 ... page12.tif 4050 6000 29321   (12 pages, PDF /Count 6 + 6)
+  3. ffmpeg (already on PATH) converted pages 1-7 to PNG (`-vf scale=1350:-1`); EXIT=0.
+  4. The PNG images were read with the Read tool (image view). Pages 431-437 were read; 438-442 were not.
+  Provenance caveat: this is a course-website copy. Its header reads "SIAM J. COMPUT. Vol. 4, No. 4,
+  December 1975" and its page numbers run 431-437 on the pages read, consistent with the citation
+  (pp. 431-442); it was not compared with SIAM's own copy.
+
+Transcribed lines (my reading of the scan)
+  p.431, title/authors: "RELATIVIZATIONS OF THE P =? NP QUESTION*  THEODORE BAKER, JOHN GILL AND
+    ROBERT SOLOVAY"
+  p.431, abstract: "For any set X, let P^X (resp. NP^X) be the class of languages accepted in
+    polynomial time by deterministic (resp. nondeterministic) query machines with oracle X. We
+    construct a recursive set A such that P^A = NP^A. On the other hand, we construct a recursive set
+    B such that P^B ≠ NP^B."
+  p.432, model: "A query machine, described by Cook [1], is a multitape Turing machine with a
+    distinguished worktape, called the query tape, and three distinguished states, called the query
+    state, the yes state, and the no state." ... "An oracle for a set X will place the query machine
+    into its yes state if the binary string written on the query tape is an element of X; otherwise
+    the oracle places the machine into the no state."
+  p.432, time: "A query machine is polynomial-bounded if there is a polynomial p(n) such that every
+    computation of the machine on every input of length n halts within p(n) steps, whatever oracle X
+    is used."
+  p.433, §2: "In this section we construct a recursive oracle A such that P^A = NP^A. We also prove
+    that if A is any polynomial-space complete language, then P^A = NP^A."
+  p.433, Lemma 1: "For any oracle X, define the language K(X) to be {<i, x, 0^n> : some computation of
+    NP_i^X accepts x in fewer than n steps}. Then K(X) is Karp-complete in NP^X. In particular,
+    P^X = NP^X if and only if K(X) ∈ P^X."
+  p.434, Theorem 1: "There is an oracle A such that P^A = NP^A."
+    Proof: "We construct an oracle A such that A = K(A). Let A = {<i, x, 0^n> : NP_i^A accepts x in
+    < n steps}. This is a valid inductive definition of a set. In a computation of length < n, no
+    string of length ≥ n can be queried. ..."
+    Remarks: "Kleene's recursion theorem can also be used to produce a recursive oracle A such that
+    A = K(A). The oracle A constructed in Theorem 1 can be recognized deterministically in
+    exponential time."
+  p.434, Theorem 2: "If A is polynomial-space complete, then P^A = NP^A."
+  p.435, §3: "In this section we show that there exist recursive oracles X such that P^X ⊊ NP^X."
+  p.436: "For any oracle X, define the language L(X) = {x : there is y ∈ X such that |y| = |x|}.
+    Clearly L(X) ∈ NP^X."
+  p.436, Theorem 3: "There is an oracle B such that P^B ≠ NP^B."
+    Proof (stages): "Choose n > n_i so large that p_i(n) < 2^n. Run query machine P_i with oracle B(i)
+    on input x_i = 0^n. If P_i^{B(i)} accepts 0^n, then place no strings into B at this stage.
+    Otherwise, ... add to B the least string ... of length n not queried during the computation of
+    P_i^{B(i)} on input 0^n. ... Finally, let n_{i+1} = 2^n."
+  p.436-437: "The proof of Theorem 3 makes use of the fact that we can query an oracle about any
+    number of length n in approximately n steps. ... Alternate models for query machines involve the
+    notion of oracle tapes. ... With these models of query machines, our proofs of Theorems 1-3 are
+    no longer valid. Paul Morris [7] has pointed out that with the oracle-tape models for query
+    machines, if P = NP, then P^X = NP^X for every oracle X."
+
+Conclusions used in REDTEAM.md §6
+  * The citation is confirmed against this scan. The repository's collapse oracle is a variant of
+    Theorem 1's A = K(A); its separating oracle is a variant of Theorem 3's stage construction (with a
+    different separating language).
+  * The paper's abstract and §2/§3 introductions claim RECURSIVE oracles; the printed statements of
+    Theorems 1 and 3 do not. The Lean theorem has no recursiveness clause.
+  * NOTES.md §6 quotes of Lemma 1 and of the Theorem 1 proof match the scan.

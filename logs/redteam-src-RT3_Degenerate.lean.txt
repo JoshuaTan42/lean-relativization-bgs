@@ -1,0 +1,123 @@
+import Relativization
+
+/-!
+Red-team check RT3 (task 1a, 1b, 1c): could either half of the theorem hold for a degenerate
+reason?
+-/
+
+open Relativization Millennium Computability Function
+
+namespace RT3
+
+/-- For every oracle `A`, `P^A` is not every binary language. A decider has a code
+(`exists_dcode_decides`, N4), codes are countable (N2), and a code determines the language it
+decides (F4, unique output). So `Set (List Bool)` would inject into `List Bool`. -/
+theorem exists_not_inP (A : Oracle) :
+    ∃ L : Language (List Bool), ¬ InP A (fin_encoding_string Bool) L := by
+  by_contra hall
+  have hP : ∀ L : Language (List Bool), InP A (fin_encoding_string Bool) L :=
+    fun L => Classical.byContradiction fun h => hall ⟨L, h⟩
+  have hcode : ∀ L : Language (List Bool), ∃ (c : DCode) (f : List Bool → Bool),
+      (∀ w, L w ↔ f w = true) ∧ ∀ w, Nonempty (OTM2OutputsInTime A c.N.toOracleFinTM2
+        (w.map c.inE.symm) (some [c.outE.symm (f w)]) (c.time.eval w.length)) := by
+    intro L
+    obtain ⟨f, h, hL⟩ := hP L
+    obtain ⟨c, -, hc⟩ := exists_dcode_decides h
+    exact ⟨c, f, hL, hc⟩
+  choose code f hf hrun using hcode
+  have hinj : Injective code := by
+    intro L L' he
+    funext w
+    have h1 := hrun L w
+    have h2 := hrun L' w
+    rw [he] at h1
+    obtain ⟨h1⟩ := h1
+    obtain ⟨h2⟩ := h2
+    have hfw : f L w = f L' w :=
+      (code L').outE.symm.injective (List.cons.inj (h1.output_unique h2).1).1
+    apply propext
+    rw [hf L w, hf L' w, hfw]
+  obtain ⟨g, hg⟩ := Countable.exists_injective_nat DCode
+  have key : Injective (fun s : Set (List Bool) => List.replicate (g (code s)) true) := by
+    intro s s' h
+    have := congrArg List.length h
+    simp only [List.length_replicate] at this
+    exact hinj (hg this)
+  exact Function.cantor_injective _ key
+
+/-- (1a, collapse) `P^A = NP^A` for `A = univOracle` does not hold because both classes are
+everything: some language is in neither. -/
+theorem collapse_not_everything : ∃ L : Language (List Bool),
+    ¬ InP univOracle (fin_encoding_string Bool) L ∧
+      ¬ InNP univOracle (fin_encoding_string Bool) L := by
+  obtain ⟨L, hL⟩ := exists_not_inP univOracle
+  exact ⟨L, hL, fun h => hL ((univOracle_pEqNP L).mpr h)⟩
+
+/-- (1a, collapse) nor because the classes are empty: `NP^univOracle` contains the oracle's own
+language and the separating-language pattern for `univOracle`. -/
+theorem collapse_nonempty :
+    InNP univOracle (fin_encoding_string Bool) (· ∈ univOracle) ∧
+      InP univOracle (fin_encoding_string Bool) (sepLang univOracle) :=
+  ⟨inP_subset_inNP _ Bool _ (oracle_inP univOracle),
+    (univOracle_pEqNP _).mpr (sepLang_inNP univOracle)⟩
+
+/-- (1a, separation) `P^B` is not tiny: it contains Clay `P` and the oracle itself. -/
+theorem sep_P_contains :
+    (∀ L : Language (List Bool), InPolynomialTime (fin_encoding_string Bool) L →
+      InP sepOracle (fin_encoding_string Bool) L) ∧
+      InP sepOracle (fin_encoding_string Bool) (· ∈ sepOracle) :=
+  ⟨fun L => inP_of_inPolynomialTime sepOracle _ L, oracle_inP sepOracle⟩
+
+/-- (1a) Queries are not inert: some oracle `A` puts a language into `P^A` that is not in Clay
+`P = P^∅`. -/
+theorem queries_matter : ∃ A : Oracle, InP A (fin_encoding_string Bool) (· ∈ A) ∧
+    ¬ InPolynomialTime (fin_encoding_string Bool) (· ∈ A) := by
+  obtain ⟨L, hL⟩ := exists_not_inP ∅
+  exact ⟨{w | L w}, oracle_inP _, fun h => hL ((inP_empty_iff _ _).mpr h)⟩
+
+/-- (1b) The separation, explicitly: a language in `NP^B` outside `P^B`. -/
+theorem separation_explicit :
+    InNP sepOracle (fin_encoding_string Bool) (sepLang sepOracle) ∧
+      ¬ InP sepOracle (fin_encoding_string Bool) (sepLang sepOracle) :=
+  ⟨sepLang_inNP sepOracle, sepLang_not_inP⟩
+
+/-- (1b) In general `¬ PEqNP B` is equivalent to `NP^B ⊄ P^B` (given T4). -/
+theorem not_pEqNP_iff (B : Oracle) : ¬ PEqNP B ↔ ∃ L : Language (List Bool),
+    InNP B (fin_encoding_string Bool) L ∧ ¬ InP B (fin_encoding_string Bool) L := by
+  constructor
+  · intro h
+    by_contra hno
+    exact h fun L => ⟨inP_subset_inNP B Bool L, fun hN =>
+      Classical.byContradiction fun hP => hno ⟨L, hN, hP⟩⟩
+  · rintro ⟨L, hN, hP⟩ h
+    exact hP ((h L).mpr hN)
+
+/-- (1d) The separation also refutes the all-alphabet (Clay-style) relativized equality. -/
+theorem not_classEquality_sep : ¬ ClassEquality sepOracle :=
+  fun h => sepOracle_not_pEqNP fun L => h Bool L
+
+/-- (1c) Query lengths are linear in the running time, and a `t`-step run asks at most `t`
+distinct queries; the repository's lemmas, re-checked here as stated. -/
+example (tm : OracleFinTM2) (A : Oracle) (n : ℕ) (c d : tm.Cfg)
+    (h : (flip bind (tm.step A))^[n] (some c) = some d) :
+    (tm.query d).length ≤ (tm.query c).length + n * tm.depth :=
+  tm.query_length_iter A n c d h
+
+example (tm : OracleFinTM2) (l : List (tm.Γ tm.k₀)) :
+    (tm.query (tm.initList l)).length ≤ l.length :=
+  tm.query_initList_length_le l
+
+example (tm : OracleFinTM2) (A : Oracle) (l : List (tm.Γ tm.k₀)) (t : ℕ) :
+    (tm.queries A l t).card ≤ t :=
+  tm.card_queries_le A l t
+
+end RT3
+
+#print axioms RT3.exists_not_inP
+#print axioms RT3.collapse_not_everything
+#print axioms RT3.collapse_nonempty
+#print axioms RT3.sep_P_contains
+#print axioms RT3.queries_matter
+#print axioms RT3.separation_explicit
+#print axioms RT3.not_pEqNP_iff
+#print axioms RT3.not_classEquality_sep

@@ -1,0 +1,12 @@
+Thu Oct  8 14:40:16 AUSEST 2026
+$ lake env lean <scratchpad>/RT3_Degenerate.lean
+'RT3.exists_not_inP' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT3.collapse_not_everything' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT3.collapse_nonempty' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT3.sep_P_contains' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT3.queries_matter' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT3.separation_explicit' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT3.not_pEqNP_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'RT3.not_classEquality_sep' depends on axioms: [propext, Classical.choice, Quot.sound]
+EXIT=0
+Thu Oct  8 14:41:05 AUSEST 2026

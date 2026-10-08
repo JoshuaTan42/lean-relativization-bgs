@@ -1,0 +1,118 @@
+"""Red-team source scan (written independently of the session scan scripts).
+
+Strips Lean comments (line `--`, nested block `/- ... -/`, including doc comments) and string
+literals, then searches the remaining code for banned tokens and metaprogramming markers as whole
+words. Also reports raw (comment-included) hit counts for the banned tokens, so that hits in
+documentation are visible and accounted for.
+
+Usage: python -I -X utf8 rt_scan.py FILE...
+"""
+import re
+import sys
+
+BANNED = ["sorry", "admit", "axiom", "native_decide", "implemented_by", "extern", "unsafe",
+          "partial"]
+META = ["run_cmd", "run_elab", "run_meta", "#eval", "#exit", "#reduce", "elab", "elab_rules",
+        "macro", "macro_rules", "syntax", "declare_syntax_cat", "notation", "infix", "infixl",
+        "infixr", "prefix", "postfix", "initialize", "builtin_initialize", "addDecl",
+        "addAndCompile", "modifyEnv", "setEnv", "Environment", "Lean.Elab", "Lean.Meta",
+        "MetaM", "CoreM", "TacticM", "CommandElabM", "simproc", "dsimproc", "opaque",
+        "unsafeCast", "ofReduceBool", "ofReduceNat", "trustCompiler", "dbg_trace", "panic",
+        "decide +native", "open private", "set_option", "attribute", "deriving", "@["]
+COUNT_ONLY = ["noncomputable", "instance", "Classical", "private", "protected", "abbrev",
+              "irreducible", "local"]
+
+IDCH = r"A-Za-z0-9_'!?À-￿"
+
+
+def strip(src):
+    """Replace comments and string literals by spaces, keeping newlines (line numbers)."""
+    out = []
+    i, n = 0, len(src)
+    depth = 0
+    while i < n:
+        c = src[i]
+        if depth > 0:
+            if src.startswith("/-", i):
+                depth += 1
+                out.append("  ")
+                i += 2
+            elif src.startswith("-/", i):
+                depth -= 1
+                out.append("  ")
+                i += 2
+            else:
+                out.append("\n" if c == "\n" else " ")
+                i += 1
+            continue
+        if src.startswith("/-", i):
+            depth = 1
+            out.append("  ")
+            i += 2
+            continue
+        if src.startswith("--", i):
+            j = src.find("\n", i)
+            j = n if j < 0 else j
+            out.append(" " * (j - i))
+            i = j
+            continue
+        if c == '"':
+            j = i + 1
+            while j < n and src[j] != '"':
+                j += 2 if src[j] == "\\" else 1
+            seg = src[i:j + 1]
+            out.append("".join("\n" if ch == "\n" else " " for ch in seg))
+            i = j + 1
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
+def pattern(tok):
+    if re.match(r"^[A-Za-z_#]", tok) and re.match(r".*[A-Za-z0-9_]$", tok):
+        return re.compile(r"(?<![" + IDCH + r".])" + re.escape(tok) + r"(?![" + IDCH + r"])")
+    return re.compile(re.escape(tok))
+
+
+def scan(files, toks):
+    hits = {t: [] for t in toks}
+    raw = {t: 0 for t in toks}
+    for f in files:
+        src = open(f, encoding="utf-8").read()
+        code = strip(src)
+        for t in toks:
+            p = pattern(t)
+            raw[t] += len(p.findall(src))
+            for ln, line in enumerate(code.split("\n"), 1):
+                for _ in p.finditer(line):
+                    hits[t].append((f, ln, src.split("\n")[ln - 1].strip()))
+    return hits, raw
+
+
+def main():
+    files = sys.argv[1:]
+    print(f"files scanned: {len(files)}")
+    total_lines = 0
+    for f in files:
+        total_lines += open(f, encoding="utf-8").read().count("\n")
+    print(f"total lines: {total_lines}")
+    for title, toks, show in (("BANNED TOKENS (code only, comments/strings stripped)", BANNED, True),
+                              ("METAPROGRAMMING / ENVIRONMENT MARKERS (code only)", META, True),
+                              ("COUNT-ONLY TOKENS (code only)", COUNT_ONLY, False)):
+        hits, raw = scan(files, toks)
+        print(f"\n== {title}")
+        for t in toks:
+            print(f"{t!r}: code hits {len(hits[t])}, raw hits incl. comments {raw[t]}")
+            if show:
+                for f, ln, line in hits[t]:
+                    print(f"    {f}:{ln}: {line}")
+    print("\n== IMPORT LINES")
+    for f in files:
+        for ln, line in enumerate(strip(open(f, encoding="utf-8").read()).split("\n"), 1):
+            if re.match(r"^\s*import\s", line):
+                print(f"    {f}:{ln}: {line.strip()}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,82 @@
+"""Extract CCITT G4 page images from a scanned PDF into TIFF files (no third-party modules).
+
+Usage: python -I pdf_ccitt.py IN.pdf OUTDIR
+Writes OUTDIR/page01.tif ... in page order.
+"""
+import os
+import re
+import struct
+import sys
+
+
+def tiff_g4(width, height, data, black_is_1):
+    entries = [
+        (256, 4, 1, width),          # ImageWidth
+        (257, 4, 1, height),         # ImageLength
+        (258, 3, 1, 1),              # BitsPerSample
+        (259, 3, 1, 4),              # Compression = CCITT T.6 (G4)
+        (262, 3, 1, 1 if black_is_1 else 0),  # Photometric
+        (273, 4, 1, 0),              # StripOffsets (patched)
+        (277, 3, 1, 1),              # SamplesPerPixel
+        (278, 4, 1, height),         # RowsPerStrip
+        (279, 4, 1, len(data)),      # StripByteCounts
+    ]
+    n = len(entries)
+    ifd_off = 8
+    data_off = ifd_off + 2 + 12 * n + 4
+    out = bytearray(b"II*\x00" + struct.pack("<I", ifd_off))
+    out += struct.pack("<H", n)
+    for tag, typ, cnt, val in entries:
+        if tag == 273:
+            val = data_off
+        if typ == 3:
+            out += struct.pack("<HHIHH", tag, typ, cnt, val, 0)
+        else:
+            out += struct.pack("<HHII", tag, typ, cnt, val)
+    out += struct.pack("<I", 0)
+    out += data
+    return bytes(out)
+
+
+def main():
+    src, outdir = sys.argv[1], sys.argv[2]
+    b = open(src, "rb").read()
+    objs = {}
+    for m in re.finditer(rb"(\d+) 0 obj(.*?)endobj", b, re.S):
+        objs[int(m.group(1))] = m.group(2)
+    # page order: walk the Pages tree from the root Pages object (the one without /Parent)
+    def kids(o):
+        d = objs[o]
+        k = re.search(rb"/Kids\s*\[([^\]]*)\]", d)
+        return [int(x) for x in re.findall(rb"(\d+) 0 R", k.group(1))] if k else []
+    roots = [o for o, d in objs.items()
+             if re.search(rb"/Type\s*/Pages", d) and b"/Parent" not in d]
+    pages = []
+    stack = list(reversed(kids(roots[0])))
+    while stack:
+        o = stack.pop()
+        if re.search(rb"/Type\s*/Pages", objs[o]):
+            stack.extend(reversed(kids(o)))
+        else:
+            pages.append(o)
+    os.makedirs(outdir, exist_ok=True)
+    for i, p in enumerate(pages, 1):
+        im = int(re.search(rb"/Im1 (\d+) 0 R", objs[p]).group(1))
+        d = objs[im]
+        head, rest = d.split(b"stream", 1)
+        length = int(re.search(rb"/Length (\d+)", head).group(1))
+        if rest.startswith(b"\r\n"):
+            rest = rest[2:]
+        elif rest.startswith(b"\n"):
+            rest = rest[1:]
+        data = rest[:length]
+        w = int(re.search(rb"/Width (\d+)", head).group(1))
+        h = int(re.search(rb"/Height (\d+)", head).group(1))
+        b1 = b"/BlackIs1 true" in head
+        path = os.path.join(outdir, f"page{i:02d}.tif")
+        open(path, "wb").write(tiff_g4(w, h, data, b1))
+        print(path, w, h, length)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,361 @@
+Thu Oct  8 14:42:04 AUSEST 2026
+$ python -I -X utf8 rt_scan.py Relativization.lean Relativization/*.lean
+files scanned: 22
+total lines: 5652
+
+== BANNED TOKENS (code only, comments/strings stripped)
+'sorry': code hits 0, raw hits incl. comments 0
+'admit': code hits 0, raw hits incl. comments 0
+'axiom': code hits 0, raw hits incl. comments 0
+'native_decide': code hits 0, raw hits incl. comments 0
+'implemented_by': code hits 0, raw hits incl. comments 0
+'extern': code hits 0, raw hits incl. comments 0
+'unsafe': code hits 0, raw hits incl. comments 0
+'partial': code hits 0, raw hits incl. comments 0
+
+== METAPROGRAMMING / ENVIRONMENT MARKERS (code only)
+'run_cmd': code hits 0, raw hits incl. comments 0
+'run_elab': code hits 0, raw hits incl. comments 0
+'run_meta': code hits 0, raw hits incl. comments 0
+'#eval': code hits 0, raw hits incl. comments 0
+'#exit': code hits 0, raw hits incl. comments 0
+'#reduce': code hits 0, raw hits incl. comments 0
+'elab': code hits 0, raw hits incl. comments 0
+'elab_rules': code hits 0, raw hits incl. comments 0
+'macro': code hits 0, raw hits incl. comments 0
+'macro_rules': code hits 0, raw hits incl. comments 0
+'syntax': code hits 0, raw hits incl. comments 0
+'declare_syntax_cat': code hits 0, raw hits incl. comments 0
+'notation': code hits 0, raw hits incl. comments 0
+'infix': code hits 0, raw hits incl. comments 0
+'infixl': code hits 0, raw hits incl. comments 0
+'infixr': code hits 0, raw hits incl. comments 0
+'prefix': code hits 0, raw hits incl. comments 2
+'postfix': code hits 0, raw hits incl. comments 0
+'initialize': code hits 0, raw hits incl. comments 0
+'builtin_initialize': code hits 0, raw hits incl. comments 0
+'addDecl': code hits 0, raw hits incl. comments 0
+'addAndCompile': code hits 0, raw hits incl. comments 0
+'modifyEnv': code hits 0, raw hits incl. comments 0
+'setEnv': code hits 0, raw hits incl. comments 0
+'Environment': code hits 0, raw hits incl. comments 0
+'Lean.Elab': code hits 0, raw hits incl. comments 0
+'Lean.Meta': code hits 0, raw hits incl. comments 0
+'MetaM': code hits 0, raw hits incl. comments 0
+'CoreM': code hits 0, raw hits incl. comments 0
+'TacticM': code hits 0, raw hits incl. comments 0
+'CommandElabM': code hits 0, raw hits incl. comments 0
+'simproc': code hits 0, raw hits incl. comments 0
+'dsimproc': code hits 0, raw hits incl. comments 0
+'opaque': code hits 0, raw hits incl. comments 0
+'unsafeCast': code hits 0, raw hits incl. comments 0
+'ofReduceBool': code hits 0, raw hits incl. comments 0
+'ofReduceNat': code hits 0, raw hits incl. comments 0
+'trustCompiler': code hits 0, raw hits incl. comments 0
+'dbg_trace': code hits 0, raw hits incl. comments 0
+'panic': code hits 0, raw hits incl. comments 0
+'decide +native': code hits 0, raw hits incl. comments 0
+'open private': code hits 0, raw hits incl. comments 0
+'set_option': code hits 0, raw hits incl. comments 0
+'attribute': code hits 5, raw hits incl. comments 5
+    Relativization/Comp.lean:27: attribute [local instance] FinTM2.kFin FinTM2.ΛFin FinTM2.σFin FinTM2.Γk₀Fin
+    Relativization/Normal.lean:96: attribute [local instance] OracleFinTM2.kFin OracleFinTM2.ΛFin OracleFinTM2.σFin
+    Relativization/Oracle.lean:261: attribute [local instance] OracleFinTM2.ΛFin
+    Relativization/Plain.lean:23: attribute [local instance] FinTM2.kFin
+    Relativization/Prog.lean:49: attribute [simp] Flag.untag_tag
+'deriving': code hits 7, raw hits incl. comments 7
+    Relativization/Counter.lean:25: deriving DecidableEq, Fintype
+    Relativization/Counter.lean:33: deriving DecidableEq, Fintype
+    Relativization/Counter.lean:302: deriving DecidableEq, Fintype
+    Relativization/Pad.lean:66: deriving DecidableEq, Fintype
+    Relativization/Pad.lean:70: deriving DecidableEq, Fintype
+    Relativization/Pad.lean:79: deriving DecidableEq, Fintype
+    Relativization/Pad.lean:83: deriving DecidableEq, Fintype
+'@[': code hits 7, raw hits incl. comments 7
+    Relativization/Comp.lean:39: @[reducible] def CΓ : CK M₁ M₂ → Type
+    Relativization/Counter.lean:49: @[simp] theorem st_c (f : C → ℕ) (o : List Bool) (x : C) : st f o (.c x) = cnt () (f x) := rfl
+    Relativization/Counter.lean:51: @[simp] theorem st_out (f : C → ℕ) (o : List Bool) : st f o .out = o := rfl
+    Relativization/Plain.lean:28: @[reducible] def PΓ : Option M.K → Type
+    Relativization/Prog.lean:93: @[simp] theorem cnt_length {α : Type} (u : α) (n : ℕ) : (cnt u n).length = n :=
+    Relativization/Prog.lean:98: @[simp] theorem cnt_zero {α : Type} (u : α) : cnt u 0 = [] := rfl
+    Relativization/Prog.lean:656: @[simp] theorem rep_zero {α : Type} (ys : List α) : rep ys 0 = [] := rfl
+
+== COUNT-ONLY TOKENS (code only)
+'noncomputable': code hits 47, raw hits incl. comments 47
+'instance': code hits 17, raw hits incl. comments 19
+'Classical': code hits 23, raw hits incl. comments 23
+'private': code hits 0, raw hits incl. comments 0
+'protected': code hits 0, raw hits incl. comments 0
+'abbrev': code hits 31, raw hits incl. comments 31
+'irreducible': code hits 0, raw hits incl. comments 0
+'local': code hits 4, raw hits incl. comments 4
+
+== IMPORT LINES
+    Relativization.lean:1: import Relativization.Oracle
+    Relativization.lean:2: import Relativization.Classes
+    Relativization.lean:3: import Relativization.Plain
+    Relativization.lean:4: import Relativization.Self
+    Relativization.lean:5: import Relativization.Comp
+    Relativization.lean:6: import Relativization.Halt
+    Relativization.lean:7: import Relativization.Countable
+    Relativization.lean:8: import Relativization.Normal
+    Relativization.lean:9: import Relativization.Codes
+    Relativization.lean:10: import Relativization.Prog
+    Relativization.lean:11: import Relativization.Emb
+    Relativization.lean:12: import Relativization.Sep
+    Relativization.lean:13: import Relativization.Count
+    Relativization.lean:14: import Relativization.Queries
+    Relativization.lean:15: import Relativization.Stage
+    Relativization.lean:16: import Relativization.Frame
+    Relativization.lean:17: import Relativization.Univ
+    Relativization.lean:18: import Relativization.Counter
+    Relativization.lean:19: import Relativization.Pad
+    Relativization.lean:20: import Relativization.Collapse
+    Relativization.lean:21: import Relativization.BakerGillSolovay
+    Relativization/BakerGillSolovay.lean:1: import Relativization.Collapse
+    Relativization/BakerGillSolovay.lean:2: import Relativization.Stage
+    Relativization/Classes.lean:1: import Relativization.Oracle
+    Relativization/Classes.lean:2: import Problems.PVersusNP.Millennium
+    Relativization/Codes.lean:1: import Relativization.Classes
+    Relativization/Codes.lean:2: import Relativization.Normal
+    Relativization/Codes.lean:3: import Relativization.Countable
+    Relativization/Codes.lean:4: import Mathlib.Data.Finsupp.Encodable
+    Relativization/Collapse.lean:1: import Relativization.Univ
+    Relativization/Collapse.lean:2: import Relativization.Pad
+    Relativization/Collapse.lean:3: import Relativization.Halt
+    Relativization/Collapse.lean:4: import Relativization.Self
+    Relativization/Collapse.lean:5: import Relativization.Comp
+    Relativization/Comp.lean:1: import Relativization.Classes
+    Relativization/Count.lean:1: import Mathlib.Algebra.Polynomial.Eval.Degree
+    Relativization/Count.lean:2: import Mathlib.Data.Fintype.BigOperators
+    Relativization/Count.lean:3: import Mathlib.Data.List.OfFn
+    Relativization/Countable.lean:1: import Mathlib.Computability.TuringMachine.StackTuringMachine
+    Relativization/Countable.lean:2: import Mathlib.Data.W.Basic
+    Relativization/Countable.lean:3: import Mathlib.Data.Countable.Basic
+    Relativization/Counter.lean:1: import Mathlib.Tactic.Linarith
+    Relativization/Counter.lean:2: import Relativization.Prog
+    Relativization/Emb.lean:1: import Relativization.Prog
+    Relativization/Frame.lean:1: import Mathlib.Data.List.Basic
+    Relativization/Halt.lean:1: import Relativization.Oracle
+    Relativization/Normal.lean:1: import Relativization.Oracle
+    Relativization/Normal.lean:2: import Mathlib.SetTheory.Cardinal.NatCard
+    Relativization/Oracle.lean:1: import Mathlib.Computability.TuringMachine.Computable
+    Relativization/Pad.lean:1: import Relativization.Frame
+    Relativization/Pad.lean:2: import Relativization.Counter
+    Relativization/Pad.lean:3: import Relativization.Emb
+    Relativization/Pad.lean:4: import Relativization.Classes
+    Relativization/Plain.lean:1: import Relativization.Classes
+    Relativization/Prog.lean:1: import Mathlib.Computability.TuringMachine.StackTuringMachine
+    Relativization/Prog.lean:2: import Mathlib.Data.List.Sigma
+    Relativization/Prog.lean:3: import Relativization.Oracle
+    Relativization/Queries.lean:1: import Relativization.Oracle
+    Relativization/Self.lean:1: import Relativization.Classes
+    Relativization/Sep.lean:1: import Relativization.Prog
+    Relativization/Sep.lean:2: import Relativization.Comp
+    Relativization/Sep.lean:3: import Relativization.Self
+    Relativization/Stage.lean:1: import Relativization.Codes
+    Relativization/Stage.lean:2: import Relativization.Halt
+    Relativization/Stage.lean:3: import Relativization.Sep
+    Relativization/Stage.lean:4: import Relativization.Count
+    Relativization/Stage.lean:5: import Relativization.Queries
+    Relativization/Univ.lean:1: import Relativization.Frame
+    Relativization/Univ.lean:2: import Relativization.Codes
+    Relativization/Univ.lean:3: import Relativization.Queries
+EXIT=0
+
+==== scanner self-test
+$ cat scantest/Planted.lean
+theorem a : False := sorry
+axiom b : False
+-- sorry in a line comment
+/- block /- nested sorry -/ still comment admit -/
+def s := "sorry in a string"
+run_cmd pure ()
+@[implemented_by foo] def c := 1
+example : 1 = 1 := by native_decide
+unsafe def d := 1
+partial def e : Nat → Nat := e
+@[extern "x"] opaque f : Nat
+set_option maxHeartbeats 0 in
+def h' := 1
+def inP'_admit := 1
+
+$ python -I -X utf8 rt_scan.py scantest/Planted.lean
+files scanned: 1
+total lines: 14
+
+== BANNED TOKENS (code only, comments/strings stripped)
+'sorry': code hits 1, raw hits incl. comments 4
+    scantest/Planted.lean:1: theorem a : False := sorry
+'admit': code hits 0, raw hits incl. comments 1
+'axiom': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:2: axiom b : False
+'native_decide': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:8: example : 1 = 1 := by native_decide
+'implemented_by': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:7: @[implemented_by foo] def c := 1
+'extern': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:11: @[extern "x"] opaque f : Nat
+'unsafe': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:9: unsafe def d := 1
+'partial': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:10: partial def e : Nat → Nat := e
+
+== METAPROGRAMMING / ENVIRONMENT MARKERS (code only)
+'run_cmd': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:6: run_cmd pure ()
+'run_elab': code hits 0, raw hits incl. comments 0
+'run_meta': code hits 0, raw hits incl. comments 0
+'#eval': code hits 0, raw hits incl. comments 0
+'#exit': code hits 0, raw hits incl. comments 0
+'#reduce': code hits 0, raw hits incl. comments 0
+'elab': code hits 0, raw hits incl. comments 0
+'elab_rules': code hits 0, raw hits incl. comments 0
+'macro': code hits 0, raw hits incl. comments 0
+'macro_rules': code hits 0, raw hits incl. comments 0
+'syntax': code hits 0, raw hits incl. comments 0
+'declare_syntax_cat': code hits 0, raw hits incl. comments 0
+'notation': code hits 0, raw hits incl. comments 0
+'infix': code hits 0, raw hits incl. comments 0
+'infixl': code hits 0, raw hits incl. comments 0
+'infixr': code hits 0, raw hits incl. comments 0
+'prefix': code hits 0, raw hits incl. comments 0
+'postfix': code hits 0, raw hits incl. comments 0
+'initialize': code hits 0, raw hits incl. comments 0
+'builtin_initialize': code hits 0, raw hits incl. comments 0
+'addDecl': code hits 0, raw hits incl. comments 0
+'addAndCompile': code hits 0, raw hits incl. comments 0
+'modifyEnv': code hits 0, raw hits incl. comments 0
+'setEnv': code hits 0, raw hits incl. comments 0
+'Environment': code hits 0, raw hits incl. comments 0
+'Lean.Elab': code hits 0, raw hits incl. comments 0
+'Lean.Meta': code hits 0, raw hits incl. comments 0
+'MetaM': code hits 0, raw hits incl. comments 0
+'CoreM': code hits 0, raw hits incl. comments 0
+'TacticM': code hits 0, raw hits incl. comments 0
+'CommandElabM': code hits 0, raw hits incl. comments 0
+'simproc': code hits 0, raw hits incl. comments 0
+'dsimproc': code hits 0, raw hits incl. comments 0
+'opaque': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:11: @[extern "x"] opaque f : Nat
+'unsafeCast': code hits 0, raw hits incl. comments 0
+'ofReduceBool': code hits 0, raw hits incl. comments 0
+'ofReduceNat': code hits 0, raw hits incl. comments 0
+'trustCompiler': code hits 0, raw hits incl. comments 0
+'dbg_trace': code hits 0, raw hits incl. comments 0
+'panic': code hits 0, raw hits incl. comments 0
+'decide +native': code hits 0, raw hits incl. comments 0
+'open private': code hits 0, raw hits incl. comments 0
+'set_option': code hits 1, raw hits incl. comments 1
+    scantest/Planted.lean:12: set_option maxHeartbeats 0 in
+'attribute': code hits 0, raw hits incl. comments 0
+'deriving': code hits 0, raw hits incl. comments 0
+'@[': code hits 2, raw hits incl. comments 2
+    scantest/Planted.lean:7: @[implemented_by foo] def c := 1
+    scantest/Planted.lean:11: @[extern "x"] opaque f : Nat
+
+== COUNT-ONLY TOKENS (code only)
+'noncomputable': code hits 0, raw hits incl. comments 0
+'instance': code hits 0, raw hits incl. comments 0
+'Classical': code hits 0, raw hits incl. comments 0
+'private': code hits 0, raw hits incl. comments 0
+'protected': code hits 0, raw hits incl. comments 0
+'abbrev': code hits 0, raw hits incl. comments 0
+'irreducible': code hits 0, raw hits incl. comments 0
+'local': code hits 0, raw hits incl. comments 0
+
+== IMPORT LINES
+
+==== trusted definitions file
+$ python -I -X utf8 rt_scan.py .lake/packages/problems/Problems/PVersusNP/Millennium.lean
+files scanned: 1
+total lines: 1884
+
+== BANNED TOKENS (code only, comments/strings stripped)
+'sorry': code hits 0, raw hits incl. comments 1
+'admit': code hits 0, raw hits incl. comments 0
+'axiom': code hits 0, raw hits incl. comments 0
+'native_decide': code hits 0, raw hits incl. comments 0
+'implemented_by': code hits 0, raw hits incl. comments 0
+'extern': code hits 0, raw hits incl. comments 0
+'unsafe': code hits 0, raw hits incl. comments 0
+'partial': code hits 0, raw hits incl. comments 0
+
+== METAPROGRAMMING / ENVIRONMENT MARKERS (code only)
+'run_cmd': code hits 0, raw hits incl. comments 0
+'run_elab': code hits 0, raw hits incl. comments 0
+'run_meta': code hits 0, raw hits incl. comments 0
+'#eval': code hits 0, raw hits incl. comments 0
+'#exit': code hits 0, raw hits incl. comments 0
+'#reduce': code hits 0, raw hits incl. comments 0
+'elab': code hits 0, raw hits incl. comments 0
+'elab_rules': code hits 0, raw hits incl. comments 0
+'macro': code hits 0, raw hits incl. comments 0
+'macro_rules': code hits 0, raw hits incl. comments 0
+'syntax': code hits 0, raw hits incl. comments 0
+'declare_syntax_cat': code hits 0, raw hits incl. comments 0
+'notation': code hits 0, raw hits incl. comments 0
+'infix': code hits 0, raw hits incl. comments 0
+'infixl': code hits 0, raw hits incl. comments 0
+'infixr': code hits 0, raw hits incl. comments 0
+'prefix': code hits 0, raw hits incl. comments 0
+'postfix': code hits 0, raw hits incl. comments 0
+'initialize': code hits 0, raw hits incl. comments 0
+'builtin_initialize': code hits 0, raw hits incl. comments 0
+'addDecl': code hits 0, raw hits incl. comments 0
+'addAndCompile': code hits 0, raw hits incl. comments 0
+'modifyEnv': code hits 0, raw hits incl. comments 0
+'setEnv': code hits 0, raw hits incl. comments 0
+'Environment': code hits 0, raw hits incl. comments 0
+'Lean.Elab': code hits 0, raw hits incl. comments 0
+'Lean.Meta': code hits 0, raw hits incl. comments 0
+'MetaM': code hits 0, raw hits incl. comments 0
+'CoreM': code hits 0, raw hits incl. comments 0
+'TacticM': code hits 0, raw hits incl. comments 0
+'CommandElabM': code hits 0, raw hits incl. comments 0
+'simproc': code hits 0, raw hits incl. comments 0
+'dsimproc': code hits 0, raw hits incl. comments 0
+'opaque': code hits 0, raw hits incl. comments 0
+'unsafeCast': code hits 0, raw hits incl. comments 0
+'ofReduceBool': code hits 0, raw hits incl. comments 0
+'ofReduceNat': code hits 0, raw hits incl. comments 0
+'trustCompiler': code hits 0, raw hits incl. comments 0
+'dbg_trace': code hits 0, raw hits incl. comments 0
+'panic': code hits 0, raw hits incl. comments 0
+'decide +native': code hits 0, raw hits incl. comments 0
+'open private': code hits 0, raw hits incl. comments 0
+'set_option': code hits 0, raw hits incl. comments 0
+'attribute': code hits 3, raw hits incl. comments 3
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:414: attribute [instance] ClayPolynomialTimeVerification.certificate_alphabet_fintype
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:450: attribute [instance] ClayFiniteAlphabet.fintype
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:451: attribute [instance] ClayFiniteAlphabet.nontrivial
+'deriving': code hits 2, raw hits incl. comments 2
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:497: deriving DecidableEq, Fintype
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:502: deriving DecidableEq, Fintype
+'@[': code hits 5, raw hits incl. comments 5
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:99: @[reducible] private def pair_symbol {α β : Type} (ea : FinEncoding α) (eb : FinEncoding β) : Type :=
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:224: @[simp] theorem fin_encoding_string_encode (alphabet : Type) [Fintype alphabet]
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:513: @[reducible] private def StringProjectionState (alphabet : Type) [Fintype alphabet] : Type :=
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:1278: @[reducible] private def string_pair_projection_input_equiv (alphabet : Type) [Fintype alphabet]
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:1286: @[reducible] private def string_pair_projection_output_equiv (alphabet : Type) [Fintype alphabet]
+
+== COUNT-ONLY TOKENS (code only)
+'noncomputable': code hits 19, raw hits incl. comments 19
+'instance': code hits 3, raw hits incl. comments 5
+'Classical': code hits 3, raw hits incl. comments 4
+'private': code hits 53, raw hits incl. comments 53
+'protected': code hits 0, raw hits incl. comments 0
+'abbrev': code hits 2, raw hits incl. comments 2
+'irreducible': code hits 0, raw hits incl. comments 0
+'local': code hits 0, raw hits incl. comments 0
+
+== IMPORT LINES
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:1: import Mathlib.Tactic.Basic
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:2: import Mathlib.Computability.TuringMachine.StackTuringMachine
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:3: import Mathlib.Computability.Primrec.List
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:4: import Mathlib.Computability.TuringMachine.Computable
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:5: import Mathlib.Computability.Encoding
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:6: import Mathlib.Data.Finset.Basic
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:7: import Mathlib.Data.Set.Basic
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:8: import Mathlib.Order.Basic
+    .lake/packages/problems/Problems/PVersusNP/Millennium.lean:9: import Init.Data.List.Lemmas
