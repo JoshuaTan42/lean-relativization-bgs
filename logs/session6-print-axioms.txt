@@ -1,0 +1,114 @@
+'Relativization.IsPoly' depends on axioms: [propext, Quot.sound]
+'Relativization.IsPoly.add' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.IsPoly.const' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.IsPoly.id' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.IsPoly.mul' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.IsPoly.pow' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.CL' does not depend on any axioms
+'Relativization.Pad.CL.addc' does not depend on any axioms
+'Relativization.Pad.CL.addc.elim' does not depend on any axioms
+'Relativization.Pad.CL.ctorElim' does not depend on any axioms
+'Relativization.Pad.CL.ctorElimType' does not depend on any axioms
+'Relativization.Pad.CL.drn' does not depend on any axioms
+'Relativization.Pad.CL.drn.elim' does not depend on any axioms
+'Relativization.Pad.CL.emitT' does not depend on any axioms
+'Relativization.Pad.CL.emitT.elim' does not depend on any axioms
+'Relativization.Pad.CL.exp' does not depend on any axioms
+'Relativization.Pad.CL.exp.elim' does not depend on any axioms
+'Relativization.Pad.CL.fin' does not depend on any axioms
+'Relativization.Pad.CL.fin.elim' does not depend on any axioms
+'Relativization.Pad.CL.one' does not depend on any axioms
+'Relativization.Pad.CL.one.elim' does not depend on any axioms
+'Relativization.Pad.CL.proxyType' does not depend on any axioms
+'Relativization.Pad.CL.proxyTypeEquiv' does not depend on any axioms
+'Relativization.Pad.CL.pw' does not depend on any axioms
+'Relativization.Pad.CL.pw.elim' does not depend on any axioms
+'Relativization.Pad.CL.sep1' does not depend on any axioms
+'Relativization.Pad.CL.sep1.elim' does not depend on any axioms
+'Relativization.Pad.CL.sep2' does not depend on any axioms
+'Relativization.Pad.CL.sep2.elim' does not depend on any axioms
+'Relativization.Pad.F0' does not depend on any axioms
+'Relativization.Pad.F1' depends on axioms: [propext]
+'Relativization.Pad.F2' depends on axioms: [propext]
+'Relativization.Pad.F3' depends on axioms: [propext]
+'Relativization.Pad.PC' does not depend on any axioms
+'Relativization.Pad.PC.ad' does not depend on any axioms
+'Relativization.Pad.PC.ad.elim' does not depend on any axioms
+'Relativization.Pad.PC.b' does not depend on any axioms
+'Relativization.Pad.PC.b.elim' does not depend on any axioms
+'Relativization.Pad.PC.ctorElim' does not depend on any axioms
+'Relativization.Pad.PC.ctorElimType' does not depend on any axioms
+'Relativization.Pad.PC.enumList' does not depend on any axioms
+'Relativization.Pad.PC.enumList_getElem?_ctorIdx_eq' depends on axioms: [propext]
+'Relativization.Pad.PC.enumList_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.PC.kc' does not depend on any axioms
+'Relativization.Pad.PC.kc.elim' does not depend on any axioms
+'Relativization.Pad.PC.ofNat' does not depend on any axioms
+'Relativization.Pad.PC.ofNat_ctorIdx' does not depend on any axioms
+'Relativization.Pad.PC.p' does not depend on any axioms
+'Relativization.Pad.PC.p.elim' does not depend on any axioms
+'Relativization.Pad.PC.q' does not depend on any axioms
+'Relativization.Pad.PC.q.elim' does not depend on any axioms
+'Relativization.Pad.PC.t' does not depend on any axioms
+'Relativization.Pad.PC.t.elim' does not depend on any axioms
+'Relativization.Pad.PC.toCtorIdx' does not depend on any axioms
+'Relativization.Pad.PK' does not depend on any axioms
+'Relativization.Pad.PK.ctorElim' does not depend on any axioms
+'Relativization.Pad.PK.ctorElimType' does not depend on any axioms
+'Relativization.Pad.PK.cv' does not depend on any axioms
+'Relativization.Pad.PK.cv.elim' does not depend on any axioms
+'Relativization.Pad.PK.inp' does not depend on any axioms
+'Relativization.Pad.PK.inp.elim' does not depend on any axioms
+'Relativization.Pad.PK.proxyType' does not depend on any axioms
+'Relativization.Pad.PK.proxyTypeEquiv' does not depend on any axioms
+'Relativization.Pad.PL' does not depend on any axioms
+'Relativization.Pad.PL.cp' does not depend on any axioms
+'Relativization.Pad.PL.cp.elim' does not depend on any axioms
+'Relativization.Pad.PL.ctorElim' does not depend on any axioms
+'Relativization.Pad.PL.ctorElimType' does not depend on any axioms
+'Relativization.Pad.PL.proxyType' does not depend on any axioms
+'Relativization.Pad.PL.proxyTypeEquiv' does not depend on any axioms
+'Relativization.Pad.PL.rd' does not depend on any axioms
+'Relativization.Pad.PL.rd.elim' does not depend on any axioms
+'Relativization.Pad.PΓ' does not depend on any axioms
+'Relativization.Pad.agree' depends on axioms: [propext, Quot.sound]
+'Relativization.Pad.cB' depends on axioms: [propext]
+'Relativization.Pad.cons_cnt' does not depend on any axioms
+'Relativization.Pad.cprog' does not depend on any axioms
+'Relativization.Pad.cprog_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.embeds' depends on axioms: [Quot.sound]
+'Relativization.Pad.haltList_pad' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.initList_pad' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.instDecidableEqCL' does not depend on any axioms
+'Relativization.Pad.instDecidableEqCL.decEq' does not depend on any axioms
+'Relativization.Pad.instDecidableEqPC' does not depend on any axioms
+'Relativization.Pad.instDecidableEqPK' does not depend on any axioms
+'Relativization.Pad.instDecidableEqPK.decEq' does not depend on any axioms
+'Relativization.Pad.instDecidableEqPL' does not depend on any axioms
+'Relativization.Pad.instDecidableEqPL.decEq' does not depend on any axioms
+'Relativization.Pad.instFintypeCL' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.instFintypePC' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.instFintypePK' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.instFintypePL' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.padB' depends on axioms: [propext]
+'Relativization.Pad.padB_poly' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.padComputable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.padEmb' does not depend on any axioms
+'Relativization.Pad.padTM' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.pad_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.pprog' depends on axioms: [Quot.sound]
+'Relativization.Pad.pst' does not depend on any axioms
+'Relativization.Pad.rdStmt' does not depend on any axioms
+'Relativization.Pad.rd_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.rep_singleton' depends on axioms: [propext]
+'Relativization.Pad.stepAux_rd_cons' depends on axioms: [propext, Quot.sound]
+'Relativization.Pad.stepAux_rd_nil' depends on axioms: [propext]
+'Relativization.Pad.update_pst_c' depends on axioms: [propext, Quot.sound]
+'Relativization.Pad.update_pst_cv' depends on axioms: [propext]
+'Relativization.Pad.update_pst_inp' depends on axioms: [propext, Quot.sound]
+'Relativization.Pad.update_pst_out' depends on axioms: [propext, Quot.sound]
+'Relativization.padFun' depends on axioms: [propext]
+exit: 0
+== supplement: the new declaration whose name starts with eq_ (classed auxiliary by the audit rule) ==
+'Relativization.Pad.eq_pst_of_agree' depends on axioms: [propext, Quot.sound]
+exit: 0

@@ -210,7 +210,7 @@ T5, T6, T7, T8 are **not** attempted this session.
 
 ---
 
-## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2; §4.8–4.9 session 3; §4.10 session 4; §4.11 session 5)
+## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2; §4.8–4.9 session 3; §4.10 session 4; §4.11 session 5; §4.12 session 6)
 
 ### 4.1 Trivial oracle, binary alphabet (the form asked for in the session brief)
 
@@ -1229,6 +1229,186 @@ PvsNP; sessions 1–4 had no `deriving`. The handlers generate ordinary instance
 `pow_run`) is used for the first time in this repository.
 
 Not stated this session (by instruction): A4 (`pad`), A5, A6, T5–T8.
+
+### 4.12 Statements for session 6: the pad machine, A4, in the form A5 uses
+
+Written before any Lean. Plan items: PLAN §6.4 A4 ("`pad` as a `TM2ComputableInPolyTime`",
+550 lines), §6.11 sessions 6–7, §7 "`pad` on the counter view". Everything below is in
+namespace `Relativization`; the machine internals are in `Relativization.Pad`
+(`Relativization/Pad.lean`). Sessions 1–5 are not modified.
+
+**How A5 will use A4** (§4.11 "How the final collapse proof will use this", §5.7). A5 has
+`i`, `ρ` with `(vEnum i).k = k` from N4v' (`exists_vcode_of_verifier`) and the verifier's
+polynomial `p := h.time`. It needs `T : ℕ → ℕ` with `T n ≥ μ_i(n) + (D_i + 1) · p(μ_i(n))` for
+every `n`. The right-hand side is `q.eval n` for the polynomial
+`q := X + 1 + X^k + C (D_i + 1) * p.comp (X + 1 + X^k)` (`Univ.mu i n = n + 1 + n^(vEnum i).k`),
+and `eval_le_pow q` (PvsNP `Pkg.lean` 395, to be ported in A5) gives `c' ≥ 1` and `d` with
+`q.eval n ≤ (n + c')^d`. So `T n := (n + c')^d` and `pad w := frame i ((|w| + c')^d) w.reverse`.
+A5 composes with T3: from `⟨g, hg, hgA⟩ := oracle_inP A`,
+`oracleComp A (Pad.padComputable i c' d) hg : OTM2ComputableInPolyTime A
+(fin_encoding_string Bool).encode finEncodingBoolBool.encode (g ∘ padFun i c' d)`, and
+`L w ↔ g (padFun i c' d w) = true ↔ padFun i c' d w ∈ A ↔ Phi A (frame i T v) ↔ …`. The only
+facts about `pad` that A5 uses are the definition of `padFun` (through `Phi_frame`/`decode_frame`
+at `x = padFun i c' d w`) and `padComputable`. So A4 is one function and one
+`TM2ComputableInPolyTime`, parametric in `i c' d : ℕ`:
+
+```lean
+/-- `padFun i c' d w = frame i ((|w| + c')^d) w.reverse = 1^i 0 1^{(|w| + c')^d} 0 w.reverse`. -/
+def padFun (i c' d : ℕ) (w : List Bool) : List Bool :=
+  frame i ((w.length + c') ^ d) w.reverse
+
+namespace Pad
+/-- Step bound of the pad machine on an input of length `n`. `i` does not enter: the constant
+block `1^i 0` is emitted in one step. `powB` is A3's bound for the power loop. -/
+def padB (c' d n : ℕ) : ℕ := 2 * n + c' + 9 + powB d 1 (n + c') + (n + c') ^ d
+
+/-- The pad machine: input stack `inp` over `Bool`, output stack `cv .out` over `Bool`, six unit
+counters, states `Bool`, initial state `false`. -/
+def padTM (i c' d : ℕ) : FinTM2
+
+/-- Correctness and time, in one statement: from `initList (padTM i c' d) w` the machine reaches
+`haltList (padTM i c' d) (padFun i c' d w)` within `padB c' d |w|` steps. -/
+theorem pad_run (i c' d : ℕ) (w : List Bool) :
+    RunLe (padTM i c' d).m (padB c' d w.length) (initList (padTM i c' d) w)
+      (haltList (padTM i c' d) (padFun i c' d w))
+
+/-- `padB c' d` is the evaluation of a polynomial with natural coefficients. -/
+theorem padB_poly (c' d : ℕ) : IsPoly (padB c' d)
+
+/-- **A4.** `padFun i c' d` is computable by a plain machine in polynomial time, on the identity
+encoding of binary strings on both sides. -/
+noncomputable def padComputable (i c' d : ℕ) :
+    TM2ComputableInPolyTime (fin_encoding_string Bool).encode (fin_encoding_string Bool).encode
+      (padFun i c' d)
+end Pad
+```
+
+with `inputAlphabet := Equiv.refl Bool`, `outputAlphabet := Equiv.refl Bool`,
+`time := Classical.choose (padB_poly c' d)` and `outputsFun w := TM2OutputsInTime.ofRunLe` of
+`pad_run` (A3's packaging, since `pow_run` is a `RunLe`). `IsPoly f := ∃ p : Polynomial ℕ,
+∀ n, f n = p.eval n` with its five closure lemmas (`const`, `id`, `add`, `mul`, `pow`) is PvsNP
+`Pre.lean` 717–735, to be ported verbatim into `Pad.lean`.
+
+**Output format.** `haltList (padTM i c' d) l'` is the configuration with label `none`, state
+`false` (= `initialState`), stack `cv .out = l'` and every other stack (`inp`, the six counters)
+empty, exactly as Mathlib's `haltList` demands; `l' = padFun i c' d w` read top-down, so the top
+symbol is the first `true` of `1^i` (for `i ≥ 1`) and the bottom is the last bit of `w.reverse`,
+that is the first bit of `w`. Both alphabets are `Bool` itself, so
+`(fin_encoding_string Bool).encode w = w` and the `List.map (Equiv.refl Bool).invFun` of the
+structure's fields is handled as in `Sep.revComputable` (`List.map_id`).
+
+**Exact time bound, as a function of the input.** For `n = |w|` and `T = (n + c')^d`:
+
+| Phase | Label(s) | Steps | Effect |
+|---|---|---|---|
+| copy loop (host) | `rd` | `n + 1` (exact, one per bit plus the exit) | `inp = []`, `out = w.reverse`, counter `b = n`, state `false` |
+| separator | `cp sep1` | 1 | `out = false :: w.reverse` (`emitOut`) |
+| base | `cp addc` | 1 | `b = n + c'` (`emitS`, `c'` units) |
+| power init | `cp one`, `cp exp` | 1 + 1 | `p = 1`, `kc = d` (`emitS`) |
+| power loop | `cp (pw s)` | `≤ powB d 1 (n + c')` (`pow_run`) | `p = 1 · (n + c')^d = T`, `kc = 0`; `q = ad = t = 0` before and after |
+| emit `1^T` | `cp emitT` | `T + 1` (exact, `xferES`) | `out = 1^T 0 w.reverse`, `p = 0` |
+| prefix | `cp sep2` | 1 | `out = 1^i 0 1^T 0 w.reverse = frame i T w.reverse` (`emitOut`) |
+| drain | `cp drn` | `n + c' + 1` (exact, `drainS`) | `b = 0`; all counters `0` |
+| halt (host) | `cp fin` | 1 | label `none` |
+| **total** | | `2n + c' + 9 + powB d 1 (n + c') + (n + c')^d = padB c' d n` | |
+
+where `powB j p b = j * (p * (b + 1)^j * (3b + 5) + 5) + 1` (A3, `Counter.powB`), so `padB c' d`
+has degree `d + 1` in `n` for `d ≥ 1`. The bound is `RunLe`, not `Run`: every phase is exact
+except the power loop, whose `pow_run` is a `RunLe`.
+
+**What the machine does with the counter and the frame from A1.**
+
+* Stacks `PK := inp | cv (k : SK PC)` with `PC := b | kc | p | q | ad | t`; alphabets
+  `PΓ .inp = Bool`, `PΓ (.cv k) = SΓ PC k` (so `cv .out` is the Bool output stack of the counter
+  view and `cv (.c x)` a unit counter). Labels `PL := rd | cp (l : CL)` with
+  `CL := sep1 | addc | one | exp | pw (s : PW) | emitT | sep2 | drn | fin`. States `Bool`: forced,
+  because `Emb.mapS` keeps the state type and the counter view is over `Bool`; hence the copy
+  loop cannot remember "popped `false`" versus "popped nothing" in the state and peeks first
+  (as PvsNP's `rdT` does), unlike `Sep.revTM`, whose state is `Option _`.
+* The copy loop (host, one label, hand-written as `Sep.revTM` was): `peek inp`; if nonempty,
+  `pop inp` into the state, `push (cv .out)` the state, `push (cv (.c b)) ()`, `goto rd`; if
+  empty, `goto (cp sep1)`. One `TM2.step` per iteration. Popping `w` head-first and pushing
+  reverses it: `out = w.reverse` is the `v` of the frame, as `Sep.revTM` produced
+  `(w ++ y).reverse`. The same loop counts `|w|` into the counter `b`.
+* The counter sub-machine `cprog i c' d : CL → TM2.Stmt (SΓ PC) CL Bool` is a program of the
+  counter view (A3) and is run with A3's wrappers in the `st F o` view: `emitOut`, `emitS` (×3),
+  `pow_run` (`b kc p q ad t`, `mk := CL.pw`, `exit := .emitT`), `xferES`, `emitOut`, `drainS`,
+  chained with `Bud` as PvsNP `cprog_run` chains them. `xferES` prepends `rep [true] T`, which
+  is `List.replicate T true` (a three-line lemma `rep_singleton`, new). The output after `sep2`
+  is `(replicate i true ++ [false]) ++ (replicate T true ++ false :: w.reverse)`, which is
+  `frame i T w.reverse` by `List.append_assoc` and `List.singleton_append` against A1's
+  definition `frame i T v = replicate i true ++ false :: (replicate T true ++ false :: v)`. The
+  machine never decodes; `frame_length` and `decode` are not used in A4.
+* The host program `pprog i c' d : PL → TM2.Stmt PΓ PL Bool` is the copy loop at `rd` and
+  `mapS padEmb PL.cp (cprog i c' d l)` at `cp l`, where `padEmb : SEmb (SΓ PC) PΓ` is
+  `e := PK.cv`, `ι := fun _ => Equiv.refl _`. At `cp fin` the host statement is
+  `mapS … .halt = .halt`, one step from `⟨some (cp fin), false, S⟩` to `⟨none, false, S⟩`.
+  `initList (padTM i c' d) w = ⟨some rd, false, pst w F0 []⟩` and
+  `haltList (padTM i c' d) l' = ⟨none, false, pst [] F0 l'⟩` for the stack builder
+  `pst (s : List Bool) (F : PC → ℕ) (o : List Bool)` (`inp ↦ s`, `cv k ↦ st F o k`) and
+  `F0 := fun _ => 0`, as `Sep.initList_eq`/`haltList_eq` and PvsNP `initList_full`.
+
+**The design decision: how the pad machine gets its counter.** Two routes, assessed before
+choosing (brief item 2).
+
+*Route E — embed the counter sub-machine with `Emb.run_embed` (PvsNP `Pre.lean` `[FULL]`,
+`[COMP]`, `[REAL]` as template: `embC`, `embeds_C`, `agree_C`, `pre_run`, `fullTM`,
+`initList_full`).*
+
+* Reused unchanged: from A3 (`Counter.lean`) `SK`, `SΓ`, `st`, `st_c`, `st_out`, `emitS`,
+  `emitOut`, `drainS`, `xferES`, `bud_st`, `MS`, `PW`, `powS`, `powB`, `pow_run`,
+  `TM2OutputsInTime.ofRunLe`; from session 3 (`Emb.lean`) `SEmb`, `mapS`, `Embeds`, `Agree`,
+  `Frame`, `runLe_embed`; from session 3 (`Prog.lean`) `Flag Bool`, `Run`, `Run.single`,
+  `Run.head`, `Run.le`, `Run.bud`, `RunLe`, `RunLe.trans`, `RunLe.mono`, `Bud`, `Bud.start`,
+  `Bud.fin`, `cnt`, `cnt_succ`, `rep`, `rep_succ`, `emitR`, `xferE`, `xfer`; from A1 `frame`;
+  from Millennium/Mathlib `fin_encoding_string`, `TM2ComputableInPolyTime`, `initList`,
+  `haltList`. New code: the types and programs, the copy loop, the embedding (three one-line
+  proofs), `pad_run`, `IsPoly` (ported), `padB_poly`, `rep_singleton`, the packaging.
+* Changes to session 1–5 definitions: **none**.
+* Estimate: about 330 lines (types and programs 60; `cprog_run` 40; copy loop with `pst` and
+  its three `update_pst_*` lemmas 60; embedding and reading the final host stacks off
+  `Agree`/`Frame` 30; `pad_run` with `initList`/`haltList` 50; `IsPoly` and `padB_poly` 40;
+  packaging 20; header 30). Under the plan's 550.
+* Main risk: the host-side bookkeeping, not the arithmetic. (i) `List.map ⇑(Equiv.refl _) l`
+  is `l` only up to defeq (PvsNP writes `(List.map_id _).symm` as a term, §11.4 item 7 style);
+  (ii) `deriving Fintype` on the nested `PK | inp | cv (k : SK PC)` (PvsNP's
+  `FK | h (k : HK) | raw | pc (x : PS)` derived without trouble); (iii) the `simp` set for the
+  copy-loop step on `pst` (`Sep.step_cons` pattern). All three are patterns already used in
+  this repository or in the template.
+
+*Route V — give the counter view an input stack.*
+
+* V1, extend `Counter.SK C` with a constructor `inp`: changes a session 5 definition and the
+  statement of every wrapper over it (`st`, `emitS`, …, `pow_run`): **not allowed without
+  stopping**, and `pow_run`'s 105-line proof would have to be re-checked against the changed
+  type. Not taken.
+* V2, a new view `SK' C := inp | out | c x` in the new file, with its own `st'` and
+  `update_st'_*`, and every wrapper the pad needs re-proved over it (`emitS'`, `emitOut'`,
+  `drainS'`, `xferES'`, `decS'_pos/zero`, `xferS'`, `mulS_run'`, `pow_run'`): changes no
+  session 1–5 definition, but `pow_run` (105 lines), `mulS_run` and `xferS` (50) cannot be
+  transported from `SK C` to `SK' C` without an embedding lemma — which is Route E — so they
+  must be copied with the stack type changed. The `Prog` primitives are generic in `K`, so the
+  copies are mechanical, but they duplicate about 200 lines of A3 and are exactly the
+  duplication the counter view was introduced to avoid.
+* Reused unchanged: `Prog` entirely, `Counter.powB`, `PW`, `MS` (the types), `ofRunLe`; `Emb`
+  unused. Changes to session 1–5 definitions: none (V2) or `Counter.SK` (V1).
+* Estimate (V2): about 480 lines (Route E minus the 30 embedding lines, plus about 200 of
+  duplicated view lemmas, minus about 20 of host bookkeeping that becomes view bookkeeping).
+* Main risk: two views that drift apart, and the duplicated `pow_run'`, whose `nlinarith` tail
+  is the most fragile proof in `Counter.lean`.
+
+**Choice: Route E.** It changes no earlier definition, reuses `pow_run` as it stands, follows
+a template that is known to compile at this Mathlib commit (every PvsNP port so far compiled
+unchanged, §9.4, §11.4), and is about 150 lines shorter. V1 is excluded by the rules; V2 is
+strictly more code for the same theorem.
+
+**Order of work** (brief item 3): statement (above), machine definition (`PC`, `PK`, `PΓ`,
+`CL`, `PL`, `cprog`, `pprog`, `padTM`), correctness of the output (`cprog_run`, the copy loop,
+`pad_run`), then the time bound (`IsPoly`, `padB_poly`, `padComputable`). The machine is named
+explicitly in every wrapper application (`(M := cprog i c' d)`, `(M := pprog i c' d)`) and in
+`runLe_embed (E := padEmb) PL.cp …`, as §10.4 item 5 advises.
+
+Not done this session (by instruction): A5, A6, T5–T8. `eval_le_pow` is A5's.
 
 ---
 ## 5. Paper proof: the self-referential oracle is well defined and gives `P^A = NP^A`
@@ -2642,5 +2822,239 @@ with the new modules present (`logs/session5-olean-after.txt`):
 
 (The first twelve values are those of `logs/session4-olean-after.txt`; the three of `Count`,
 `Queries`, `Stage` are those of `logs/session5-olean-before.txt`, taken before any change.)
+
+`lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).
+
+## 12. Lemma table and checks (session 6, 2026-10-08)
+
+### 12.1 Files
+
+| File | Lines (non-blank) | Content |
+|---|---|---|
+| `Relativization/Pad.lean` | 363 (303) | A4: `padFun` (34); `IsPoly` and its closure lemmas, verbatim from PvsNP (39–57); the machine: `PC`, `PK`, `PΓ`, `CL`, `PL`, `cprog`, `padEmb`, `rdStmt`, `pprog`, `padTM`, `padB` (61–132); the sub-machine's run `cprog_run` with `F0`–`F3`, `cB`, `rep_singleton` (134–187); the copy loop `pst`, `update_pst_inp/cv/out/c`, `cons_cnt`, `stepAux_rd_cons/nil`, `rd_run` (189–264); the embedding `embeds`, `agree`, `eq_pst_of_agree` (266–282); `initList_pad`, `haltList_pad`, `pad_run` (284–328); `padB_poly`, `padComputable` (330–361) |
+| `Relativization.lean` | 74 (60) | imports (+1 line), docstring (+6 lines, 5 non-blank) |
+| **Session 6 total** | **363 (303) in the new file; 308 non-blank with the root module: 13 verbatim, 295 new** | |
+| **Repository total** | **5,419 (4,576)** | 1,610 constants: 694 named, 916 auxiliary (same classification as sessions 2–5: 584 + 110 = 694) |
+
+Session 1–5 files are unchanged (byte for byte; the `.olean` of each of the eighteen earlier
+modules has the same SHA-256 before any change of this session and after the from-scratch
+rebuild, §12.5 (e)). `D:\PvsNP` was opened read-only (`sed`, `diff`); nothing there was
+written. Per section of `Pad.lean` (non-blank): header 28, `[POLY]` 14, `[DEF]` 61, `[CNT]` 47,
+`[RD]` 67, `[EMB]` 14, `[RUN]` 42, `[PKG]` 30.
+
+### 12.2 Results asked for in the session brief
+
+All **proved**; A4 is complete (the brief allowed two sessions). Axioms are from the literal
+`#print axioms` output in §12.5.
+
+| Id | Lean name | File:line | Statement | Differences from §4.12 as first written | Axioms |
+|---|---|---|---|---|---|
+| A4, function | `padFun` | Pad:34 | `padFun i c' d w = frame i ((|w| + c')^d) w.reverse` | none | `[propext]` |
+| A4, machine | `Pad.padTM` (with `PC`, `PK`, `PΓ`, `CL`, `PL`, `cprog`, `padEmb`, `rdStmt`, `pprog`) | Pad:120 (65–115) | the `FinTM2`: input stack `inp`, output stack `cv .out`, states `Bool`, program `pprog i c' d` | none | the three (`cprog`, `padEmb`, `rdStmt`: none; `pprog`: `[Quot.sound]`) |
+| A4, bound | `Pad.padB` | Pad:132 | `2n + c' + 9 + powB d 1 (n + c') + (n + c')^d` | none | `[propext]` |
+| A4, sub-machine | `Pad.cprog_run` | Pad:166 | from `out = o`, `b = n`, all else `0`: label `fin`, `out = frame i ((n + c')^d) o`, every counter `0`, within `cB c' d n` | none | the three |
+| A4, copy loop | `Pad.rd_run` | Pad:243 | `|s| + 1` steps from `rd` to `cp sep1`; `inp = []`, `out = s.reverse ++ o`, `b += |s|`, state `false` | none | the three |
+| A4, correctness and time | `Pad.pad_run` | Pad:306 | `RunLe (padTM i c' d).m (padB c' d |w|) (initList … w) (haltList … (padFun i c' d w))` | none | the three |
+| A4, polynomial | `Pad.padB_poly` | Pad:332 | `IsPoly (padB c' d)` | none | the three |
+| **A4** | **`Pad.padComputable`** | **Pad:342** | **`TM2ComputableInPolyTime (fin_encoding_string Bool).encode (fin_encoding_string Bool).encode (padFun i c' d)`** | none | the three |
+
+"The three" = `[propext, Classical.choice, Quot.sound]`.
+
+**Plan form, assessed** (brief item 1). PLAN §6.4 A4 says "`pad` as a `TM2ComputableInPolyTime`
+on the counter view"; §4.12 fixes the exact form A5 consumes (identity encodings on both
+sides, parametric in `i c' d`, `time := Classical.choose (padB_poly c' d)`), and that form is
+what is proved. The §4.12 phase table was confirmed line by line by the proof: the final
+`omega` of `pad_run` closes `(|w| + 1) + cB c' d |w| + 1 ≤ padB c' d |w|`, which is an equality.
+**Design decision** (brief item 2): route E (embedding) was chosen and used; route V was
+assessed in §4.12 and not taken (V1 would change `Counter.SK`, V2 duplicates `pow_run`). No
+session 1–5 definition was changed and no hypothesis beyond §4.12 was needed.
+
+### 12.3 Supporting declarations (all proved; names as in the files)
+
+| File | Declarations |
+|---|---|
+| Pad (verbatim) | `IsPoly`, `IsPoly.const`, `IsPoly.id`, `IsPoly.add`, `IsPoly.mul`, `IsPoly.pow` |
+| Pad (new) | `F0`, `F1`, `F2`, `F3`, `cB`, `rep_singleton`, `pst`, `update_pst_inp`, `update_pst_cv`, `update_pst_out`, `update_pst_c`, `cons_cnt`, `stepAux_rd_cons`, `stepAux_rd_nil`, `embeds`, `agree`, `eq_pst_of_agree`, `initList_pad`, `haltList_pad`; the derived instances `instDecidableEqPC`, `instFintypePC`, `instDecidableEqPK`, `instFintypePK`, `instDecidableEqCL`, `instFintypeCL`, `instDecidableEqPL`, `instFintypePL` (and the auto-generated `*.proxyType`, `*.enumList`, `*.ofNat`, `*.toCtorIdx`, …) |
+
+### 12.4 Things a reviewer should know
+
+1. **Route E, as decided in §4.12.** The counter sub-machine `cprog i c' d` is a program of A3's
+   counter view (`TM2.Stmt (SΓ PC) CL Bool`), and `cprog_run` is proved entirely with A3's
+   wrappers in the `st F o` view (`emitOut`, `emitS` ×3, `pow_run`, `xferES`, `emitOut`,
+   `drainS`), chained with `Bud` exactly as PvsNP's `cprog_run`; `pow_run` is used unchanged
+   with `b kc p q ad t := PC.b PC.kc PC.p PC.q PC.ad PC.t`, `mk := CL.pw`, `exit := .emitT`, its
+   nodup hypothesis by `decide`. The host runs it through `Emb.runLe_embed (E := padEmb) PL.cp`;
+   `padEmb` is `e := PK.cv`, `ι := fun _ => Equiv.refl _` (three one-line proofs: `embeds`,
+   `agree`, `eq_pst_of_agree`). The input stack `inp` is outside the image of `PK.cv`, so
+   `Emb.Frame` says it stays empty during the sub-run.
+2. **Global instances added: eight, all derived, on the four new inductive types**
+   `PC`, `PK`, `CL`, `PL` (`deriving DecidableEq, Fintype`, `Pad.lean` 66, 70, 79, 83). The
+   `DecidableEq` instances are unavoidable (`Function.update` and `TM2.stepAux` need them, and
+   `FinTM2.kDecidableEq` is a field); the `Fintype` instances fill the `FinTM2` fields `kFin`
+   and `ΛFin`. No earlier module can see them (new types), confirmed by the olean hashes. No
+   `@[simp]`, `attribute`, `set_option`, macro, syntax, elaborator or `#eval`; the one linter
+   warning that appeared (`unnecessarySeqFocus`, a `<;>` with a single surviving goal) was
+   fixed by restructuring the tactic, not silenced. The one new `abbrev` is `PΓ`.
+3. **The state type is `Bool`**, forced because `Emb.mapS` keeps the state type and the counter
+   view is over `Bool`. So the copy loop cannot encode "popped nothing" in the state as
+   `Sep.revTM` (state `Option _`) does; it peeks first and branches (`rdStmt`), the pattern of
+   PvsNP's `rdT`. One `TM2.step` per bit; the exit step takes the state to `false`, which is
+   what `haltList` demands (`initialState = false`), and every later phase ends in `false`.
+4. **`padB` does not depend on `i`**: the constant block `1^i 0` is one `emitR`, one step. The
+   degree in `n` is `d + 1` for `d ≥ 1` (from `powB d 1 (n + c')`), and `padB_poly` is proved by
+   the `IsPoly` closure lemmas, whose `fun n => f n + g n` shapes unify with the unfolded
+   `padB`/`powB` by higher-order pattern unification (as PvsNP `gB_poly`).
+5. **Tooling notes.** (a) `update_pst_c` did not fire as a `simp only` lemma in
+   `stepAux_rd_cons`, with or without a type ascription on its `cnt () n`: the goal's `cnt`
+   lives at the type `PΓ (PK.cv (SK.c PC.b))`, an `abbrev` applied to a constructor, which
+   `simp`'s reducible unifier does not identify with `SΓ PC (SK.c PC.b)`; `rw [update_pst_c]`
+   closes the goal. (b) `rintro l l' n rfl rfl hn` on `l = w` with both sides variables
+   substitutes away the right-hand `w`, so the body refers to `l` (`pad_run i c' d l`).
+   (c) `Run.single` takes a `TM2.stepAux` equation and `Run.head` a `TM2.step` equation; the
+   copy-loop induction uses `Run.head` with `simp only [TM2.step, pprog, stepAux_rd_cons]`.
+   (d) `initList_pad`/`haltList_pad` are `congr 1; funext k; rcases k …; rfl`, as
+   `Sep.initList_eq` and PvsNP `initList_full`; the derived `DecidableEq` reduces on
+   constructors.
+6. **The port is verbatim**, `logs/session6-port-diff.txt`: `diff` of `Pad.lean` 39–57 against
+   PvsNP `Pre.lean` 717–735 is empty (`IsPoly` and five lemmas, 13 non-blank lines). `IsPoly` is
+   placed in namespace `Relativization` (PvsNP: `PvsNP.Pre`). `eval_le_pow` (A5) is not yet
+   ported.
+7. **`eq_`-named declaration and the audit.** `Pad.eq_pst_of_agree` is classed auxiliary by the
+   audit rule (§11.4 item 5) and is absent from the generated `#print axioms` file; it is
+   printed in the supplement appended to the same log (§12.5 (b)). The named count 110 excludes
+   it.
+8. **Where `Classical.choice` enters A4.** `padTM`, `pad_run`, `cprog_run`, `rd_run`,
+   `padB_poly` and `padComputable` carry the three; `padFun`, `padB`, `rep_singleton` only
+   `[propext]`; `cprog`, `padEmb`, `rdStmt` none. The audit log has every constant's list.
+9. **Not done, by instruction:** A5, A6, T5–T8. PLAN §6.12 has the exact remaining work.
+
+### 12.5 Check outputs
+
+Full logs are in `logs/`: `session6-axioms-all.txt`, `session6-print-axioms.txt`,
+`session6-build.txt`, `session6-scan.txt`, `session6-olean-before.txt`,
+`session6-olean-after.txt`, `session6-port-diff.txt`. The audit scripts are outside the
+repository (scratchpad).
+
+**(a) Every constant, read-only audit** (`Lean.collectAxioms` over every constant whose module
+is `Relativization*`, as in sessions 1–5). Last lines of `logs/session6-axioms-all.txt`:
+
+```
+TOTAL constants in Relativization modules: 1610 (694 named, 916 auxiliary)
+named in new modules (Pad): 110
+UNION of axioms used: #[propext, Classical.choice, Quot.sound]
+CONSTANTS using anything outside [propext, Classical.choice, Quot.sound]: #[]
+```
+
+Per module: 341 constants in `Pad` (`grep -c "^Relativization.Pad "` on the log).
+
+**(b) Literal `#print axioms` on each of the 110 named declarations of the new module, plus
+the one `eq_`-named declaration** (`logs/session6-print-axioms.txt`, 110 + 1 output lines,
+0 errors, both `exit: 0`). Distribution of the 110 (`sed -E "s/^'[^']*' //" | sort | uniq -c`):
+
+```
+     18 depends on axioms: [propext, Classical.choice, Quot.sound]
+      7 depends on axioms: [propext, Quot.sound]
+     10 depends on axioms: [propext]
+      2 depends on axioms: [Quot.sound]
+     74 does not depend on any axioms
+```
+
+`grep -c sorryAx` on both logs prints `0` and `0`. The results of §12.2:
+
+```
+'Relativization.padFun' depends on axioms: [propext]
+'Relativization.IsPoly' depends on axioms: [propext, Quot.sound]
+'Relativization.Pad.cprog' does not depend on any axioms
+'Relativization.Pad.padEmb' does not depend on any axioms
+'Relativization.Pad.pprog' depends on axioms: [Quot.sound]
+'Relativization.Pad.padTM' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.padB' depends on axioms: [propext]
+'Relativization.Pad.rep_singleton' depends on axioms: [propext]
+'Relativization.Pad.cprog_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.rd_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.embeds' depends on axioms: [Quot.sound]
+'Relativization.Pad.agree' depends on axioms: [propext, Quot.sound]
+'Relativization.Pad.pad_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.padB_poly' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Pad.padComputable' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+and the supplement:
+
+```
+== supplement: the new declaration whose name starts with eq_ (classed auxiliary by the audit rule) ==
+'Relativization.Pad.eq_pst_of_agree' depends on axioms: [propext, Quot.sound]
+exit: 0
+```
+
+**(c) Banned-token scan** over `Relativization.lean` and `Relativization/*.lean`, the same three
+scans as §7.5 (c) (`logs/session6-scan.txt`):
+
+```
+== banned tokens (whole word) in project Lean sources ==
+grep exit: 1 (1 = no match)
+== metaprogramming / environment-modifying markers ==
+Relativization/Pad.lean:66:  deriving DecidableEq, Fintype
+Relativization/Pad.lean:70:  deriving DecidableEq, Fintype
+Relativization/Pad.lean:79:  deriving DecidableEq, Fintype
+Relativization/Pad.lean:83:  deriving DecidableEq, Fintype
+grep exit: 0
+== opaque / unsafeCast / debug markers ==
+grep exit: 1
+```
+
+(the fifteen hits of §11.5 (c) in earlier files are unchanged and omitted here; the four
+`Pad.lean` lines are §12.4 item 2).
+
+**(d) `lake build`**, after deleting this project's own build artifacts
+(`.lake/build/lib/lean/Relativization*`, `.lake/build/ir/Relativization*`) so that every module
+was recompiled (`logs/session6-build.txt`; `grep -c -i -E "warning|error"` on it prints `0`;
+`grep -c "Built Relativization"` prints `20`, the nineteen modules and the root):
+
+```
+✔ [1338/1340] Built Relativization.Stage (19s)
+✔ [1339/1340] Built Relativization (13s)
+Build completed successfully (1340 jobs).
+
+real	2m33.866s
+user	0m0.015s
+sys	0m0.000s
+exit: 0
+```
+
+The single-file check `lake env lean Relativization/Pad.lean` prints nothing (exit 0, about
+21 s).
+
+**(e) Earlier modules elaborate unchanged.** SHA-256 of each session 1–5 `.olean` before any
+change of this session (`logs/session6-olean-before.txt`) and after the from-scratch rebuild
+with the new module present (`logs/session6-olean-after.txt`):
+
+```
+== olean hashes: earlier modules, before vs after the from-scratch rebuild ==
+*Classes.olean SAME 43f4554b909236c7463f66a59da5add30adb3f4084b8e48de414a2381efe3896
+*Codes.olean SAME c5e2c117e4ebe67f687ef83b1d8d2573830c2ad11aeb4b589ea22c352fd1bb8e
+*Comp.olean SAME c560c3c025efabecdee7f093bf9946eaf00f2e9cfa03fd52ce3836bea892daf8
+*Count.olean SAME 3221435b3f6dad351b0e01a73d991c923b6e25a3ee05ca4c4077825178625568
+*Countable.olean SAME d4012351737c0774a51826920bd5e637f07d5c135cc3b929966dc5d08aa6e351
+*Counter.olean SAME 0e1120a345818dfe98fdec7c43a9c0ea4c5e35e03d1d76b1f59588b01a11d6fc
+*Emb.olean SAME 7203cedb57039239eb3735ee203b3d00d4b141f5e6974c8f1bbda90077a0b42f
+*Frame.olean SAME 07be8f33280c713459299e3942a46a5695c7c61173af4b5cc506f7f81fce0382
+*Halt.olean SAME bbec64145c811dcfdf6c5f1be0683a461b4c9478cf354a31201ecda23db125b5
+*Normal.olean SAME 292ec4f641ebb808ff8e37075405b7dea60e9f5ae22bf307e2a8b327de47c0a3
+*Oracle.olean SAME aba34f40f7e4fc0812b4a80bc0a42d472770e255cd15ff572793f04a5f8751da
+*Plain.olean SAME 538a20892c70be803e666d35140c75b811aca5ba27aa95032ef8ac94dc690561
+*Prog.olean SAME 9f91d8f0624f08e0a079ce2712a2bd5ec7f5d67053fa115d27386cc3a7b3ff7b
+*Queries.olean SAME 55dd84a847e3354d80daf7abe0563cc75fe312bd57ce7cc790c6a5dfdc58b7da
+*Self.olean SAME 2a154bef41f5362745a35ac188e0624a5afe435ffd3a9df2bad3f959aa019753
+*Sep.olean SAME b004c415b234932d33d7025328c104416eb924f01af127fc757bbe872dc72280
+*Stage.olean SAME ddb07f381ae1823929f6b436b631bea29cd76e27762072058fbe49242581761b
+*Univ.olean SAME 764ce3af55c8fd6bd56c16f1e848abff8cb19541e398c8a99c19849247480cb5
+new module:
+a893514d9d9a7b9ee198efefd4a46a9bc59129eb29f5f01884c43c5670167c6f *Pad.olean
+```
+
+(The first fifteen values are those of `logs/session5-olean-after.txt`; the three of
+`Counter`, `Frame`, `Univ` are new in the "before" file, taken before any change of this
+session.)
 
 `lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).

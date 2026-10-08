@@ -1,0 +1,26 @@
+✔ [1320/1340] Built Relativization.Frame (19s)
+✔ [1321/1340] Built Relativization.Countable (23s)
+✔ [1322/1340] Built Relativization.Count (24s)
+✔ [1323/1340] Built Relativization.Oracle (24s)
+✔ [1324/1340] Built Relativization.Queries (27s)
+✔ [1325/1340] Built Relativization.Normal (30s)
+✔ [1326/1340] Built Relativization.Classes (31s)
+✔ [1327/1340] Built Relativization.Halt (31s)
+✔ [1328/1340] Built Relativization.Prog (32s)
+✔ [1329/1340] Built Relativization.Plain (32s)
+✔ [1330/1340] Built Relativization.Codes (32s)
+✔ [1331/1340] Built Relativization.Self (33s)
+✔ [1332/1340] Built Relativization.Comp (33s)
+✔ [1333/1340] Built Relativization.Emb (44s)
+✔ [1334/1340] Built Relativization.Counter (45s)
+✔ [1335/1340] Built Relativization.Univ (23s)
+✔ [1336/1340] Built Relativization.Sep (24s)
+✔ [1337/1340] Built Relativization.Pad (24s)
+✔ [1338/1340] Built Relativization.Stage (19s)
+✔ [1339/1340] Built Relativization (13s)
+Build completed successfully (1340 jobs).
+
+real	2m33.866s
+user	0m0.015s
+sys	0m0.000s
+exit: 0

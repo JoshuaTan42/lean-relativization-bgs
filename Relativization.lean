@@ -16,6 +16,7 @@ import Relativization.Stage
 import Relativization.Frame
 import Relativization.Univ
 import Relativization.Counter
+import Relativization.Pad
 
 /-!
 # Baker-Gill-Solovay
@@ -62,6 +63,12 @@ Session 5 (the collapse oracle):
   `x ∈ A ↔ Phi A x` and its uniqueness (A2);
 * `Relativization.Counter`: the counter view of `TM2` machines and the unary power loop, ported
   from PvsNP (A3).
+
+Session 6 (the pad machine):
+
+* `Relativization.Pad`: `padFun i c' d w = frame i ((|w| + c')^d) w.reverse` and the plain
+  polynomial-time machine computing it, `Pad.padComputable` (A4), built from the copy loop, the
+  counter view and the power loop embedded into the host with `Emb.runLe_embed`.
 
 See `NOTES.md` for statements, the lemma table and check outputs; `PLAN.md` for the plan.
 -/

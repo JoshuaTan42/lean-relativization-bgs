@@ -998,6 +998,110 @@ polynomial bound (`eval_le_pow`, 30 lines in PvsNP `Pkg.lean`, to be ported).
     Proposition 5 is vacuous there, while the length-form bound `μ_i(n) ≤ |x|` is false for
     small `T`. The sharp form L4'/L6' is what is used, as the plan said.
 
+### 6.12 Revision after session 6 (2026-10-08)
+
+**Done in session 6:** A4, complete in one session (the schedule in §6.11 allowed two). The
+design decision was recorded first (NOTES §4.12: route E, embed the counter sub-machine into a
+host with an input stack through `Emb.runLe_embed`; route V, an input stack in the counter view,
+assessed and not taken), then `padFun`, the machine `Pad.padTM`, its run `Pad.pad_run`
+(correctness and the time bound `padB` in one `RunLe`), `IsPoly` (ported) and
+`Pad.padComputable : TM2ComputableInPolyTime … (padFun i c' d)`. No session 1–5 definition
+changed (olean hashes, NOTES §12.5 (e)). Nothing of A5, A6 or T5–T8 was started, by the
+session brief. Details and check outputs: `NOTES.md` §4.12 and §12.
+
+**Actual against estimate** (non-blank lines; file headers and docstrings included):
+
+| Plan item | Estimated | Actual | Where | Note |
+|---|---|---|---|---|
+| A4: types, programs, machine, bound | — | 61 (+28 header) | `Pad.lean` `[DEF]` | `PC`, `PK`, `PΓ`, `CL`, `PL`, `cprog`, `padEmb`, `rdStmt`, `pprog`, `padTM`, `padB` |
+| A4: counter sub-run | — | 47 | `[CNT]` | `cprog_run`, with `F0`–`F3`, `cB`, `rep_singleton`; `pow_run` reused unchanged |
+| A4: copy loop | — | 67 | `[RD]` | `pst`, four `update_pst_*`, two step lemmas, `rd_run` |
+| A4: embedding, whole run | — | 14 + 42 | `[EMB]`, `[RUN]` | `embeds`, `agree`, `eq_pst_of_agree`; `initList_pad`, `haltList_pad`, `pad_run` |
+| A4: polynomial, packaging | — | 14 + 30 | `[POLY]`, `[PKG]` | `IsPoly` (13 verbatim), `padB_poly`, `padComputable` |
+| **A4** | **550** | **303** | `Pad.lean` (363 lines) | **0.55×**; 290 new, 13 ported |
+| Root module | 0 | 5 | `Relativization.lean` | |
+| **Session total** | **550** | **308** | | 0.56 of estimate |
+
+Revised blocks (non-blank lines written so far: 2,999 + 295 = 3,294 new; 1,270 + 13 = 1,283
+ported verbatim):
+
+| Block | Original | Revised | Reason |
+|---|---|---|---|
+| Definitions | 200 | 216 done | unchanged |
+| Foundation F1–F9 | 1,100 | 1,077 done | complete |
+| Normal form N1–N4 | 650–850 | 647 done | complete |
+| Program library (oracle layer) | 0 | 142 done | NOTES §4.8 |
+| Query set, L4' | 0 | 66 done | NOTES §4.10 |
+| Separation B1–B6 | 970 | 472 done | complete (T6 is one line in the assembly) |
+| Collapse A1–A3 | 680 | 617 done | complete |
+| Collapse A4 | 550 | 303 done | **complete**; route E; the §7 risk "`pad` on the counter view" is retired |
+| Collapse A5–A6 | 380 | 380 | A5 300 (30 of them `eval_le_pow`, ported), A6 80; unchanged |
+| Main | 20 | 20 | |
+| **Total new or ported** | **4,500–4,800** | **about 4,050–4,150** | 3,644 non-blank written (3,294 new, 350 ported in this row; the 933 of `Prog`/`Emb` are in the next row) |
+| Verbatim copies (`Prog`, `Emb`, counter view, `IsPoly`) | 980 | 1,283 | done |
+
+Finished repository: 5,419 lines (4,576 non-blank) after session 6. Remaining: A5–A6
+(estimate 380) and the assembly (20), about 480 lines with headers, so about 5,900 lines in
+all; the range **5,500 to 6,500 lines** is unchanged, now at its lower half.
+
+**Exact remaining work for T7** (brief item 3), all in one new file `Relativization/Collapse.lean`
+unless the brief for session 7 says otherwise:
+
+1. Port `eval_le_pow` and `pow_weaken` from PvsNP `Pkg.lean` 391–416 (`eval_mono` already exists
+   as `Comp.eval_mono`): `∃ c e, 1 ≤ c ∧ ∀ j, p.eval j ≤ (j + c)^e`. About 30 lines, verbatim.
+2. The exponent pair: for the verifier code `i` and its polynomial `p`, apply `eval_le_pow` to
+   `q := X + 1 + X^(vEnum i).k + C ((Univ.M i).depth + 1) * p.comp (X + 1 + X^(vEnum i).k)` to
+   get `c', d` with `(n + c')^d ≥ Univ.mu i n + ((Univ.M i).depth + 1) * p.eval (Univ.mu i n)`.
+   The budget lemma `p.eval (Univ.mu i n) ≤ Univ.budget i ((n + c')^d) n`
+   (`Nat.le_div_iff_mul_le`). About 40 lines.
+3. From N4v' (`exists_vcode_of_verifier h k`) with `O := univOracle`, for every `w` and every
+   `y` with `|y| ≤ |w|^k`: `M_i^A` outputs `[outE.symm (f (w, y))]` on `Univ.input i w (y.map ρ)`
+   within `p.eval (|w| + 1 + |y|) ≤ p.eval (μ_i |w|) ≤ budget` (time weakening of
+   `OTM2OutputsInTime`, `eval_mono`). Then F4' (unique output, session 2) turns "outputs
+   `[f(w,y)]` within the budget" into "outputs `[true]` within the budget ↔ `f (w, y) = true`".
+   About 60 lines.
+4. `Univ.Acc univOracle i ((|w| + c')^d) w.reverse ↔ ∃ y : List Γ₁, |y| ≤ |w|^k ∧ f (w, y) = true`
+   (certificates transported along `ρ : Γ₁ ≃ Fin g_i`, `List.length_map`,
+   `List.reverse_reverse`). About 50 lines.
+5. **A5**, the reduction: `L w ↔ padFun i c' d w ∈ univOracle` from (†) `Univ.mem_univOracle`,
+   `Univ.Phi_frame`, items 3–4 and `InNP`'s two clauses. About 40 lines.
+6. **A6 / T5**: `L ∈ P^A` from `oracleComp univOracle (Pad.padComputable i c' d) hg` with
+   `⟨g, hg, hgA⟩ := oracle_inP univOracle` (T3) and `fun w => g (padFun i c' d w)`; with T4
+   (`inP_subset_inNP`), `PEqNP univOracle`. About 60 lines.
+7. **T6**: `¬ PEqNP sepOracle` is `sepOracle_not_pEqNP` (session 4), one line. **T7**: the
+   conjunction of T5 and T6 as stated in §6.2. About 20 lines, with the root-module entry.
+
+**Sessions.**
+
+| Session | Content |
+|---|---|
+| 1 (done) | Q1; D1–D3; F1–F3, F5–F9; `P ⊆ P^A` |
+| 2 (done) | F4; D4; N1–N4; D6 decided |
+| 3 (done) | copy `Prog`/`Emb` (+ oracle layer); B1, B2 |
+| 4 (done) | B3–B6 (`sepOracle_not_pEqNP`; T6 pending assembly) |
+| 5 (done) | A1–A3; (†) `Univ.mem_univOracle` proved |
+| 6 (done) | A4 complete (`Pad.padComputable`), route E; one session instead of two |
+| 7 | A5 (items 1–5 above), A6, T5, T6, T7: **T5, T6 and T7 done** |
+| 8 | Red-team pass, axiom audit, `leanchecker --fresh`, README |
+| 9–10 | Stretch: T8 |
+
+Eight sessions for T7, as the §6.11 schedule said, now at the lower end of its "8 to 10";
+two more for T8. The remaining uncertainty is A5's item 3 (the time weakening and F4' in the
+exact `OTM2OutputsInTime` form), estimated above at 60 lines; the machine-building risk of the
+collapse half is gone.
+
+**Corrections to earlier sections of this plan, found in session 6.**
+
+20. §6.4 A4 "550 lines" and §7 "the least certain machine estimate": 303 non-blank lines, in one
+    session. The host-side bookkeeping (copy loop, embedding, `initList`/`haltList`) was 123
+    lines and the counter arithmetic 47; `pow_run` was reused unchanged, and nothing in the
+    counter view had to be generalised.
+21. §6.11 scheduled A4 over sessions 6–7. It is done in session 6; the former session 8 content
+    moves to session 7 and the schedule shortens by one session.
+22. §7 "`pad` on the counter view" is retired: NOTES §4.12 records both routes and the choice of
+    route E (embedding), and §12 the result. The time bound `padB c' d n` does not depend on
+    `i`, so the polynomial of `padComputable` is the same for all codes with the same `c', d`.
+
 ## 7. Risks and open points
 
 - **Faithfulness of option H.** The "one oracle bit per step" convention is equivalent to the
@@ -1009,7 +1113,8 @@ polynomial bound (`eval_le_pow`, 30 lines in PvsNP `Pkg.lean`, to be ported).
   injection; the 80 lines assume the latter.
 - **`pad` on the counter view.** PvsNP's counter view has an output stack and counters but no input
   stack; `pad` needs one, either by extending the stack type or by embedding. Included in A4's
-  estimate, but it is the least certain machine estimate.
+  estimate, but it is the least certain machine estimate. **Retired in session 6:** embedding
+  (route E), NOTES §4.12 and §12; 303 lines against the estimate of 550.
 - **Certificate bound `|y| ≤ |w|^k`** is inherited from the Clay formulation, including its
   behaviour on inputs of length 0 and 1. The separating language uses `k = 1`, where it is exact.
 - **Prior work could appear.** PleaNP is active and has BGS as a stated goal.

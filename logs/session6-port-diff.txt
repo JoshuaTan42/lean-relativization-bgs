@@ -1,0 +1,2 @@
+== diff: D:/PvsNP/Pre.lean lines 717-735 ([POLY] IsPoly) vs Relativization/Pad.lean lines 39-57 ==
+diff exit: 0 (0 = identical)
