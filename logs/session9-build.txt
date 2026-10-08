@@ -1,0 +1,31 @@
+Thu Oct  8 18:52:12 AUSEST 2026
+$ lake build   (after deleting .lake/build/lib/lean/Relativization* and .lake/build/ir/Relativization*)
+✔ [1320/1342] Built Relativization.Frame (18s)
+✔ [1321/1342] Built Relativization.Countable (22s)
+✔ [1322/1342] Built Relativization.Count (23s)
+✔ [1323/1342] Built Relativization.Oracle (24s)
+✔ [1324/1342] Built Relativization.Halt (25s)
+✔ [1325/1342] Built Relativization.Normal (28s)
+✔ [1326/1342] Built Relativization.Classes (29s)
+✔ [1327/1342] Built Relativization.Queries (29s)
+✔ [1328/1342] Built Relativization.Prog (29s)
+✔ [1329/1342] Built Relativization.Codes (30s)
+✔ [1330/1342] Built Relativization.Plain (31s)
+✔ [1331/1342] Built Relativization.Self (31s)
+✔ [1332/1342] Built Relativization.Comp (31s)
+✔ [1333/1342] Built Relativization.Emb (41s)
+✔ [1334/1342] Built Relativization.Counter (42s)
+✔ [1335/1342] Built Relativization.Univ (25s)
+✔ [1336/1342] Built Relativization.Sep (23s)
+✔ [1337/1342] Built Relativization.Pad (24s)
+✔ [1338/1342] Built Relativization.Stage (21s)
+✔ [1339/1342] Built Relativization.Collapse (17s)
+✔ [1340/1342] Built Relativization.BakerGillSolovay (12s)
+✔ [1341/1342] Built Relativization (12s)
+Build completed successfully (1342 jobs).
+
+real	2m48.178s
+user	0m0.015s
+sys	0m0.031s
+exit: 0
+Thu Oct  8 18:55:00 AUSEST 2026

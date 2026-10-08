@@ -4,7 +4,8 @@ Status: plan approved 2026-10-07 with decisions Q1 (yes), Q2/Q3 (yes, with condi
 first). Session 1 (foundations and faithfulness checks) and session 2 (normal form N1–N4, unique
 output F4) are done; see §6.7 and §6.8 for the revised estimates and for corrections to this
 plan, and `NOTES.md` for statements, proofs and check outputs.
-Nothing is committed.
+(Session 9: sessions 1 to 8 are done and committed; T7 is proved; the latest revision is §6.13
+with the corrections that follow it. The status lines above are from session 2.)
 
 Target: there is an oracle `A` with `P^A = NP^A` and an oracle `B` with `P^B ≠ NP^B`,
 on Mathlib's `FinTM2` machine model, with relativized classes that reduce to the
@@ -692,7 +693,9 @@ these supersede it.
 2. §4.1 ("I have not traced a citation") and §7 ("the cheap oracle is not the textbook one"):
    the self-referential oracle is reported to be Theorem 1 of Baker-Gill-Solovay 1975 itself
    (`A = K(A)`); the PSPACE-complete oracle is their Theorem 2. **Unconfirmed**: the paper has
-   not yet been checked by the author; citation and its provenance: NOTES §6. It also means §2.4 item 3 should claim a formalisation of the original first
+   not yet been checked by the author; citation and its provenance: NOTES §6. (Session 9: the
+   session-8 red-team reviewer read the paper from a scanned copy and confirmed this, with
+   `univOracle` a variant of the Theorem 1 oracle; `REDTEAM.md` §6.) It also means §2.4 item 3 should claim a formalisation of the original first
    proof, not a new route.
 3. §4.1, definition of `A` (D6) — **approved 2026-10-07 and now written into §4.1**: step budget
    `⌊(T ∸ (n + 1 + n^k)) / (D + 1)⌋` instead of `T`, where `D` is the depth of the coded
@@ -1193,6 +1196,30 @@ Seven sessions for T7, one fewer than the §6.12 schedule's eight and at the bot
     NOTES §4.13 (difference 3); the other differences from the textbook statement (machine
     model, binary alphabet, Clay form of `NP`, step count, non-constructive witnesses,
     universe) are listed there for the red-team pass.
+
+**Corrections from the session-8 red-team review (`REDTEAM.md`), applied in session 9.**
+
+27. Correction 25 above, "Lean 4 ships no `leanchecker`; the external checker is
+    `lean4checker`": wrong. The pinned toolchain `v4.31.0` ships `leanchecker`
+    (`bin/leanchecker.exe`), which `lake env leanchecker` runs with no lakefile change.
+    Session 8 ran it per module and with `--fresh Relativization` and
+    `--fresh Relativization.BakerGillSolovay`, all exit 0 (`REDTEAM.md` §3). The last
+    acceptance condition of §6.2 for T7 is therefore met. `leanchecker` re-runs Lean's own
+    kernel; it is not an independent implementation (`REDTEAM.md` F5).
+28. NOTES §4.13 difference 6 said the textbook construction is "also non-effective". Wrong: BGS
+    construct recursive oracles, and note that their `A` is decidable in exponential time
+    (`REDTEAM.md` F1, §6). Corrected in NOTES §4.13. Nothing in this repository proves that
+    `univOracle` or `sepOracle` is decidable, so the Lean theorem is Theorems 1 and 3 as
+    printed, not the abstract's recursive-oracle statement.
+29. NOTES §4.13 "Nothing else differs": two differences were missing, `NP^A` by verifiers rather
+    than nondeterministic machines, and the polynomial bound required only under the given
+    oracle rather than under every oracle (`REDTEAM.md` F2). Added there as differences 7
+    and 8. §3.3's "`P^A` and `NP^A` are unchanged" is a paper argument, as §7 (first risk)
+    says; it is not formalised.
+30. Sessions table of §6.13: the README was not written in session 8 (the red-team pass); it is
+    session 9, which is packaging only (README, DEFINITIONS, LICENSE, documentation fixes; no
+    Lean file changed). The stretch target T8 of §6.3 (`ClassEquality` form) is **not** done;
+    the theorem is for binary languages only (`REDTEAM.md` F3).
 
 ## 7. Risks and open points
 

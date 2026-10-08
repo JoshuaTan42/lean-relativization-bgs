@@ -4,7 +4,9 @@ Working notes. `PLAN.md` holds the approved plan; this file holds the statements
 paper proofs, the lemma table and the check outputs.
 
 Status legend: **stated** = written here, no Lean proof; **proved** = Lean proof compiled and
-axiom-checked (output quoted in §7, §8, §9 or §10). Nothing is committed.
+axiom-checked (output quoted in §7 to §13). Sessions 1 to 8 are committed (session 8, the
+red-team review, is `REDTEAM.md`); the session-9 corrections are marked "session 9" where they
+are made.
 
 Contents: §1 setup record · §2 definitions · §3 target statements · §4 statements for sessions 1 to 7 ·
 §5 paper proof of the collapse oracle · §6 literature · §7 lemma table and checks (session 1) ·
@@ -1652,6 +1654,9 @@ same type `Oracle` in both conjuncts, so "`P^A = NP^A`" and "`P^B ≠ NP^B`" are
 3. **The collapse oracle is not PSPACE-complete.** `univOracle` is the self-referential oracle
    of D6; the textbook takes a PSPACE-complete `A`. The statement `∃ A, PEqNP A` does not say
    which `A` (PLAN §7, second risk), so it is the textbook statement; only the witness differs.
+   (Session 9, after `REDTEAM.md` §6 and F7: the witness is a variant of the oracle `A = K(A)`
+   of BGS Theorem 1, with frames and a step budget; the PSPACE-complete oracle is their
+   Theorem 2. "The textbook statement" holds up to recursiveness, item 6.)
 4. **Definition of `NP`.** The certificate bound is `|y| ≤ |w|^k` with `0^0 = 1`; the verifier
    must run in polynomial time on **all** pairs `w#y`, not only on short certificates; and the
    certificate relation `R` is an arbitrary `Prop`-valued relation that the `InP` clause
@@ -1664,13 +1669,32 @@ same type `Oracle` in both conjuncts, so "`P^A = NP^A`" and "`P^B ≠ NP^B`" are
 6. **Existence, not construction.** `∃ A` and `∃ B` are `Prop`-level existentials; the
    witnesses are explicit sets but `noncomputable` (they use the enumerations `vEnum`, `dEnum`
    of codes, which are `Classical.choose` of countability, and `sepOracle` chooses its free
-   strings with `Classical.choose`). This is no weaker than the textbook, whose construction
-   is also non-effective, but a reviewer should not expect to evaluate either oracle.
-7. **`Type`, not `Type u`.** Alphabets, certificate alphabets and oracle machines live in
+   strings with `Classical.choose`). A reviewer should not expect to evaluate either oracle.
+   **This is weaker than the paper** (corrected in session 9 after `REDTEAM.md` F1 and §6; the
+   session-7 text said "This is no weaker than the textbook, whose construction is also
+   non-effective", which is wrong). Baker, Gill and Solovay construct *recursive* oracles. Their
+   abstract says "We construct a recursive set A such that P^A = NP^A. On the other hand, we
+   construct a recursive set B such that P^B ≠ NP^B" (p. 431), and the remarks after Theorem 1
+   say that the oracle A "can be recognized deterministically in exponential time" (p. 434),
+   as read by the red-team reviewer from a scanned copy. The Lean statement has no
+   decidability clause, and nothing in this development proves that `univOracle` or
+   `sepOracle` is decidable. The Lean statement matches Theorems 1 and 3 as printed (pp. 434,
+   436), which do not mention recursiveness; it does not give the abstract's recursive-oracle
+   statement.
+7. **Verifiers, not nondeterministic machines** (added in session 9, `REDTEAM.md` F2). BGS
+   define `NP^X` by nondeterministic oracle machines (p. 432); here `NP^A` is the verifier form
+   of item 7 of the reading above. That the two definitions give the same class is the standard
+   relativizing certificate argument, on paper only.
+8. **Clock under the given oracle only** (added in session 9, `REDTEAM.md` F2). BGS require the
+   polynomial bound "whatever oracle X is used" (p. 432); `OTM2ComputableInPolyTime A` requires
+   it only under `A`. The classes agree by clocking, on paper only.
+9. **`Type`, not `Type u`.** Alphabets, certificate alphabets and oracle machines live in
    `Type` (universe 0), as in `Millennium`; the languages are `List Bool → Prop`. No loss for
-   the theorem, which concerns finite alphabets.
+   the theorem, which concerns finite alphabets. (Numbered 7 in session 7; renumbered when
+   items 7 and 8 were added in session 9.)
 
-Nothing else differs: no hypothesis on the oracles, no restriction on the languages, no
+Nothing else differs (items 7 and 8 were missing from this list in session 7; `REDTEAM.md` §1c
+and §1d list every difference the reviewer found): no hypothesis on the oracles, no restriction on the languages, no
 `Decidable` or `Fintype` assumption beyond the finiteness of the certificate alphabet that
 `Millennium` itself imposes, and no axiom beyond the three.
 
@@ -1942,6 +1966,13 @@ so **I have not seen the quoted text with my own tools.** Quotes below are as re
 subagent; page numbers are its. Treat the citation as found and the exact wording as unconfirmed
 until someone opens the paper.
 
+**Update (session 9).** The session-8 red-team reviewer read pages 431–437 of the scanned copy
+at the URL below and confirms the quotes of Lemma 1 and of the proof of Theorem 1, and the
+remark of pp. 436–437 (`REDTEAM.md` §6, `logs/redteam-6-literature.txt`). That copy is from a
+course site; nobody has compared it with SIAM's own copy. The reviewer also found that the
+paper constructs *recursive* oracles, which the Lean statement does not claim (§4.13
+difference 6). The other sources below are still as relayed by the subagent.
+
 **Result: a published source exists, and it is the original paper.**
 
 * **T. Baker, J. Gill, R. Solovay, "Relativizations of the P =? NP question", SIAM J. Comput.
@@ -1974,7 +2005,8 @@ until someone opens the paper.
 
 **Consequences for this project.**
 
-1. The oracle of §5 is the Baker-Gill-Solovay Theorem 1 oracle (`A = K(A)`), not a new one.
+1. The oracle of §5 is the Baker-Gill-Solovay Theorem 1 oracle (`A = K(A)`), not a new one
+   (more exactly a variant of it, item 3 below and `REDTEAM.md` F7).
    PLAN §4.1 ("I have not traced a citation") and PLAN §7 ("the cheap oracle is not the textbook
    one") are out of date: it is not the usual textbook oracle, but it is the original paper's
    first one.
@@ -3439,7 +3471,8 @@ audit are exactly the 18 lines of the `#print axioms` file, so no supplement is 
    proofs.
 8. **Not run:** `lake env leanchecker --fresh` (the acceptance check of PLAN §6.2 scheduled
    for the session-8 red-team pass, PLAN §6.12). **Not done, by instruction:** T8 and the
-   red-team pass.
+   red-team pass. (Session 9: the session-8 red-team pass ran `leanchecker` per module and with
+   `--fresh`, all exit 0, `REDTEAM.md` §3.)
 
 ### 13.5 Check outputs
 

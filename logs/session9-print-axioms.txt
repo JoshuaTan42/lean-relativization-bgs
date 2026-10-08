@@ -1,0 +1,11 @@
+Thu Oct  8 18:55:08 AUSEST 2026
+$ cat Check.lean
+import Relativization
+#print axioms Relativization.baker_gill_solovay
+#print axioms Relativization.collapse
+#print axioms Relativization.separation
+$ lake env lean Check.lean
+'Relativization.baker_gill_solovay' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.collapse' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.separation' depends on axioms: [propext, Classical.choice, Quot.sound]
+exit: 0
