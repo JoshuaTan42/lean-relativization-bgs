@@ -17,6 +17,8 @@ import Relativization.Frame
 import Relativization.Univ
 import Relativization.Counter
 import Relativization.Pad
+import Relativization.Collapse
+import Relativization.BakerGillSolovay
 
 /-!
 # Baker-Gill-Solovay
@@ -69,6 +71,15 @@ Session 6 (the pad machine):
 * `Relativization.Pad`: `padFun i c' d w = frame i ((|w| + c')^d) w.reverse` and the plain
   polynomial-time machine computing it, `Pad.padComputable` (A4), built from the copy loop, the
   counter view and the power loop embedded into the host with `Emb.runLe_embed`.
+
+Session 7 (the collapse, and the theorem):
+
+* `Relativization.Collapse`: `eval_le_pow` (ported from PvsNP), the exponent pair and the budget
+  bound, the reduction `L w ↔ padFun i c' d w ∈ univOracle` for `L ∈ NP^univOracle`
+  (`exists_pad_reduction`, A5), and `PEqNP univOracle` (`univOracle_pEqNP`, A6);
+* `Relativization.BakerGillSolovay`: `collapse` (T5), `separation` (T6) and
+  `baker_gill_solovay` (T7): there is an oracle `A` with `P^A = NP^A` and an oracle `B` with
+  `P^B ≠ NP^B`.
 
 See `NOTES.md` for statements, the lemma table and check outputs; `PLAN.md` for the plan.
 -/

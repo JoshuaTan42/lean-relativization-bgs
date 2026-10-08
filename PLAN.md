@@ -1102,6 +1102,98 @@ collapse half is gone.
     route E (embedding), and §12 the result. The time bound `padB c' d n` does not depend on
     `i`, so the polynomial of `padComputable` is the same for all codes with the same `c', d`.
 
+### 6.13 Revision after session 7 (2026-10-08)
+
+**Done in session 7:** A5, A6, T5, T6 and **T7**, the main theorem, as scheduled in §6.12. The
+statements, their plain-language reading in terms of `Classes.lean`, their (empty) hypothesis
+lists and what makes them weaker than or different from the textbook theorem were written
+first (NOTES §4.13), then `eval_le_pow` was ported verbatim, the exponent pair and the budget
+bound proved, the reduction `exists_pad_reduction` (A5), `inNP_subset_inP` and
+`univOracle_pEqNP` (A6) in `Relativization/Collapse.lean`, and `collapse`, `separation`,
+`baker_gill_solovay` in `Relativization/BakerGillSolovay.lean`. `#print axioms
+baker_gill_solovay` prints `[propext, Classical.choice, Quot.sound]`. No session 1–6
+definition changed (olean hashes, NOTES §13.5 (e)); no global instance was added. T8 and the
+red-team pass were not started, by the session brief. Details and check outputs: NOTES §4.13
+and §13.
+
+**Actual against estimate** (non-blank lines; file headers and docstrings included):
+
+| Plan item | Estimated | Actual | Where | Note |
+|---|---|---|---|---|
+| `eval_le_pow` (ported) | 30 | 26 (25 verbatim + section line) | `Collapse.lean` `[POLY]` | `pow_weaken`, `eval_le_pow` |
+| A5: time weakening | — | 7 | `[TIME]` | `OTM2OutputsInTime.mono` |
+| A5: exponent pair, budget (§6.12 item 2, 40) | 40 | 25 | `[EXP]` | `muPoly`, `padPoly`, `exists_exponents`, `eval_le_budget` |
+| A5: pad in `A` (item 4, 50) | 50 | 16 | `[ACC]` | `Acc_reverse`, `padFun_mem_iff` |
+| A5: items 3 and 5 (60 + 40) | 100 | 44 | `[RED]` | `exists_pad_reduction`, items 3–5 in one proof |
+| A5 header | — | 20 | `Collapse.lean` | |
+| **A5** | **300** | **138** | `Collapse.lean` 1–166 | **0.46×**; 113 new, 25 ported |
+| **A6** | **80** | **18** | `[COL]` | `inP_of_pad_reduction`, `inNP_subset_inP`, `univOracle_pEqNP`; 0.23× |
+| **T5, T6, T7** | **20** | **25** | `BakerGillSolovay.lean` | three one-line proofs with docstrings and header |
+| Root module | 0 | 9 | `Relativization.lean` | |
+| **Session total** | **400** | **190** | | 0.48 of estimate; 165 new, 25 ported |
+
+Revised blocks (non-blank lines written so far: 3,294 + 165 = 3,459 new; 1,283 + 25 = 1,308
+ported verbatim):
+
+| Block | Original | Revised | Reason |
+|---|---|---|---|
+| Definitions | 200 | 216 done | unchanged |
+| Foundation F1–F9 | 1,100 | 1,077 done | complete |
+| Normal form N1–N4 | 650–850 | 647 done | complete |
+| Program library (oracle layer) | 0 | 142 done | NOTES §4.8 |
+| Query set, L4' | 0 | 66 done | NOTES §4.10 |
+| Separation B1–B6 | 970 | 472 done | complete |
+| Collapse A1–A3 | 680 | 617 done | complete |
+| Collapse A4 | 550 | 303 done | complete |
+| Collapse A5–A6 | 380 | 156 done | **complete**; A5 138 (25 ported), A6 18 |
+| Main | 20 | 25 done | **complete** (T5, T6, T7) |
+| **Total new or ported** | **4,500–4,800** | **3,721 done** | 3,834 non-blank written (3,459 new, 375 ported in this row; the 933 of `Prog`/`Emb` are in the next row); the repository measures 4,766 non-blank |
+| Verbatim copies (`Prog`, `Emb`, counter view, `IsPoly`, `eval_le_pow`) | 980 | 1,308 | done |
+
+Finished repository for T7: **5,652 lines (4,766 non-blank)**, 21 modules and the root, against
+the §6.6 expectation of 5,500 to 8,000 lines and the §6.12 estimate of about 5,900: at the
+bottom of the range. The sub-lemma estimates of §6.4 summed to 4,500–4,800 new-or-ported lines;
+the actual is 3,721 (0.8×), the machine-building items (A4, B1, F7) having come in at half their
+estimates and the assembly items (A6, T5–T7, B6) at a quarter.
+
+**Sessions.**
+
+| Session | Content |
+|---|---|
+| 1 (done) | Q1; D1–D3; F1–F3, F5–F9; `P ⊆ P^A` |
+| 2 (done) | F4; D4; N1–N4; D6 decided |
+| 3 (done) | copy `Prog`/`Emb` (+ oracle layer); B1, B2 |
+| 4 (done) | B3–B6 (`sepOracle_not_pEqNP`) |
+| 5 (done) | A1–A3; (†) `Univ.mem_univOracle` proved |
+| 6 (done) | A4 complete (`Pad.padComputable`), route E |
+| 7 (done) | A5, A6, **T5, T6, T7 done** |
+| 8 | Red-team pass on definitions and statements (NOTES §4.13 is the starting point), whole-environment axiom audit, `lake env leanchecker --fresh` (or `lean4checker`; the toolchain's availability of an external checker is to be established first), README |
+| 9–10 | Stretch: T8 (`ClassEquality` form, §6.3): the separation half is `alphabet := Bool`; the collapse half needs the pad to encode symbols as bit blocks and `univOracle` to decode them, or a `ClassEquality`-level transfer along a bijection of alphabets |
+
+Seven sessions for T7, one fewer than the §6.12 schedule's eight and at the bottom of §6.6's
+"plausibly 10 to 15"; one for the red-team pass; two more for T8.
+
+**Corrections to earlier sections of this plan, found in session 7.**
+
+23. §6.4 A5 "300 lines" and A6 "80 lines": 138 and 18 non-blank lines. §6.12's item-by-item
+    estimate (30 + 40 + 60 + 50 + 40 + 60 + 20 = 300 for items 1–7) was 190 in total; its
+    "remaining uncertainty", item 3 (the time weakening and F4' in the exact
+    `OTM2OutputsInTime` form, 60 lines), was 20 lines (`hout` and `hacc` inside
+    `exists_pad_reduction`) and raised no difficulty: `OTM2OutputsInTime.mono` is one line and
+    F4' applied as in `sepLang_not_inP`.
+24. §6.12 "all in one new file `Relativization/Collapse.lean`": two files, `Collapse.lean`
+    (items 1–6) and `BakerGillSolovay.lean` (item 7), so that the collapse half does not import
+    the separation half and the main theorem has a file of its own (NOTES §13.4 item 1).
+25. §6.2 "Acceptance for T7: … `lake env leanchecker --fresh` passes": the first two
+    acceptance conditions hold (NOTES §13.5 (a), (b), (d)); the external checker is the
+    session-8 item. Lean 4 ships no `leanchecker`; the external checker is `lean4checker`, a
+    separate package, and the session-8 brief should decide whether to add it (that would be a
+    lakefile change, rule 3) or to run it from a scratch checkout outside the repository.
+26. §7 "The cheap oracle is not the textbook one": now a theorem-level fact, recorded in
+    NOTES §4.13 (difference 3); the other differences from the textbook statement (machine
+    model, binary alphabet, Clay form of `NP`, step count, non-constructive witnesses,
+    universe) are listed there for the red-team pass.
+
 ## 7. Risks and open points
 
 - **Faithfulness of option H.** The "one oracle bit per step" convention is equivalent to the
@@ -1109,6 +1201,8 @@ collapse half is gone.
   unless a classical variant and a simulation are also formalised. Not in the estimate.
 - **The cheap oracle is not the textbook one.** T5 will be a theorem about `univOracle`, which is
   not PSPACE-complete in any formalised sense. The statement `∃ A, PEqNP A` is unaffected.
+  **Session 7:** T5 is `⟨univOracle, univOracle_pEqNP⟩`; NOTES §4.13 lists this with the other
+  differences from the textbook statement for the red-team pass.
 - **N1** may fall to `deriving instance Countable for Turing.TM2.Stmt`, or may need a hand-written
   injection; the 80 lines assume the latter.
 - **`pad` on the counter view.** PvsNP's counter view has an output stack and counters but no input

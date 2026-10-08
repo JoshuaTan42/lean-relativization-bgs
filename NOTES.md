@@ -6,9 +6,9 @@ paper proofs, the lemma table and the check outputs.
 Status legend: **stated** = written here, no Lean proof; **proved** = Lean proof compiled and
 axiom-checked (output quoted in §7, §8, §9 or §10). Nothing is committed.
 
-Contents: §1 setup record · §2 definitions · §3 target statements · §4 statements for sessions 1 to 4 ·
+Contents: §1 setup record · §2 definitions · §3 target statements · §4 statements for sessions 1 to 7 ·
 §5 paper proof of the collapse oracle · §6 literature · §7 lemma table and checks (session 1) ·
-§8 lemma table and checks (session 2) · §9 (session 3) · §10 (session 4).
+§8 lemma table and checks (session 2) · §9 (session 3) · §10 (session 4) · §11 (session 5) · §12 (session 6) · §13 (session 7).
 
 ---
 
@@ -206,11 +206,12 @@ pops and peeks).
     (∃ A : Oracle, ClassEquality A) ∧ (∃ B : Oracle, ¬ ClassEquality B)
 ```
 
-T5, T6, T7, T8 are **not** attempted this session.
+T5, T6, T7, T8 are **not** attempted this session. *(Session 7: T5, T6 and T7 are proved as
+stated here, `Relativization/BakerGillSolovay.lean`; §4.13 and §13. T8 is not attempted.)*
 
 ---
 
-## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2; §4.8–4.9 session 3; §4.10 session 4; §4.11 session 5; §4.12 session 6)
+## 4. Statements, written before the Lean proofs (§4.1–4.4 session 1; §4.5–4.7 session 2; §4.8–4.9 session 3; §4.10 session 4; §4.11 session 5; §4.12 session 6; §4.13 session 7)
 
 ### 4.1 Trivial oracle, binary alphabet (the form asked for in the session brief)
 
@@ -1409,6 +1410,269 @@ explicitly in every wrapper application (`(M := cprog i c' d)`, `(M := pprog i c
 `runLe_embed (E := padEmb) PL.cp …`, as §10.4 item 5 advises.
 
 Not done this session (by instruction): A5, A6, T5–T8. `eval_le_pow` is A5's.
+
+### 4.13 Statements for session 7: the reduction (A5), the collapse (A6), and T5–T7
+
+Written before any Lean. Plan items: PLAN §6.4 A5, A6 and "Main"; §6.2 T5, T6, T7; §6.12
+"Exact remaining work for T7", items 1–7. Everything below is in namespace `Relativization`.
+Items 1–6 (`eval_le_pow`, the exponent pair, the budget bound, the reduction, `NP^A ⊆ P^A`,
+`PEqNP univOracle`) go into a new file `Relativization/Collapse.lean`; the three final theorems
+T5, T6, T7 (item 7) into a second new file `Relativization/BakerGillSolovay.lean`, which imports
+`Collapse` and `Stage` and nothing else new. PLAN §6.12 put all seven items into
+`Collapse.lean`; the split keeps the collapse file independent of the separation half and puts
+the main theorem in a file a reviewer can read in one screen. Sessions 1–6 are not modified.
+Not done this session, by instruction: T8 and the red-team pass.
+
+**Plan forms, assessed** (brief item 2).
+
+* **A5**, PLAN §6.4: "Reduction is correct: `L w ↔ pad w ∈ univOracle` for
+  `L ∈ NP^univOracle`." True, and adequate once `pad` is made explicit: `pad` depends on `L`
+  through the code `i` of its verifier and the exponent pair `c', d` of the verifier's
+  polynomial, so the statement quantifies them existentially,
+  `∃ i c' d, ∀ w, L w ↔ padFun i c' d w ∈ univOracle`. Not false, not too weak: this is
+  exactly what A6 consumes, and `padFun i c' d` is the function A4 computes.
+* **A6**, PLAN §6.4: "T5", i.e. `∃ A, PEqNP A`. Adequate; proved through `PEqNP univOracle`
+  (`univOracle_pEqNP`), whose two directions are T4 (`inP_subset_inNP`, session 1) and
+  Theorem 7 of §5.7 (`inNP_subset_inP`, new, from A5 with F7, T3 and A4).
+* **T5, T6, T7**, PLAN §6.2 / NOTES §3: proved word for word as stated there. T7 is a
+  conjunction of two existentials about **the same** predicate `PEqNP : Oracle → Prop` of
+  `Classes.lean`, both oracles of the one type `Oracle := Set (List Bool)` (brief item 4); it is
+  not a conjunction of claims about two notions. T6 is `⟨sepOracle, sepOracle_not_pEqNP⟩` (B6,
+  session 4), as §10.4 item 8 anticipated.
+* **`eval_le_pow`**, PLAN §6.12 item 1: ported verbatim from PvsNP `Pkg.lean` 391–416
+  (`pow_weaken`, `eval_le_pow`); `eval_mono'` of that file is already `Comp.eval_mono`.
+
+**Statements, in the form the proofs use.**
+
+```lean
+/-- PvsNP `Pkg.pow_weaken`, `Pkg.eval_le_pow`, verbatim: every polynomial with natural
+coefficients is bounded by some `(j + c)^e` with `c ≥ 1`. -/
+theorem pow_weaken {j c e c' e' : ℕ} (hc : 1 ≤ c) (h1 : c ≤ c') (h2 : e ≤ e') :
+    (j + c) ^ e ≤ (j + c') ^ e'
+theorem eval_le_pow (p : Polynomial ℕ) : ∃ c e, 1 ≤ c ∧ ∀ j, p.eval j ≤ (j + c) ^ e
+
+/-- Time weakening: an output within `t` steps is an output within any `t' ≥ t`. -/
+def OTM2OutputsInTime.mono {A : Oracle} {tm : OracleFinTM2} {l : List (tm.Γ tm.k₀)}
+    {l' : Option (List (tm.Γ tm.k₁))} {t t' : ℕ} (h : OTM2OutputsInTime A tm l l' t)
+    (ht : t ≤ t') : OTM2OutputsInTime A tm l l' t'
+
+namespace Collapse
+/-- `μ_i` as a polynomial: `X + 1 + X^{k_i}`. -/
+noncomputable def muPoly (i : ℕ) : Polynomial ℕ := X + 1 + X ^ (vEnum i).k
+theorem muPoly_eval (i n : ℕ) : (muPoly i).eval n = Univ.mu i n
+/-- `μ_i + (D_i + 1) · (p ∘ μ_i)`: the polynomial `T` must dominate (§5.7). -/
+noncomputable def padPoly (i : ℕ) (p : Polynomial ℕ) : Polynomial ℕ :=
+  muPoly i + C ((Univ.M i).depth + 1) * p.comp (muPoly i)
+theorem padPoly_eval (i : ℕ) (p : Polynomial ℕ) (n : ℕ) :
+    (padPoly i p).eval n = Univ.mu i n + ((Univ.M i).depth + 1) * p.eval (Univ.mu i n)
+/-- The exponent pair (PLAN §6.12 item 2): `T(n) = (n + c')^d ≥ μ_i(n) + (D_i + 1) · p(μ_i(n))`. -/
+theorem exists_exponents (i : ℕ) (p : Polynomial ℕ) :
+    ∃ c' d : ℕ, ∀ n, Univ.mu i n + ((Univ.M i).depth + 1) * p.eval (Univ.mu i n) ≤ (n + c') ^ d
+/-- With such `c', d`, the budget of `frame i ((n + c')^d) v`, `|v| = n`, is at least `p(μ_i(n))`. -/
+theorem eval_le_budget {i c' d : ℕ} {p : Polynomial ℕ}
+    (hT : ∀ n, Univ.mu i n + ((Univ.M i).depth + 1) * p.eval (Univ.mu i n) ≤ (n + c') ^ d)
+    (n : ℕ) : p.eval (Univ.mu i n) ≤ Univ.budget i ((n + c') ^ d) n
+/-- `Acc` at a reversed string, the double reversal removed. -/
+theorem Acc_reverse (O : Oracle) (i T : ℕ) (w : List Bool) :
+    Univ.Acc O i T w.reverse ↔ ∃ y : List (Fin (vEnum i).g), y.length ≤ w.length ^ (vEnum i).k ∧
+      Nonempty (OTM2OutputsInTime O (Univ.M i) (Univ.input i w y)
+        (some [(vEnum i).outE.symm true]) (Univ.budget i T w.length))
+/-- Membership of the pad in `A`: (†) `Univ.mem_univOracle`, `Univ.Phi_frame`, `Acc_reverse`. -/
+theorem padFun_mem_iff (i c' d : ℕ) (w : List Bool) :
+    padFun i c' d w ∈ univOracle ↔ ∃ y : List (Fin (vEnum i).g),
+      y.length ≤ w.length ^ (vEnum i).k ∧
+      Nonempty (OTM2OutputsInTime univOracle (Univ.M i) (Univ.input i w y)
+        (some [(vEnum i).outE.symm true]) (Univ.budget i ((w.length + c') ^ d) w.length))
+end Collapse
+
+/-- **A5** (the claim of Theorem 7, §5.7). Every `L ∈ NP^A`, `A = univOracle`, is reduced to
+`A` by some pad. -/
+theorem exists_pad_reduction (L : Language (List Bool))
+    (hL : InNP univOracle (fin_encoding_string Bool) L) :
+    ∃ i c' d : ℕ, ∀ w, L w ↔ padFun i c' d w ∈ univOracle
+
+/-- A pad reduction puts `L` in `P^A`: the pad machine (A4) followed by the self-decider (T3),
+composed by F7. -/
+theorem inP_of_pad_reduction {L : Language (List Bool)} {i c' d : ℕ}
+    (h : ∀ w, L w ↔ padFun i c' d w ∈ univOracle) : InP univOracle (fin_encoding_string Bool) L
+
+/-- Theorem 7 of §5.7: `NP^A ⊆ P^A` for `A = univOracle`. -/
+theorem inNP_subset_inP (L : Language (List Bool)) :
+    InNP univOracle (fin_encoding_string Bool) L → InP univOracle (fin_encoding_string Bool) L
+
+/-- **A6.** `P^A = NP^A` for `A = univOracle`. -/
+theorem univOracle_pEqNP : PEqNP univOracle
+
+/-- **T5.** -/ theorem collapse : ∃ A : Oracle, PEqNP A
+/-- **T6.** -/ theorem separation : ∃ B : Oracle, ¬ PEqNP B
+/-- **T7.** -/ theorem baker_gill_solovay : (∃ A : Oracle, PEqNP A) ∧ (∃ B : Oracle, ¬ PEqNP B)
+```
+
+**Proof of A5, checked against the Lean definitions** (PLAN §6.12 items 3–5; §5.7).
+
+Unfold `InNP` (D3): `Γ₁` with `[Fintype Γ₁]`, `R : List Bool → List Γ₁ → Prop`, `k : ℕ`, the
+`InP` clause as `⟨f, h, hR⟩` with
+`h : OTM2ComputableInPolyTime univOracle (pair_encoding (fin_encoding_string Bool)
+(fin_encoding_string Γ₁)).encode finEncodingBoolBool.encode f` and
+`hR : ∀ p, R p.1 p.2 ↔ f p = true`; and `hLR : ∀ w, L w ↔ ∃ y, |y| ≤ |w|^k ∧ R w y`. N4v'
+(`exists_vcode_of_verifier h k`, §4.6) gives `i`, `ρ : Γ₁ ≃ Fin g_i`, `k_i = k` (which is
+substituted, `k := k_i`, everywhere) and `hsim`: for every oracle `O`, `w`, `y`, `b`, `t`,
+`h.tm^O` outputs `[b]` on `w#y` within `t` iff `M_i^O` outputs `[outE.symm b]` on
+`w#ρ(y)` within `t`. `exists_exponents i h.time` gives `c', d` with `hT`. Fix `w` and write
+`β := Univ.budget i ((|w| + c')^d) |w|`.
+
+*Item 3.* For `y : List Γ₁` with `|y| ≤ |w|^{k_i}`: `h.outputsFun (w, y)` is an output of
+`h.tm` under `univOracle` within `h.time.eval |w#y|`; `|w#y| = |w| + 1 + |y|`
+(`pair_encoding.length_eq`; both encodings are identities) `≤ μ_i(|w|)`, so by `Comp.eval_mono`
+and `eval_le_budget hT |w|` it is an output within `β` (`OTM2OutputsInTime.mono`).
+`hsim univOracle w y (f (w, y)) β` turns it into an output `[outE.symm (f (w, y))]` of `M_i`
+on `Univ.input i w (y.map ρ)` within `β` (`Univ.input` unfolds to N4v's right-hand input; `Univ.M`
+is an `abbrev`). F4' `OTM2OutputsInTime.bool_iff (tm := Univ.M i) (vEnum i).outE` then gives:
+`M_i` outputs `[outE.symm true]` on `Univ.input i w (y.map ρ)` within `β` iff `true = f (w, y)`
+iff `R w y` (by `hR (w, y)`, restated as `R w y ↔ f (w, y) = true` so that `rw` matches).
+
+*Items 4–5.* `padFun_mem_iff` and `hLR w` reduce `L w ↔ padFun i c' d w ∈ univOracle` to
+
+`(∃ y' : List (Fin g_i), |y'| ≤ |w|^{k_i} ∧ M_i outputs [outE.symm true] on Univ.input i w y'
+within β) ↔ (∃ y : List Γ₁, |y| ≤ |w|^{k_i} ∧ R w y)`.
+
+`→`: given `y'`, take `y := y'.map ρ.symm`; `|y| = |y'|` (`List.length_map`) and
+`(y'.map ρ.symm).map ρ = y'` (`List.map_map`, `Equiv.self_comp_symm`, `List.map_id`), then
+item 3. `←`: given `y`, take `y' := y.map ρ` and item 3.
+
+Where each hypothesis is used: (c) of §5.7 is `h.outputsFun`, available for all `(w, y)` and
+used only at `|y| ≤ |w|^{k_i}`; `k_i = k` compares the certificate bound of `Acc` with that of
+`InNP`; `ρ` is a bijection so that lengths are preserved and the existential transports both
+ways. Nothing is needed about `A` beyond (†) (`Univ.mem_univOracle`, inside `padFun_mem_iff`),
+with `A = univOracle` on both sides, as §5.7 says; the budget enters only through
+`eval_le_budget`, and `D_i` only through `padPoly`.
+
+**A6.** `inP_of_pad_reduction`: `⟨g, hg, hgA⟩ := oracle_inP univOracle` (T3); the decider is
+`g ∘ padFun i c' d` with the machine `oracleComp univOracle (Pad.padComputable i c' d) hg`
+(F7 on A4; `eβ := (fin_encoding_string Bool).encode` on both sides of the composition, as A4
+was stated for) and `L w ↔ padFun i c' d w ∈ A ↔ g (padFun i c' d w) = true`.
+`inNP_subset_inP` composes it with A5; `univOracle_pEqNP L := ⟨inP_subset_inNP univOracle
+Bool L, inNP_subset_inP L⟩` (T4 at `alphabet := Bool`; its `[Nontrivial Bool]` is Mathlib's
+instance).
+
+**T5, T6, T7.** `collapse := ⟨univOracle, univOracle_pEqNP⟩`;
+`separation := ⟨sepOracle, sepOracle_not_pEqNP⟩`; `baker_gill_solovay := ⟨collapse, separation⟩`.
+
+**The final results, read in plain language** (brief item 1b). The three statements, exactly as
+they will appear in `Relativization/BakerGillSolovay.lean`:
+
+```lean
+theorem collapse : ∃ A : Oracle, PEqNP A
+theorem separation : ∃ B : Oracle, ¬ PEqNP B
+theorem baker_gill_solovay : (∃ A : Oracle, PEqNP A) ∧ (∃ B : Oracle, ¬ PEqNP B)
+```
+
+*Hypotheses.* **None.** Each is a closed proposition: no variables, no instance arguments, no
+section variables, no hypothesis on the oracles or on the languages, and (to be confirmed by
+`#print axioms`, §13.5) no axiom beyond `propext`, `Classical.choice`, `Quot.sound`. The
+witnesses are the explicit sets `univOracle` (D6, §4.11) and `sepOracle` (B4, §4.10). For the
+record, the hypotheses of the intermediate results: A5 has `L : Language (List Bool)` and
+`hL : InNP univOracle (fin_encoding_string Bool) L`; `inP_of_pad_reduction` has `L`, `i c' d`
+and `∀ w, L w ↔ padFun i c' d w ∈ univOracle`; `inNP_subset_inP` has `L`; `univOracle_pEqNP`
+has none.
+
+*What the words mean*, unfolding `Relativization/Classes.lean` (D3) and `Oracle.lean` (D1, D2),
+§2:
+
+1. **Oracle.** `Oracle := Set (List Bool)`: an oracle is any set of finite binary strings, a
+   classical set whose membership need not be decidable (`OracleFinTM2.step` reads the oracle's
+   answer as a `Bool` through `Classical.propDecidable`).
+2. **Oracle machine.** `OracleFinTM2` is Mathlib's `FinTM2` (a stack machine: a finite set `K`
+   of stacks, stack `k` holding symbols of a type `Γ k`, finitely many labels `Λ`, finitely many
+   internal states `σ`, an input stack `k₀` with finite alphabet, an output stack `k₁`) plus a
+   query stack `kq` whose alphabet is in bijection with `Bool`, and a program
+   `m : Λ → Bool → TM2.Stmt Γ Λ σ`. One step from a live configuration with label `l` reads the
+   bit `b := decide (query c ∈ A)`, where `query c` is the content of the query stack, top first,
+   read as bits, and executes the whole statement `m l b` (a finite tree of `push`, `pop`,
+   `peek`, `load`, `branch`, ending in `goto` or `halt`). So the oracle is consulted at every
+   step, at no cost, on the current query string; a halted configuration has no successor. The
+   alphabets of the working stacks are arbitrary types, as in `FinTM2`.
+3. **Running in time.** `OTM2OutputsInTime A tm l l' t`: iterating `tm.step A` from the initial
+   configuration on `l` (label `main`, initial state, `l` on the input stack, every other stack
+   empty) reaches, after some `s ≤ t` steps, the halting configuration with output `l'` (no
+   label, initial state, `l'` on the output stack, every other stack empty). One step is one
+   executed statement, however many symbols it pushes.
+4. **Polynomial-time computable.** `OTM2ComputableInPolyTime A ea eb f`: a machine `tm`,
+   bijections `tm.Γ tm.k₀ ≃ αΓ` and `tm.Γ tm.k₁ ≃ βΓ` between its input and output alphabets
+   and the encoding alphabets, a polynomial `time : Polynomial ℕ` (natural coefficients), and
+   for every `a` a run of `tm` with oracle `A` from `ea a` (transported to `tm`'s alphabet) to
+   `eb (f a)` within `time.eval (ea a).length` steps.
+5. **Encodings.** `fin_encoding_string Bool` is the identity encoding of binary strings
+   (alphabet `Bool`, `encode := id`): a binary string is its own code, of length `|w|`.
+   `finEncodingBoolBool` encodes `b : Bool` as the one-symbol string `[b]`.
+   `pair_encoding (fin_encoding_string Bool) (fin_encoding_string Γ₁)` encodes a pair `(w, y)` as
+   Cook's `w#y`: alphabet `Bool ⊕ Option Γ₁` (`{0,1} ⊔ {#} ⊔ Γ₁`), code
+   `w.map inl ++ inr none :: y.map (inr ∘ some)`, of length `|w| + 1 + |y|`.
+6. **`P^A`.** `InP A (fin_encoding_string Bool) L`: there are a function `f : List Bool → Bool`
+   and a polynomial-time oracle machine (item 4) with oracle `A`, input alphabet `≃ Bool`,
+   output alphabet `≃ Bool`, computing `f` on every binary string `w` within its polynomial of
+   `|w|`, with `∀ w, L w ↔ f w = true`.
+7. **`NP^A`.** `InNP A (fin_encoding_string Bool) L`: there are a finite certificate alphabet
+   `Γ₁ : Type`, a relation `R : List Bool → List Γ₁ → Prop` and an exponent `k : ℕ` such that
+   (i) the pair language `{(w, y) | R w y}` is in `P^A` under the pair encoding of item 5, i.e.
+   a polynomial-time oracle machine with oracle `A` and input alphabet `≃ Bool ⊕ Option Γ₁`
+   decides `R w y` on **every** `w#y` within its polynomial of `|w| + 1 + |y|`; and
+   (ii) `∀ w, L w ↔ ∃ y : List Γ₁, |y| ≤ |w|^k ∧ R w y`.
+8. **`PEqNP A`.** For every `L : Language (List Bool)`, i.e. every predicate `List Bool → Prop`
+   on binary strings (every language, decidable or not; a language in neither class satisfies
+   the biconditional vacuously), `InP A (fin_encoding_string Bool) L ↔ InNP A
+   (fin_encoding_string Bool) L`.
+
+So `collapse` says: *there is a set `A` of binary strings such that, for every language `L` of
+binary strings, `L` is decided by a polynomial-time TM2 oracle machine with oracle `A` if and
+only if `L` has a polynomially bounded certificate relation decided by a polynomial-time TM2
+oracle machine with oracle `A`.* `separation` says: *there is a set `B` of binary strings and
+a language `L` of binary strings for which that equivalence fails* (the proof exhibits
+`L = sepLang B ∈ NP^B ∖ P^B`; the statement itself only says that the biconditional is not
+true of every `L`). `baker_gill_solovay` is their conjunction, with the same `PEqNP` and the
+same type `Oracle` in both conjuncts, so "`P^A = NP^A`" and "`P^B ≠ NP^B`" are one notion of
+`P^X` and one of `NP^X` evaluated at two oracles.
+
+*What makes the Lean statement weaker than, or different from, the textbook theorem.*
+
+1. **Machine model.** `P^A` and `NP^A` are defined on Mathlib's `TM2` stack machines with the
+   oracle read through a query stack and one oracle bit per step (PLAN §3, option H), not on
+   multi-tape oracle Turing machines with a query tape and query state. The equivalence of
+   the two relativized classes is a paper argument and is not formalised (PLAN §7, first
+   risk). What **is** formalised is that at `A = ∅` the classes are exactly
+   `Millennium.InPolynomialTime` and `Millennium.InNondeterministicPolynomialTime` (T1, T2,
+   session 1), the definitions of `P` and `NP` in the LeanMillenniumPrizeProblems formulation
+   of the Clay problem; the relativized definitions are those, word for word, with an oracle
+   machine in place of a plain one (§2).
+2. **Binary alphabet only.** `PEqNP A` quantifies over languages of binary strings. The Clay
+   form `ClassEquality A` (every finite alphabet with at least two symbols) is T8, the stretch
+   target, not done: `¬ ClassEquality B` would follow from `¬ PEqNP B` by taking
+   `alphabet := Bool`, but `ClassEquality univOracle` needs the pad to encode symbols as bit
+   blocks (PLAN §6.3).
+3. **The collapse oracle is not PSPACE-complete.** `univOracle` is the self-referential oracle
+   of D6; the textbook takes a PSPACE-complete `A`. The statement `∃ A, PEqNP A` does not say
+   which `A` (PLAN §7, second risk), so it is the textbook statement; only the witness differs.
+4. **Definition of `NP`.** The certificate bound is `|y| ≤ |w|^k` with `0^0 = 1`; the verifier
+   must run in polynomial time on **all** pairs `w#y`, not only on short certificates; and the
+   certificate relation `R` is an arbitrary `Prop`-valued relation that the `InP` clause
+   requires to be decided (`R w y ↔ f (w, y) = true`). All three are inherited from
+   `Millennium.InNondeterministicPolynomialTime` (PLAN §7, "certificate bound").
+5. **"Polynomial time"** means at most `p(|input|)` steps for a polynomial `p` with natural
+   coefficients, the input length being that of the encoded input (`|w|` for a string,
+   `|w| + 1 + |y|` for a pair), one step executing one whole statement of the program (which
+   may push several symbols; that is why the depth `D_i` appears in D6).
+6. **Existence, not construction.** `∃ A` and `∃ B` are `Prop`-level existentials; the
+   witnesses are explicit sets but `noncomputable` (they use the enumerations `vEnum`, `dEnum`
+   of codes, which are `Classical.choose` of countability, and `sepOracle` chooses its free
+   strings with `Classical.choose`). This is no weaker than the textbook, whose construction
+   is also non-effective, but a reviewer should not expect to evaluate either oracle.
+7. **`Type`, not `Type u`.** Alphabets, certificate alphabets and oracle machines live in
+   `Type` (universe 0), as in `Millennium`; the languages are `List Bool → Prop`. No loss for
+   the theorem, which concerns finite alphabets.
+
+Nothing else differs: no hypothesis on the oracles, no restriction on the languages, no
+`Decidable` or `Fintype` assumption beyond the finiteness of the certificate alphabet that
+`Millennium` itself imposes, and no axiom beyond the three.
 
 ---
 ## 5. Paper proof: the self-referential oracle is well defined and gives `P^A = NP^A`
@@ -3058,3 +3322,247 @@ a893514d9d9a7b9ee198efefd4a46a9bc59129eb29f5f01884c43c5670167c6f *Pad.olean
 session.)
 
 `lake env leanchecker --fresh` was not run this session (it is an acceptance check for T7).
+
+---
+
+## 13. Lemma table and checks (session 7, 2026-10-08)
+
+### 13.1 Files
+
+| File | Lines (non-blank) | Content |
+|---|---|---|
+| `Relativization/Collapse.lean` | 189 (156) | `[POLY]` `pow_weaken`, `eval_le_pow`, verbatim from PvsNP (32–57); `[TIME]` `OTM2OutputsInTime.mono` (59–67); `[EXP]` `Collapse.muPoly`, `muPoly_eval`, `padPoly`, `padPoly_eval`, `exists_exponents`, `eval_le_budget` (69–99); `[ACC]` `Collapse.Acc_reverse`, `padFun_mem_iff` (101–120); `[RED]` A5 `exists_pad_reduction` (122–166); `[COL]` `inP_of_pad_reduction`, `inNP_subset_inP`, A6 `univOracle_pEqNP` (168–187) |
+| `Relativization/BakerGillSolovay.lean` | 33 (25) | T5 `collapse` (21), T6 `separation` (25), T7 `baker_gill_solovay` (30) |
+| `Relativization.lean` | 85 (69) | imports (+2 lines), docstring (+9 lines, 7 non-blank) |
+| **Session 7 total** | **222 (181) in the two new files; 190 non-blank with the root module: 25 verbatim, 165 new** | |
+| **Repository total** | **5,652 (4,766)** | 1,642 constants: 712 named, 930 auxiliary (same classification as sessions 2–6: 694 + 18 = 712) |
+
+Session 1–6 files are unchanged (byte for byte; the `.olean` of each of the nineteen earlier
+modules has the same SHA-256 before any change of this session and after the from-scratch
+rebuild, §13.5 (e)). `D:\PvsNP` was opened read-only (`sed`, `diff`); nothing there was
+written. Per section of `Collapse.lean` (non-blank): header 20, `[POLY]` 26, `[TIME]` 7,
+`[EXP]` 25, `[ACC]` 16, `[RED]` 44, `[COL]` 18.
+
+### 13.2 Results asked for in the session brief
+
+All **proved**. Axioms are from the literal `#print axioms` output in §13.5.
+
+| Id | Lean name | File:line | Statement | Differences from §4.13 as first written | Axioms |
+|---|---|---|---|---|---|
+| port | `pow_weaken`, `eval_le_pow` | Collapse:32, 36 | `∃ c e, 1 ≤ c ∧ ∀ j, p.eval j ≤ (j + c)^e` | none (verbatim) | `[propext, Quot.sound]`; the three |
+| A5, time | `OTM2OutputsInTime.mono` | Collapse:62 | an output within `t` is an output within `t' ≥ t` | none | the three |
+| A5, polynomial | `Collapse.muPoly`, `muPoly_eval`, `padPoly`, `padPoly_eval` | Collapse:72, 74, 78, 81 | `μ_i` and `μ_i + (D_i + 1) · (p ∘ μ_i)` as polynomials, with their evaluations | none | the three |
+| A5, exponents | `Collapse.exists_exponents` | Collapse:86 | `∃ c' d, ∀ n, μ_i(n) + (D_i + 1) · p(μ_i(n)) ≤ (n + c')^d` | none | the three |
+| A5, budget | `Collapse.eval_le_budget` | Collapse:94 | with such `c', d`: `p(μ_i(n)) ≤ budget i ((n + c')^d) n` | none | the three |
+| A5, pad in `A` | `Collapse.Acc_reverse`, `padFun_mem_iff` | Collapse:104, 111 | `padFun i c' d w ∈ A ↔ ∃ y, |y| ≤ |w|^{k_i} ∧ M_i^A outputs [true] on w#y within the budget` | none | the three |
+| **A5** | **`exists_pad_reduction`** | **Collapse:126** | **`L ∈ NP^A → ∃ i c' d, ∀ w, L w ↔ padFun i c' d w ∈ univOracle`** | none | the three |
+| A6, composition | `inP_of_pad_reduction` | Collapse:172 | a pad reduction puts `L` in `P^A` (A4, T3, F7) | none | the three |
+| A6, Theorem 7 | `inNP_subset_inP` | Collapse:180 | `NP^A ⊆ P^A` for `A = univOracle` | none | the three |
+| **A6** | **`univOracle_pEqNP`** | **Collapse:186** | **`PEqNP univOracle`** | none | the three |
+| **T5** | **`collapse`** | **BakerGillSolovay:21** | **`∃ A : Oracle, PEqNP A`** | none | the three |
+| **T6** | **`separation`** | **BakerGillSolovay:25** | **`∃ B : Oracle, ¬ PEqNP B`** | none | the three |
+| **T7** | **`baker_gill_solovay`** | **BakerGillSolovay:30** | **`(∃ A : Oracle, PEqNP A) ∧ (∃ B : Oracle, ¬ PEqNP B)`** | none | the three |
+
+"The three" = `[propext, Classical.choice, Quot.sound]`.
+
+**Plan forms, assessed** (brief item 2): recorded in §4.13 before the proofs. A5 was true and
+adequate once `pad` was made explicit (the existential over `i c' d`); A6 adequate; T5, T6, T7
+proved word for word as in PLAN §6.2 and §3. No statement turned out false or too weak. The
+§4.13 proof sketch was followed step by step; the only departure is a tooling one (§13.4
+item 3). No session 1–6 definition was changed, no hypothesis beyond §4.13 was needed, and no
+global instance was added.
+
+**T7 against brief item 4.** `baker_gill_solovay` is a conjunction of two existentials over the
+one type `Oracle := Set (List Bool)` about the one predicate `PEqNP : Oracle → Prop` of
+`Relativization/Classes.lean` (D3), which is `InP A (fin_encoding_string Bool) L ↔ InNP A
+(fin_encoding_string Bool) L` for every `L`. The collapse half uses `PEqNP univOracle`
+(`univOracle_pEqNP`) and the separation half `¬ PEqNP sepOracle` (`sepOracle_not_pEqNP`,
+session 4); both go through the same `InP` and `InNP`.
+
+### 13.3 Supporting declarations (all proved; names as in the files)
+
+| File | Declarations |
+|---|---|
+| Collapse (verbatim) | `pow_weaken`, `eval_le_pow` |
+| Collapse (new) | `OTM2OutputsInTime.mono`, `Collapse.muPoly`, `muPoly_eval`, `padPoly`, `padPoly_eval`, `exists_exponents`, `eval_le_budget`, `Acc_reverse`, `padFun_mem_iff`, `inP_of_pad_reduction`, `inNP_subset_inP` |
+
+No `eq_`-named declaration and no `def mk` this session: the 18 named declarations of the
+audit are exactly the 18 lines of the `#print axioms` file, so no supplement is needed.
+
+### 13.4 Things a reviewer should know
+
+1. **Two files, not one.** PLAN §6.12 scheduled items 1–7 for one file `Collapse.lean`;
+   `Collapse.lean` holds items 1–6 (the collapse half, importing `Univ`, `Pad`, `Halt`, `Self`,
+   `Comp`, nothing from the separation half) and `BakerGillSolovay.lean` holds item 7, the
+   three final theorems, importing `Collapse` and `Stage`. The main theorem is thus in a
+   33-line file whose only content is T5, T6, T7 and their docstrings; its proof terms are the
+   three anonymous constructors of §4.13.
+2. **Where the §5.7 hypotheses are used in `exists_pad_reduction`.** `k_i = k` from N4v' is
+   `subst`ed (so `k` becomes `(vEnum i).k` everywhere, including in `hLR`); the verifier's
+   output `h.outputsFun (w, y)` is used only for `|y| ≤ |w|^{k_i}` and is weakened from
+   `h.time.eval (|w| + 1 + |y|)` to the budget by `Comp.eval_mono` (through `μ_i(|w|)`),
+   `eval_le_budget` and `OTM2OutputsInTime.mono`; the machine is named explicitly in F4',
+   `OTM2OutputsInTime.bool_iff (tm := Univ.M i) (vEnum i).outE hB true` (§10.4 item 5). The
+   certificate is transported along `ρ` by hand (`List.length_map` for the bound,
+   `List.map_map`, `Equiv.self_comp_symm`, `List.map_id` for `(y'.map ρ.symm).map ρ = y'`).
+   (†) enters once, inside `padFun_mem_iff`, with `univOracle` on both sides.
+3. **Hidden implicit type, once more** (§7.4 item 7, §11.4 item 7). After `rw [hLR w]` the
+   certificate bound reads `((fin_encoding_string Bool).encode w).length ^ k_i`, whose
+   `List.length` is at the type `(fin_encoding_string Bool).Γ`; the `simpa using hy` steps then
+   failed with "Type mismatch: After simplification" on two visually identical types. Fix:
+   restate the clause at type `Bool` first, `have hLR' : L w ↔ ∃ y : List Γ₁, y.length ≤
+   w.length ^ (vEnum i).k ∧ R w y := hLR w` (defeq at default transparency), and rewrite
+   with `hLR'`. Likewise `hR (w, y) : R (w, y).1 (w, y).2 ↔ …` is restated as
+   `hR' : R w y ↔ f (w, y) = true` so that `rw` finds `R w y`. The `|w#y|` bound is
+   `(pair_encoding.length_eq _ _ _).le.trans` followed by `show w.length + 1 + y.length ≤ _`,
+   as `Univ.input_length` was proved (§11.4 item 7).
+4. **The budget arithmetic** (`eval_le_budget`) is `Nat.le_div_iff_mul_le`, `mul_comm` and
+   `Nat.le_sub_of_add_le' : m + n ≤ k → n ≤ k - m` (Lean core), no `omega` on products:
+   from `μ + (D + 1) · P ≤ T` to `P · (D + 1) ≤ T ∸ μ` to `P ≤ (T ∸ μ) / (D + 1)`.
+5. **Global instances added: none.** No `instance`, `deriving`, `attribute`, `@[simp]`,
+   `@[reducible]`, `set_option`, macro, syntax, elaborator or `#eval` in either new file
+   (§13.5 (c): the marker scan has no hit in them). No new `abbrev`. `OTM2OutputsInTime.mono`
+   is a `def` because `OTM2OutputsInTime` is a `Type` (a structure), as `OutputsInTime.congr`
+   is; `muPoly` and `padPoly` are `noncomputable` (they mention `vEnum`). `open Polynomial` is
+   used for `X` and `C`.
+6. **The port is verbatim**, `logs/session7-port-diff.txt`: `diff` of `Collapse.lean` 32–57
+   against PvsNP `Pkg.lean` 391–416 is empty (`pow_weaken`, `eval_le_pow`; 25 non-blank
+   lines). `eval_mono'` of that file (`Pkg.lean` 384–389) is `Comp.eval_mono` (session 1), used
+   here as such. The port needs `ring`, available through `Pad`'s import closure
+   (`Mathlib.Tactic.Linarith`, §11.4 item 4).
+7. **What T5 proves about the oracle.** `collapse` is `⟨univOracle, univOracle_pEqNP⟩`, so the
+   collapse oracle is the explicit D6 set and the theorem `PEqNP univOracle` is available on
+   its own; likewise `¬ PEqNP sepOracle`. The reading of the final statements in terms of
+   `Classes.lean`, and the list of what makes them weaker than or different from the textbook
+   theorem (machine model, binary alphabet, the particular oracle, the Clay form of `NP`, the
+   step count, non-constructive witnesses, universe `Type`), is §4.13 and is unchanged by the
+   proofs.
+8. **Not run:** `lake env leanchecker --fresh` (the acceptance check of PLAN §6.2 scheduled
+   for the session-8 red-team pass, PLAN §6.12). **Not done, by instruction:** T8 and the
+   red-team pass.
+
+### 13.5 Check outputs
+
+Full logs are in `logs/`: `session7-axioms-all.txt`, `session7-print-axioms.txt`,
+`session7-build.txt`, `session7-scan.txt`, `session7-olean-before.txt`,
+`session7-olean-after.txt`, `session7-port-diff.txt`. The audit scripts are outside the
+repository (scratchpad).
+
+**(a) Every constant, read-only audit** (`Lean.collectAxioms` over every constant whose module
+is `Relativization*`, as in sessions 1–6). Last lines of `logs/session7-axioms-all.txt`:
+
+```
+TOTAL constants in Relativization modules: 1642 (712 named, 930 auxiliary)
+named in new modules (Collapse, BakerGillSolovay): 18
+UNION of axioms used: #[propext, Classical.choice, Quot.sound]
+CONSTANTS using anything outside [propext, Classical.choice, Quot.sound]: #[]
+```
+
+Per module: 29 constants in `Collapse`, 3 in `BakerGillSolovay` (`grep -c` on the log). The
+run printed `audit done: 1642 constants, 712 named, 18 named in new modules` and exited 0.
+
+**(b) Literal `#print axioms` on each of the 18 named declarations of the new modules**
+(`logs/session7-print-axioms.txt`, 18 output lines, 0 errors, `exit: 0`). Distribution
+(`sed -E "s/^'[^']*' //" | sort | uniq -c`):
+
+```
+     17 depends on axioms: [propext, Classical.choice, Quot.sound]
+      1 depends on axioms: [propext, Quot.sound]
+```
+
+`grep -c sorryAx` on both logs prints `0` and `0`. The whole file:
+
+```
+'Relativization.Collapse.Acc_reverse' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.eval_le_budget' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.exists_exponents' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.muPoly' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.muPoly_eval' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.padFun_mem_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.padPoly' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.Collapse.padPoly_eval' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.OTM2OutputsInTime.mono' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.baker_gill_solovay' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.collapse' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.eval_le_pow' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.exists_pad_reduction' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inNP_subset_inP' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.inP_of_pad_reduction' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.pow_weaken' depends on axioms: [propext, Quot.sound]
+'Relativization.separation' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Relativization.univOracle_pEqNP' depends on axioms: [propext, Classical.choice, Quot.sound]
+exit: 0
+```
+
+**(c) Banned-token scan** over `Relativization.lean` and `Relativization/*.lean`, the same three
+scans as §7.5 (c) (`logs/session7-scan.txt`):
+
+```
+== banned tokens (whole word) in project Lean sources ==
+grep exit: 1 (1 = no match)
+== metaprogramming / environment-modifying markers ==
+grep exit: 0
+== opaque / unsafeCast / debug markers ==
+grep exit: 1
+```
+
+The marker scan's hits are the nineteen lines of §11.5 (c) and §12.5 (c) in earlier files,
+unchanged and omitted here; **no line of `Collapse.lean` or `BakerGillSolovay.lean` is a hit**
+(`grep -c "Collapse\|BakerGillSolovay" logs/session7-scan.txt` prints `0`).
+
+**(d) `lake build`**, after deleting this project's own build artifacts
+(`.lake/build/lib/lean/Relativization*`, `.lake/build/ir/Relativization*`) so that every module
+was recompiled (`logs/session7-build.txt`; `grep -c -i -E "warning|error"` on it prints
+`0`; `grep -c "Built Relativization"` prints `22`, the twenty-one modules
+and the root):
+
+```
+✔ [1339/1342] Built Relativization.Collapse (34s)
+✔ [1340/1342] Built Relativization.BakerGillSolovay (24s)
+✔ [1341/1342] Built Relativization (25s)
+Build completed successfully (1342 jobs).
+
+real	6m57.649s
+user	0m0.031s
+sys	0m0.062s
+exit: 0
+```
+
+The single-file checks `lake env lean Relativization/Collapse.lean` and
+`lake env lean Relativization/BakerGillSolovay.lean` print nothing (exit 0, about 68 s and
+27 s).
+
+**(e) Earlier modules elaborate unchanged.** SHA-256 of each session 1–6 `.olean` before any
+change of this session (`logs/session7-olean-before.txt`) and after the from-scratch rebuild
+with the new modules present (`logs/session7-olean-after.txt`):
+
+```
+== olean hashes: earlier modules, before vs after the from-scratch rebuild ==
+*Classes.olean SAME 43f4554b909236c7463f66a59da5add30adb3f4084b8e48de414a2381efe3896
+*Codes.olean SAME c5e2c117e4ebe67f687ef83b1d8d2573830c2ad11aeb4b589ea22c352fd1bb8e
+*Comp.olean SAME c560c3c025efabecdee7f093bf9946eaf00f2e9cfa03fd52ce3836bea892daf8
+*Count.olean SAME 3221435b3f6dad351b0e01a73d991c923b6e25a3ee05ca4c4077825178625568
+*Countable.olean SAME d4012351737c0774a51826920bd5e637f07d5c135cc3b929966dc5d08aa6e351
+*Counter.olean SAME 0e1120a345818dfe98fdec7c43a9c0ea4c5e35e03d1d76b1f59588b01a11d6fc
+*Emb.olean SAME 7203cedb57039239eb3735ee203b3d00d4b141f5e6974c8f1bbda90077a0b42f
+*Frame.olean SAME 07be8f33280c713459299e3942a46a5695c7c61173af4b5cc506f7f81fce0382
+*Halt.olean SAME bbec64145c811dcfdf6c5f1be0683a461b4c9478cf354a31201ecda23db125b5
+*Normal.olean SAME 292ec4f641ebb808ff8e37075405b7dea60e9f5ae22bf307e2a8b327de47c0a3
+*Oracle.olean SAME aba34f40f7e4fc0812b4a80bc0a42d472770e255cd15ff572793f04a5f8751da
+*Pad.olean SAME a893514d9d9a7b9ee198efefd4a46a9bc59129eb29f5f01884c43c5670167c6f
+*Plain.olean SAME 538a20892c70be803e666d35140c75b811aca5ba27aa95032ef8ac94dc690561
+*Prog.olean SAME 9f91d8f0624f08e0a079ce2712a2bd5ec7f5d67053fa115d27386cc3a7b3ff7b
+*Queries.olean SAME 55dd84a847e3354d80daf7abe0563cc75fe312bd57ce7cc790c6a5dfdc58b7da
+*Self.olean SAME 2a154bef41f5362745a35ac188e0624a5afe435ffd3a9df2bad3f959aa019753
+*Sep.olean SAME b004c415b234932d33d7025328c104416eb924f01af127fc757bbe872dc72280
+*Stage.olean SAME ddb07f381ae1823929f6b436b631bea29cd76e27762072058fbe49242581761b
+*Univ.olean SAME 764ce3af55c8fd6bd56c16f1e848abff8cb19541e398c8a99c19849247480cb5
+new modules:
+f774511c9685aead9b9424ae052c1dd0a8b8f9e434af54200724477929d21a57 *BakerGillSolovay.olean
+144ce2423f0a2a0e4eb077be46dbe5a98083e73bce81f58ca77d3b523f33ed2e *Collapse.olean
+```
+
+(The first eighteen values are those of `logs/session6-olean-after.txt`; that of `Pad` is new in
+the "before" file, taken before any change of this session.)
+
+`lake env leanchecker --fresh` was not run this session (§13.4 item 8).

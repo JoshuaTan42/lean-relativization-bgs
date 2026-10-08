@@ -1,0 +1,2 @@
+== diff: D:/PvsNP/Pkg.lean lines 391-416 ([POLY] pow_weaken, eval_le_pow) vs Relativization/Collapse.lean lines 32-57 ==
+diff exit: 0 (0 = identical)
